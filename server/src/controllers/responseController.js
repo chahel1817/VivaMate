@@ -2,15 +2,19 @@ const Response = require("../models/Response");
 
 exports.saveResponse = async (req, res) => {
   try {
-    const { question, transcript, feedback, scores, interviewType } = req.body;
+    const { sessionId, question, transcript, feedback, scores, interviewType, domain, tech, difficulty } = req.body;
 
     const response = await Response.create({
       user: req.user,
+      sessionId,
       question,
       transcript,
       feedback,
       scores,
       interviewType,
+      domain,
+      tech,
+      difficulty,
     });
 
     res.status(201).json({

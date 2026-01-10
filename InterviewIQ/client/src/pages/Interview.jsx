@@ -1,17 +1,27 @@
 import { useEffect, useRef, useState } from "react";
 import Navbar from "../components/Navbar";
 import api from "../services/api";
-import { useNavigate } from "react-router-dom";
-
-const TOTAL_QUESTIONS = 5;
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function Interview() {
+  /* ================= ROUTE STATE ================= */
+  const { state } = useLocation();
+  const navigate = useNavigate();
+
+  if (!state) {
+    navigate("/dashboard");
+    return null;
+  }
+
+  const { domain, tech, difficulty, totalQuestions } = state;
+
   /* ================= REFS ================= */
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const speechRef = useRef(null);
 
   /* ================= STATE ================= */
+  const [sessionId, setSessionId] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [transcript, setTranscript] = useState("");
@@ -19,9 +29,7 @@ export default function Interview() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const navigate = useNavigate();
-
-  /* ================= CAMERA (GUARANTEED) ================= */
+  /* ================= CAMERA & MIC ================= */
   useEffect(() => {
     if (loading) return;
 
@@ -62,20 +70,54 @@ export default function Interview() {
     };
   }, [loading]);
 
-  /* ================= LOAD QUESTIONS ================= */
+
+  /* ================= START SESSION ================= */
+  useEffect(() => {
+    const startSession = async () => {
+      try {
+        const res = await api.post("/interview/start-session", {
+          domain,
+          tech,
+          difficulty,
+          totalQuestions,
+        });
+        setSessionId(res.data.sessionId);
+      } catch (err) {
+        console.error("Session error:", err);
+        setError("Failed to start interview session");
+      }
+    };
+
+    startSession();
+  }, [domain, tech, difficulty, totalQuestions]);
+
+  /* ================= LOAD UNIQUE QUESTIONS ================= */
   useEffect(() => {
     const loadQuestions = async () => {
       try {
         setLoading(true);
-        const q = [];
+        setError("");
 
-        for (let i = 0; i < TOTAL_QUESTIONS; i++) {
-          const res = await api.post("/ai/question", { type: "mern" });
-          q.push(res.data.question);
+        const unique = new Set();
+        const list = [];
+
+        while (list.length < totalQuestions) {
+          const res = await api.post("/ai/question", {
+            domain,
+            tech,
+            difficulty,
+          });
+
+          const q = res.data?.question?.trim();
+          if (q && !unique.has(q)) {
+            unique.add(q);
+            list.push(q);
+          }
         }
 
-        setQuestions(q);
-      } catch {
+        setQuestions(list);
+      } catch (err) {
+        console.error("Question load error:", err);
         setError("Failed to load interview questions");
       } finally {
         setLoading(false);
@@ -83,7 +125,7 @@ export default function Interview() {
     };
 
     loadQuestions();
-  }, []);
+  }, [domain, tech, difficulty, totalQuestions]);
 
   /* ================= SPEECH TO TEXT ================= */
   const startSpeech = () => {
@@ -97,15 +139,19 @@ export default function Interview() {
 
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
-    recognition.interimResults = true;
+    recognition.interimResults = false;
     recognition.lang = "en-US";
 
     recognition.onresult = (event) => {
       let text = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        text += event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          text += event.results[i][0].transcript + " ";
+        }
       }
-      setTranscript((prev) => prev + " " + text);
+      if (text) {
+        setTranscript((prev) => (prev + " " + text).trim());
+      }
     };
 
     recognition.start();
@@ -116,7 +162,7 @@ export default function Interview() {
     speechRef.current?.stop();
   };
 
-  /* ================= RECORD CONTROL ================= */
+  /* ================= ANSWER CONTROLS ================= */
   const startAnswer = () => {
     setRecording(true);
     startSpeech();
@@ -129,6 +175,14 @@ export default function Interview() {
 
   /* ================= SUBMIT & NEXT ================= */
   const submitAndNext = async () => {
+    stopSpeech();
+    setRecording(false);
+
+    if (!transcript.trim()) {
+      alert("Please answer the question");
+      return;
+    }
+
     try {
       const question = questions[currentIndex];
 
@@ -138,25 +192,26 @@ export default function Interview() {
       });
 
       await api.post("/responses", {
+        sessionId,
         question,
         transcript,
         feedback: evalRes.data.feedback,
-        interviewType: "mern",
-        scores: {
-          technical: 7,
-          clarity: 6,
-          confidence: 8,
-        },
+        scores: evalRes.data.scores,
+        domain,
+        tech,
+        difficulty,
       });
 
       setTranscript("");
 
-      if (currentIndex + 1 < TOTAL_QUESTIONS) {
-        setCurrentIndex((i) => i + 1);
+      if (currentIndex < totalQuestions - 1) {
+        setCurrentIndex((prev) => prev + 1);
       } else {
-        navigate("/feedback");
+        await api.post("/interview/summary", { sessionId });
+        navigate("/interview-summary");
       }
-    } catch {
+    } catch (err) {
+      console.error("Submit error:", err);
       alert("Failed to submit answer");
     }
   };
@@ -185,7 +240,10 @@ export default function Interview() {
           <div className="lg:col-span-3 bg-black rounded-xl overflow-hidden relative">
             <video
               ref={videoRef}
-              className="w-full h-[560px] object-cover bg-black"
+              autoPlay
+              muted
+              playsInline
+              className="w-full h-[560px] object-cover"
             />
 
             {recording && (
@@ -198,20 +256,20 @@ export default function Interview() {
           {/* QUESTION */}
           <div className="lg:col-span-2 bg-white rounded-xl p-6 flex flex-col">
             <p className="text-sm text-slate-500 mb-2">
-              Question {currentIndex + 1} of {TOTAL_QUESTIONS}
+              Question {currentIndex + 1} of {totalQuestions}
             </p>
 
             <div className="w-full bg-slate-200 h-2 rounded-full mb-4">
               <div
                 className="bg-green-600 h-2 rounded-full"
                 style={{
-                  width: `${((currentIndex + 1) / TOTAL_QUESTIONS) * 100}%`,
+                  width: `${((currentIndex + 1) / totalQuestions) * 100}%`,
                 }}
               />
             </div>
 
             <h3 className="text-lg font-semibold text-slate-800 mb-4">
-              {questions[currentIndex]}
+              {questions[currentIndex] || "Loading question..."}
             </h3>
 
             <textarea
@@ -240,9 +298,9 @@ export default function Interview() {
 
               <button
                 onClick={submitAndNext}
-                className="flex-1 bg-slate-800 text-white py-2 rounded-lg"
+                className="flex-1 bg-slate-800 text-white py-2 rounded-lg hover:bg-slate-900"
               >
-                {currentIndex + 1 === TOTAL_QUESTIONS
+                {currentIndex === totalQuestions - 1
                   ? "Finish Interview"
                   : "Next Question"}
               </button>

@@ -6,8 +6,8 @@ const aiRoutes = require("./routes/aiRoutes");
 const app = express();
 const protect = require("./middleware/authMiddleware");
 const responseRoutes = require("./routes/responseRoutes");
-
-
+const uploadRoutes = require("./routes/uploadRoutes");
+const interviewSessionRoutes = require("./routes/interviewSessionRoutes");
 app.use(cors());
 app.use(express.json());
 
@@ -15,6 +15,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/interviews", interviewRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/responses", responseRoutes);
+app.use("/api/interview", interviewSessionRoutes);
 
 app.get("/api/dashboard", protect, async (req, res) => {
   try {
@@ -53,6 +54,9 @@ app.get("/api/dashboard", protect, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+app.use("/uploads", express.static("uploads"));
+app.use("/api/upload", uploadRoutes);
 
 app.get("/", (req, res) => {
   res.send("API running...");

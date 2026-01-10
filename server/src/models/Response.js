@@ -8,6 +8,11 @@ const responseSchema = new mongoose.Schema(
       required: true,
     },
 
+    sessionId: {
+      type: String,
+      required: true,
+    },
+
     question: {
       type: String,
       required: true,
@@ -18,9 +23,7 @@ const responseSchema = new mongoose.Schema(
       required: true,
     },
 
-    feedback: {
-      type: String,
-    },
+    feedback: String,
 
     scores: {
       technical: { type: Number, default: 0 },
@@ -28,10 +31,9 @@ const responseSchema = new mongoose.Schema(
       confidence: { type: Number, default: 0 },
     },
 
-    interviewType: {
-      type: String,
-      default: "mern",
-    },
+    domain: String,
+    tech: String,
+    difficulty: String,
   },
   { timestamps: true }
 );

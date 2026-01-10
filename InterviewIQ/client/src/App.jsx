@@ -9,6 +9,9 @@ import Interview from "./pages/Interview";
 import Result from "./pages/Result";
 import Performance from "./pages/Performance";
 import Feedback from "./pages/Feedback";
+import InterviewSummary from "./pages/InterviewSummary";
+import InterviewSelect from "./pages/InterviewSelect";
+import InterviewConfig from "./pages/InterviewConfig";
 
 export default function App() {
   return (
@@ -37,6 +40,34 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+  path="/interview-summary"
+  element={
+    <ProtectedRoute>
+      <InterviewSummary />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/interview/select"
+  element={
+    <ProtectedRoute>
+      <InterviewSelect />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/interview/config"
+  element={
+    <ProtectedRoute>
+      <InterviewConfig />
+    </ProtectedRoute>
+  }
+/>
+
 
           <Route
             path="/result"

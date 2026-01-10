@@ -1,148 +1,149 @@
 const axios = require("axios");
 
-/*
-  ===============================
-  GENERATE INTERVIEW QUESTION
-  ===============================
-*/
+/* ===============================
+   GENERATE QUESTION
+================================ */
 exports.generateQuestion = async (req, res) => {
   try {
-    if (!process.env.OPENROUTER_API_KEY) {
-      return res.status(500).json({ message: "OpenRouter API key not configured" });
-    }
+    const { domain, tech, difficulty } = req.body;
 
-    const { type } = req.body;
-
-    if (!type) {
-      return res.status(400).json({ message: "Interview type is required" });
-    }
-
-    // Fallback-safe prompt (no dependency risk)
-    const prompt = `Ask ONE ${type.toUpperCase()} technical interview question.
-Only return the question text. Do not explain anything.`;
-
-    const response = await axios.post(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        model: process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini",
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 150,
-      },
-      {
-        headers: {
-  Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-  Referer: req.headers.origin || "http://localhost:5173",
-  "X-Title": "InterviewIQ",
-  "User-Agent": "InterviewIQ/1.0",   // 🔥 REQUIRED
-  "Content-Type": "application/json",
-}
-,
-        withCredentials: true,
-      }
-    );
-
-    const question = response.data?.choices?.[0]?.message?.content;
-
-    if (!question) {
-      throw new Error("No question returned from OpenRouter");
-    }
-
-    res.json({ question });
-  } catch (error) {
-    console.error(
-      "OPENROUTER QUESTION ERROR:",
-      error.response?.data || error.message
-    );
-
-    res.status(500).json({
-      message: "AI quiz generation failed",
-    });
-  }
-};
-
-/*
-  ===============================
-  EVALUATE ANSWER
-  ===============================
-*/
-exports.evaluateAnswer = async (req, res) => {
-  try {
-    if (!process.env.OPENROUTER_API_KEY) {
-      return res.status(500).json({ message: "OpenRouter API key not configured" });
-    }
-
-    const { question, answer } = req.body;
-
-    if (!question || !answer) {
-      return res
-        .status(400)
-        .json({ message: "Question and answer are required" });
+    if (!domain || !tech || !difficulty) {
+      return res.status(400).json({ message: "domain, tech, difficulty required" });
     }
 
     const prompt = `
-You are an interview evaluator.
+Ask ONE ${difficulty.toUpperCase()} level ${tech.toUpperCase()} interview question 
+related to ${domain.toUpperCase()} development.
 
-Question:
-${question}
-
-Candidate Answer:
-${answer}
-
-Evaluate the answer and return feedback in plain text.
-Mention:
-- Technical accuracy
-- Clarity
-- Confidence
-- One improvement suggestion
+Rules:
+- Only the question
+- No explanation
+- No numbering
 `;
 
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
         model: process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini",
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.6,
-        max_tokens: 300,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+        max_tokens: 120,
       },
       {
         headers: {
-  Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-  Referer: req.headers.origin || "http://localhost:5173",
-  "X-Title": "InterviewIQ",
-  "User-Agent": "InterviewIQ/1.0",   // 🔥 REQUIRED
-  "Content-Type": "application/json",
-}
-,
-        withCredentials: true,
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+        },
       }
     );
 
-    const feedback = response.data?.choices?.[0]?.message?.content;
+    const question = response.data?.choices?.[0]?.message?.content?.trim();
+    res.json({ question });
+  } catch (err) {
+    console.error("QUESTION ERROR:", err.response?.data || err.message);
+    res.status(500).json({ message: "AI question failed" });
+  }
+};
 
-    if (!feedback) {
-      throw new Error("No feedback returned from OpenRouter");
-    }
+/* ===============================
+   EVALUATE ANSWER
+================================ */
+exports.evaluateAnswer = async (req, res) => {
+  try {
+    const { question, answer } = req.body;
 
-    res.json({ feedback });
-  } catch (error) {
-    console.error(
-      "OPENROUTER EVALUATION ERROR:",
-      error.response?.data || error.message
+    const prompt = `
+Evaluate this interview answer and return JSON ONLY:
+
+{
+  "technicalScore": number (0-10),
+  "clarityScore": number (0-10),
+  "confidenceScore": number (0-10),
+  "feedback": "2-3 lines"
+}
+
+Question:
+${question}
+
+Answer:
+${answer}
+`;
+
+    const response = await axios.post(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        model: process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.5,
+        max_tokens: 250,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
     );
 
-    res.status(500).json({
-      message: "AI evaluation failed",
+    const raw = response.data.choices[0].message.content;
+    const parsed = JSON.parse(raw);
+
+    res.json({
+      scores: {
+        technical: parsed.technicalScore,
+        clarity: parsed.clarityScore,
+        confidence: parsed.confidenceScore,
+      },
+      feedback: parsed.feedback,
     });
+  } catch (err) {
+    console.error("EVALUATION ERROR:", err.response?.data || err.message);
+    res.status(500).json({ message: "AI evaluation failed" });
   }
+};
+
+/* ===============================
+   GENERATE SUMMARY (INTERNAL)
+================================ */
+exports.generateAISummary = async (responses, topic, difficulty) => {
+  const text = responses
+    .map(
+      (r, i) =>
+        `Q${i + 1}: ${r.question}
+A: ${r.transcript}
+Scores: T${r.scores.technical}, C${r.scores.clarity}, F${r.scores.confidence}`
+    )
+    .join("\n");
+
+  const prompt = `
+Analyze interview for ${topic.tech} (${topic.domain}) - ${difficulty}.
+
+${text}
+
+Return JSON ONLY:
+{
+  "overallScore": number,
+  "recommendation": string,
+  "strengths": [string],
+  "weaknesses": [string]
+}
+`;
+
+  const response = await axios.post(
+    "https://openrouter.ai/api/v1/chat/completions",
+    {
+      model: process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.5,
+      max_tokens: 300,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  return JSON.parse(response.data.choices[0].message.content);
 };
