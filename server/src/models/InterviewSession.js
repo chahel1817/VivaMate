@@ -15,30 +15,30 @@ const interviewSessionSchema = new mongoose.Schema(
     },
 
     topic: {
-      domain: { type: String, required: true },
-      tech: { type: String, required: true },
+      domain: String,
+      tech: String,
     },
 
-    difficulty: {
-      type: String,
-      enum: ["Easy", "Medium", "Hard"],
-      required: true,
-    },
+    difficulty: String,
+    totalQuestions: Number,
 
-    totalQuestions: {
-      type: Number,
-      required: true,
-    },
-
-    interviewType: {
-      type: String,
-      required: true,
+    questions: {
+      type: [String], // 👈 IMPORTANT
+      default: [],
     },
 
     overallScore: Number,
     recommendation: String,
     strengths: [String],
     weaknesses: [String],
+    perQuestionFeedback: [{
+      question: String,
+      answer: String,
+      technicalScore: Number,
+      clarityScore: Number,
+      confidenceScore: Number,
+      feedback: String,
+    }],
 
     startedAt: Date,
     endedAt: Date,

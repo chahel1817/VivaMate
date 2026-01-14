@@ -11,28 +11,55 @@ import api from "../services/api";
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [dashboardData, setDashboardData] = useState({
-    interviewsTaken: 0,
-    averageScore: 0,
-    lastInterview: null,
-    recentActivity: [],
-  });
+  // Remove dashboardData, use only stats for all dashboard info
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+		interviewsTaken: 0,
+		averageScore: null,
+		lastInterview: null,
+		recentActivity: []
+	});
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const response = await api.get("/dashboard");
-        setDashboardData(response.data);
-      } catch (error) {
-        console.error("Failed to fetch dashboard data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Remove fetchDashboardData, setLoading is handled in refreshStats
 
-    fetchDashboardData();
-  }, []);
+  async function refreshStats() {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/dashboard/stats');
+      if (!res.ok) throw new Error('Failed to load stats');
+      const data = await res.json();
+      setStats(data);
+    } catch (e) {
+      console.error('refreshStats error', e);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+	useEffect(() => {
+		refreshStats();
+		let socket;
+		let pollInterval;
+
+		(async () => {
+			try {
+				const mod = await import('socket.io-client');
+				const io = mod?.default ?? mod;
+				socket = io(process.env.REACT_APP_API_URL || '/', { transports: ['websocket'] });
+				socket.on('connect', () => console.debug('socket connected'));
+				socket.on('session:updated', () => refreshStats());
+				socket.on('disconnect', () => console.debug('socket disconnected'));
+			} catch (err) {
+				console.warn('socket.io-client not available, falling back to polling:', err);
+				pollInterval = setInterval(refreshStats, 10000);
+			}
+		})();
+
+		return () => {
+			if (socket) { socket.off(); socket.disconnect(); }
+			if (pollInterval) clearInterval(pollInterval);
+		};
+	}, []);
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -40,7 +67,7 @@ export default function Dashboard() {
       <header className="bg-white border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
           <h1 className="text-xl font-semibold text-green-600">
-            InterviewIQ
+            VivaMate
           </h1>
 
           <div className="flex items-center gap-4 text-sm">
@@ -73,9 +100,9 @@ export default function Dashboard() {
         {/* Stats */}
         <section className="grid md:grid-cols-3 gap-6">
           {[
-            { label: "Interviews Taken", value: dashboardData.interviewsTaken },
-            { label: "Average Score", value: `${dashboardData.averageScore}%` },
-            { label: "Last Interview", value: dashboardData.lastInterview || "None" },
+            { label: "Interviews Taken", value: stats.interviewsTaken },
+            { label: "Average Score", value: `${(stats.averageScore ?? 0)}%` },
+            { label: "Last Interview", value: stats.lastInterview || "None" },
           ].map((item, i) => (
             <div
               key={i}
@@ -180,11 +207,11 @@ export default function Dashboard() {
           </h3>
 
           <div className="bg-white rounded-xl divide-y">
-            {dashboardData.recentActivity.length === 0 && (
+            {stats.recentActivity.length === 0 && (
               <p className="p-4 text-slate-500">No activity yet</p>
             )}
 
-            {dashboardData.recentActivity.map((item, index) => (
+            {stats.recentActivity.map((item, index) => (
               <div
                 key={index}
                 className="p-4 flex justify-between text-sm"

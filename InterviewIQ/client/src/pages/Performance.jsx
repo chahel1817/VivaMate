@@ -18,6 +18,7 @@ export default function Performance() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let pollInterval;
     const fetchResponses = async () => {
       try {
         const res = await api.get("/responses");
@@ -30,6 +31,8 @@ export default function Performance() {
     };
 
     fetchResponses();
+    pollInterval = setInterval(fetchResponses, 10000);
+    return () => clearInterval(pollInterval);
   }, []);
 
   // 🔢 Calculate averages

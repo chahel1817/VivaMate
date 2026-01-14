@@ -12,7 +12,7 @@ export default function Navbar() {
           className="text-xl font-semibold text-green-600 cursor-pointer"
           onClick={() => navigate("/dashboard")}
         >
-          InterviewIQ
+        VivaMate
         </h1>
 
         <div className="flex items-center gap-4 text-sm">

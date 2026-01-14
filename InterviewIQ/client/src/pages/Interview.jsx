@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Navbar from "../components/Navbar";
 import api from "../services/api";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -28,6 +28,12 @@ export default function Interview() {
   const [recording, setRecording] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [timeLeft, setTimeLeft] = useState(120); // 2 minutes per question
+  const [timerActive, setTimerActive] = useState(false);
+  const [timePressureMode, setTimePressureMode] = useState(false); // Toggle for time pressure mode
+  const [replaying, setReplaying] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState("");
 
   /* ================= CAMERA & MIC ================= */
   useEffect(() => {
@@ -70,7 +76,6 @@ export default function Interview() {
     };
   }, [loading]);
 
-
   /* ================= START SESSION ================= */
   useEffect(() => {
     const startSession = async () => {
@@ -102,16 +107,21 @@ export default function Interview() {
         const list = [];
 
         while (list.length < totalQuestions) {
+          console.log(`Requesting question ${list.length + 1}/${totalQuestions} for type: ${domain} ${tech} ${difficulty}`);
           const res = await api.post("/ai/question", {
-            domain,
-            tech,
-            difficulty,
+            type: `${domain} ${tech} ${difficulty}`,
+            count: 1,
           });
 
-          const q = res.data?.question?.trim();
+          console.log('API Response:', res.data);
+          const q = res.data?.questions?.[0]?.question?.trim();
+          console.log('Extracted question:', q);
           if (q && !unique.has(q)) {
             unique.add(q);
             list.push(q);
+            console.log(`Added question ${list.length}: ${q}`);
+          } else {
+            console.log('Question was duplicate or empty, skipping');
           }
         }
 
@@ -126,6 +136,29 @@ export default function Interview() {
 
     loadQuestions();
   }, [domain, tech, difficulty, totalQuestions]);
+
+  /* ================= TIMER ================= */
+  useEffect(() => {
+    let interval = null;
+    if (timerActive && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0) {
+      // Time's up - auto submit with penalty
+      if (recording) {
+        stopAnswer();
+        alert("Time's up! Your answer will be penalized for being over time.");
+      }
+    }
+    return () => clearInterval(interval);
+  }, [timerActive, timeLeft, recording]);
+
+  // Reset timer when moving to next question
+  useEffect(() => {
+    setTimeLeft(120);
+    setTimerActive(false);
+  }, [currentIndex]);
 
   /* ================= SPEECH TO TEXT ================= */
   const startSpeech = () => {
@@ -162,14 +195,29 @@ export default function Interview() {
     speechRef.current?.stop();
   };
 
+  /* ================= REPLAY ANSWER ================= */
+  const replayAnswer = useCallback(() => {
+    if (!transcript.trim() || replaying) return;
+
+    setReplaying(true);
+    const utterance = new SpeechSynthesisUtterance(transcript);
+    utterance.onend = () => setReplaying(false);
+    utterance.onerror = () => setReplaying(false);
+    speechSynthesis.speak(utterance);
+  }, [transcript, replaying]);
+
   /* ================= ANSWER CONTROLS ================= */
   const startAnswer = () => {
     setRecording(true);
+    if (timePressureMode) {
+      setTimerActive(true);
+    }
     startSpeech();
   };
 
   const stopAnswer = () => {
     setRecording(false);
+    setTimerActive(false);
     stopSpeech();
   };
 
@@ -183,6 +231,9 @@ export default function Interview() {
       return;
     }
 
+    setSubmitting(true);
+    setSubmitMessage("Evaluating your answer...");
+
     try {
       const question = questions[currentIndex];
 
@@ -191,28 +242,51 @@ export default function Interview() {
         answer: transcript,
       });
 
-      await api.post("/responses", {
+      setSubmitMessage("Saving your response...");
+
+      // Map AI evaluation response to scores object
+      const scores = {
+        technical: evalRes.data.technicalScore || 0,
+        clarity: evalRes.data.clarityScore || 0,
+        confidence: evalRes.data.confidenceScore || 0,
+      };
+
+      const responseRes = await api.post("/responses", {
         sessionId,
         question,
         transcript,
         feedback: evalRes.data.feedback,
-        scores: evalRes.data.scores,
+        scores: scores,
         domain,
         tech,
         difficulty,
+        timeTaken: timePressureMode ? (120 - timeLeft) : null,
+        timePenalty: timePressureMode && timeLeft === 0,
       });
 
+      console.log("Response saved:", responseRes.data);
+      setSubmitMessage("Answer submitted successfully!");
+
+      // Brief delay to show success message
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       setTranscript("");
+      setSubmitting(false);
+      setSubmitMessage("");
 
       if (currentIndex < totalQuestions - 1) {
         setCurrentIndex((prev) => prev + 1);
+        setTimeLeft(120); // Reset timer for next question
       } else {
+        setSubmitMessage("Generating summary...");
         await api.post("/interview/summary", { sessionId });
-        navigate("/interview-summary");
+        navigate("/interview-processing");
       }
     } catch (err) {
       console.error("Submit error:", err);
-      alert("Failed to submit answer");
+      setSubmitting(false);
+      setSubmitMessage("");
+      alert(`Failed to submit answer: ${err.response?.data?.message || err.message || "Unknown error"}`);
     }
   };
 
@@ -297,14 +371,37 @@ export default function Interview() {
               )}
 
               <button
-                onClick={submitAndNext}
-                className="flex-1 bg-slate-800 text-white py-2 rounded-lg hover:bg-slate-900"
+                onClick={replayAnswer}
+                disabled={!transcript.trim() || replaying || submitting}
+                className="flex-1 bg-blue-600 text-white py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {currentIndex === totalQuestions - 1
-                  ? "Finish Interview"
-                  : "Next Question"}
+                {replaying ? "Replaying..." : "Replay Answer"}
               </button>
             </div>
+
+            {submitMessage && (
+              <div className={`mt-3 p-3 rounded-lg text-sm ${
+                submitMessage.includes("success") 
+                  ? "bg-green-100 text-green-800" 
+                  : submitMessage.includes("error") || submitMessage.includes("Failed")
+                  ? "bg-red-100 text-red-800"
+                  : "bg-blue-100 text-blue-800"
+              }`}>
+                {submitMessage}
+              </div>
+            )}
+
+            <button
+              onClick={submitAndNext}
+              disabled={!transcript.trim() || submitting}
+              className="mt-3 w-full bg-slate-800 text-white py-3 rounded-lg font-semibold hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              {submitting 
+                ? "Submitting..." 
+                : currentIndex === totalQuestions - 1
+                ? "Submit & Finish Interview"
+                : "Submit & Next Question"}
+            </button>
           </div>
         </div>
 

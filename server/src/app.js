@@ -19,38 +19,76 @@ app.use("/api/interview", interviewSessionRoutes);
 
 app.get("/api/dashboard", protect, async (req, res) => {
   try {
-    const Interview = require("./models/Interview");
-    const Response = require("./models/Response");
+    const InterviewSession = require("./models/InterviewSession");
 
-    const interviews = await Interview
+    // Fetch all interview sessions for the user
+    const sessions = await InterviewSession
       .find({ user: req.user })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    const responses = await Response.find({ user: req.user });
+    // Calculate average score from completed sessions
+    const completedSessions = sessions.filter(s => s.overallScore !== null && s.overallScore !== undefined);
+    const avgScore = completedSessions.length > 0
+      ? Math.round((completedSessions.reduce((sum, s) => sum + (s.overallScore || 0), 0) / completedSessions.length) * 10)
+      : 0;
 
-    const avgTechnicalScore =
-      responses.length > 0
-        ? responses.reduce(
-            (sum, r) => sum + (r.evaluation?.technicalScore || 0),
-            0
-          ) / responses.length
-        : 0;
+    // Get last interview date
+    const lastInterview = sessions.length > 0
+      ? new Date(sessions[0].createdAt).toLocaleDateString()
+      : null;
+
+    // Recent activity from sessions
+    const recentActivity = sessions.slice(0, 5).map((s) => ({
+      role: s.topic ? `${s.topic.domain || ''} ${s.topic.tech || ''}`.trim() || "Mock Interview" : "Mock Interview",
+      date: new Date(s.createdAt).toLocaleDateString(),
+      score: s.overallScore ? `${s.overallScore}/10` : "In Progress",
+    }));
 
     res.json({
       message: "Welcome to dashboard",
       userId: req.user,
-      interviewsTaken: interviews.length,
-      averageScore: Math.round(avgTechnicalScore * 10), // % format
-      lastInterview: interviews[0]
-        ? new Date(interviews[0].createdAt).toLocaleDateString()
-        : null,
-      recentActivity: interviews.slice(0, 3).map((i) => ({
-        role: i.role || "Mock Interview",
-        date: new Date(i.createdAt).toLocaleDateString(),
+      interviewsTaken: sessions.length,
+      averageScore: avgScore, // Percentage format (0-100)
+      lastInterview,
+      recentActivity,
+    });
+  } catch (error) {
+    console.error("Dashboard error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Dashboard stats endpoint (for compatibility)
+app.get("/api/dashboard/stats", protect, async (req, res) => {
+  try {
+    const InterviewSession = require("./models/InterviewSession");
+
+    const sessions = await InterviewSession
+      .find({ user: req.user })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const completedSessions = sessions.filter(s => s.overallScore !== null && s.overallScore !== undefined);
+
+    let avgScore = null;
+    if (completedSessions.length > 0) {
+      avgScore = Math.round((completedSessions.reduce((sum, s) => sum + (s.overallScore || 0), 0) / completedSessions.length) * 10);
+    } else {
+      avgScore = 0;
+    }
+
+    res.json({
+      interviewsTaken: sessions.length,
+      averageScore: avgScore,
+      lastInterview: sessions.length > 0 ? new Date(sessions[0].createdAt).toLocaleDateString() : null,
+      recentActivity: sessions.slice(0, 5).map((s) => ({
+        role: s.topic ? `${s.topic.domain || ''} ${s.topic.tech || ''}`.trim() || "Mock Interview" : "Mock Interview",
+        date: new Date(s.createdAt).toLocaleDateString(),
       })),
     });
   } catch (error) {
-    console.error(error);
+    console.error("Dashboard stats error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });

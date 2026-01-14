@@ -8,6 +8,7 @@ export default function Feedback() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    let pollInterval;
     const fetchResponses = async () => {
       try {
         const res = await api.get("/responses");
@@ -21,6 +22,8 @@ export default function Feedback() {
     };
 
     fetchResponses();
+    pollInterval = setInterval(fetchResponses, 10000);
+    return () => clearInterval(pollInterval);
   }, []);
 
   if (loading) {

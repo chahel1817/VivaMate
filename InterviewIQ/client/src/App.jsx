@@ -12,7 +12,7 @@ import Feedback from "./pages/Feedback";
 import InterviewSummary from "./pages/InterviewSummary";
 import InterviewSelect from "./pages/InterviewSelect";
 import InterviewConfig from "./pages/InterviewConfig";
-
+import InterviewProcessing from "./pages/InterviewProcessing";
 export default function App() {
   return (
     <AuthProvider>
@@ -31,6 +31,8 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route path="/interview-processing" element={<InterviewProcessing />} />
 
           <Route
             path="/interview"

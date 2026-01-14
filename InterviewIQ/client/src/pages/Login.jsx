@@ -30,7 +30,7 @@ export default function Login() {
           Practice interviews <br /> with confidence
         </h1>
         <p className="mt-4 text-green-100 max-w-sm">
-          InterviewIQ helps you prepare smarter with structured practice.
+          VivaMate helps you prepare smarter with structured practice.
         </p>
       </div>
 
