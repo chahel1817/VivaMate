@@ -28,6 +28,11 @@ const interviewSessionSchema = new mongoose.Schema(
     },
 
     overallScore: Number,
+    averageTechnical: Number,
+    averageClarity: Number,
+    averageConfidence: Number,
+    consistencyScore: Number,
+    consistencyNote: String,
     recommendation: String,
     strengths: [String],
     weaknesses: [String],
@@ -38,6 +43,11 @@ const interviewSessionSchema = new mongoose.Schema(
       clarityScore: Number,
       confidenceScore: Number,
       feedback: String,
+    }],
+    skillMetrics: [{
+      skill: String,
+      averageScore: Number,
+      count: Number,
     }],
 
     startedAt: Date,

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import api from "../services/api";
-import { login as loginService, register as registerService } from "../services/authService";
+import { login as loginService, register as registerService, requestOtp as requestOtpService, verifyOtp as verifyOtpService } from "../services/authService";
 
 
 const AuthContext = createContext();
@@ -67,11 +67,55 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // For OTP-based login flows: directly set token + user
+  const loginWithToken = (token, userData) => {
+    if (token) {
+      localStorage.setItem("token", token);
+    }
+    if (userData) {
+      setUser(userData);
+    }
+  };
+
+  const requestOtp = async (email) => {
+    try {
+      const data = await requestOtpService(email);
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const verifyOtp = async (email, otp) => {
+    try {
+      const data = await verifyOtpService(email, otp);
+      localStorage.setItem('token', data.token);
+      setUser(data.user);
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const updateProfile = async (profileData) => {
+    try {
+      const res = await api.put("/auth/profile", profileData);
+      setUser(res.data.user);
+      return res.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const value = {
     user,
     login,
     register,
     logout,
+    loginWithToken,
+    requestOtp,
+    verifyOtp,
+    updateProfile,
     loading,
   };
 

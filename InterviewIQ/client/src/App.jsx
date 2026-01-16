@@ -1,9 +1,12 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/authContext";
+import { ThemeProvider } from "./context/themeContext";
 import ProtectedRoute from "./utils/protectedRoute";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import VerifyOtp from "./pages/VerifyOtp";
 import Dashboard from "./pages/Dashboard";
 import Interview from "./pages/Interview";
 import Result from "./pages/Result";
@@ -13,14 +16,19 @@ import InterviewSummary from "./pages/InterviewSummary";
 import InterviewSelect from "./pages/InterviewSelect";
 import InterviewConfig from "./pages/InterviewConfig";
 import InterviewProcessing from "./pages/InterviewProcessing";
+import Profile from "./pages/Profile";
+import Analytics from "./pages/Analytics";
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
           {/* PUBLIC ROUTES */}
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/verify-otp" element={<VerifyOtp />} />
 
           {/* PROTECTED ROUTES */}
           <Route
@@ -28,6 +36,15 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             }
           />
@@ -97,8 +114,18 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute>
+                <Analytics />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

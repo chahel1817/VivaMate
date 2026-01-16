@@ -85,6 +85,7 @@ app.get("/api/dashboard/stats", protect, async (req, res) => {
       recentActivity: sessions.slice(0, 5).map((s) => ({
         role: s.topic ? `${s.topic.domain || ''} ${s.topic.tech || ''}`.trim() || "Mock Interview" : "Mock Interview",
         date: new Date(s.createdAt).toLocaleDateString(),
+        score: s.overallScore ? `${s.overallScore}/10` : "In Progress",
       })),
     });
   } catch (error) {

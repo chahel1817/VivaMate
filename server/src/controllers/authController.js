@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { sendOtpEmail } = require("../utils/mailer");
 
 const register = async (req, res) => {
   try {
@@ -64,4 +65,84 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+// Request OTP for login / passwordless access
+const requestOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email });
+
+    // For security: respond with success even if user not found
+    if (!user) {
+      return res.status(200).json({ message: "If this email is registered, an OTP has been sent." });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+    user.resetOtp = otp;
+    user.resetOtpExpires = new Date(expires);
+    await user.save();
+
+    await sendOtpEmail(user.email, otp);
+
+    return res.status(200).json({ message: "OTP sent to your email. It is valid for 10 minutes." });
+  } catch (err) {
+    console.error("requestOtp error", err);
+    return res.status(500).json({ message: "Failed to send OTP" });
+  }
+};
+
+// Verify OTP and log the user in (issue JWT)
+const verifyOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP are required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user || !user.resetOtp || !user.resetOtpExpires) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    if (user.resetOtp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    if (user.resetOtpExpires.getTime() < Date.now()) {
+      return res.status(400).json({ message: "OTP has expired" });
+    }
+
+    // Clear OTP fields
+    user.resetOtp = undefined;
+    user.resetOtpExpires = undefined;
+    await user.save();
+
+    // Issue JWT token (same as login)
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    return res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (err) {
+    console.error("verifyOtp error", err);
+    return res.status(500).json({ message: "Failed to verify OTP" });
+  }
+};
+
+module.exports = { register, login, requestOtp, verifyOtp };

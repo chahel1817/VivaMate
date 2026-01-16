@@ -1,9 +1,10 @@
-# TODO List for InterviewIQ Fixes
+# Forgot Password Feature Implementation
 
 ## Completed Tasks
-- [x] Fix "Unknown at rule @tailwind" error by creating .csslintrc.json to ignore Tailwind directives
-- [x] Fix blank screen on interview topic selection by correcting navigation path from "/interview/setup" to "/interview/config" in InterviewSelect.jsx
-
-## Pending Tasks
-- [ ] Test the application to ensure Tailwind CSS is working properly (run `npm run dev` in InterviewIQ/client)
-- [ ] Verify that selecting an interview topic now navigates to the config page without blank screen
+- [x] Create ForgotPassword.jsx page for email input
+- [x] Create VerifyOtp.jsx page for OTP input
+- [x] Add requestOtp and verifyOtp functions to authService.js
+- [x] Update authContext.jsx to handle OTP login
+- [x] Add "Forgot Password?" link to Login.jsx
+- [x] Add routes for /forgot-password and /verify-otp in App.jsx
+- [x] Test the forgot password flow end-to-end

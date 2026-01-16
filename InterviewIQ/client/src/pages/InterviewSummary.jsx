@@ -60,8 +60,8 @@ export default function InterviewSummary() {
   /* ================= CHART DATA ================= */
   const scoreData = [
     { skill: "Technical", value: summary.averageTechnical || summary.overallScore || 0 },
-    { skill: "Clarity", value: summary.averageClarity || (summary.overallScore ? summary.overallScore - 1 : 0) },
-    { skill: "Confidence", value: summary.averageConfidence || (summary.overallScore ? summary.overallScore - 0.5 : 0) },
+    { skill: "Clarity", value: summary.averageClarity || 0 },
+    { skill: "Confidence", value: summary.averageConfidence || 0 },
   ];
 
   const interviewType = summary.topic 
@@ -111,10 +111,10 @@ export default function InterviewSummary() {
             <StatCard title="Overall Score" value={`${summary.overallScore || 0}/10`} />
             <StatCard title="Interview Type" value={interviewType} />
             <StatCard
-              title="Recommendation"
-              value={summary.recommendation || "Pending"}
-              highlight
+              title="Consistency Score"
+              value={summary.consistencyScore != null ? `${summary.consistencyScore}/10` : "N/A"}
             />
+            <StatCard title="Recommendation" value={summary.recommendation || "Pending"} highlight />
           </div>
 
           {/* CHARTS */}
@@ -165,6 +165,42 @@ export default function InterviewSummary() {
               color="yellow"
             />
           </div>
+
+          {/* CONSISTENCY NOTE */}
+          {summary.consistencyNote && (
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+              <h3 className="font-semibold mb-2">Interview Consistency Insight</h3>
+              <p className="text-slate-700 text-sm">{summary.consistencyNote}</p>
+            </div>
+          )}
+
+          {/* SKILL HEATMAP */}
+          {summary.skillMetrics && summary.skillMetrics.length > 0 && (
+            <div className="bg-white rounded-2xl p-6 shadow">
+              <h3 className="font-semibold mb-4 text-xl">Skill Heatmap</h3>
+              <p className="text-sm text-slate-500 mb-4">
+                Your performance across different topics based on technical scores.
+              </p>
+              <div className="space-y-3">
+                {summary.skillMetrics.map((s, idx) => (
+                  <div key={idx}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="font-medium text-slate-700">{s.skill}</span>
+                      <span className="text-slate-500">
+                        {s.averageScore.toFixed(1)}/10 · {s.count} question{s.count > 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-2 rounded-full bg-gradient-to-r from-red-500 via-yellow-400 to-green-500"
+                        style={{ width: `${Math.min(100, (s.averageScore / 10) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* PER-QUESTION FEEDBACK */}
           {summary.perQuestionFeedback && summary.perQuestionFeedback.length > 0 && (

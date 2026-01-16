@@ -6,10 +6,14 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/authContext";
+import { useTheme } from "../context/themeContext";
+import SearchAndFilter from "../components/SearchAndFilter";
+import Navbar from "../components/Navbar";
 import api from "../services/api";
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
+  const { isDarkMode } = useTheme();
   const navigate = useNavigate();
   // Remove dashboardData, use only stats for all dashboard info
   const [loading, setLoading] = useState(true);
@@ -19,16 +23,24 @@ export default function Dashboard() {
 		lastInterview: null,
 		recentActivity: []
 	});
+  const [filteredActivity, setFilteredActivity] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState({});
+
+  console.log("Dashboard component rendering", { user, loading });
 
   // Remove fetchDashboardData, setLoading is handled in refreshStats
 
   async function refreshStats() {
     try {
       setLoading(true);
-      const res = await fetch('/api/dashboard/stats');
-      if (!res.ok) throw new Error('Failed to load stats');
-      const data = await res.json();
+      console.log("Fetching dashboard stats");
+      // Use axios instance so auth token & baseURL are consistent
+      const res = await api.get("/dashboard/stats");
+      console.log("Dashboard stats response", res.data);
+      const data = res.data;
       setStats(data);
+      setFilteredActivity(data.recentActivity || []);
     } catch (e) {
       console.error('refreshStats error', e);
     } finally {
@@ -36,62 +48,125 @@ export default function Dashboard() {
     }
   }
 
+  // Handle search and filtering
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+    applyFilters(term, filters);
+  };
+
+  const handleFilter = (newFilters) => {
+    setFilters(newFilters);
+    applyFilters(searchTerm, newFilters);
+  };
+
+  const applyFilters = (term, filterObj) => {
+    let filtered = [...(stats.recentActivity || [])];
+
+    // Apply search
+    if (term) {
+      filtered = filtered.filter(item =>
+        item.role?.toLowerCase().includes(term.toLowerCase()) ||
+        item.type?.toLowerCase().includes(term.toLowerCase()) ||
+        item.feedback?.toLowerCase().includes(term.toLowerCase())
+      );
+    }
+
+    // Apply filters
+    if (filterObj.dateRange) {
+      const now = new Date();
+      const filterDate = new Date();
+
+      switch (filterObj.dateRange) {
+        case 'today':
+          filterDate.setDate(now.getDate() - 1);
+          break;
+        case 'week':
+          filterDate.setDate(now.getDate() - 7);
+          break;
+        case 'month':
+          filterDate.setMonth(now.getMonth() - 1);
+          break;
+        case 'quarter':
+          filterDate.setMonth(now.getMonth() - 3);
+          break;
+        case 'year':
+          filterDate.setFullYear(now.getFullYear() - 1);
+          break;
+      }
+
+      filtered = filtered.filter(item => new Date(item.date) >= filterDate);
+    }
+
+    if (filterObj.type) {
+      filtered = filtered.filter(item => item.type === filterObj.type);
+    }
+
+    if (filterObj.scoreRange) {
+      filtered = filtered.filter(item => {
+        const score = parseFloat(item.score);
+        switch (filterObj.scoreRange) {
+          case 'excellent': return score >= 8;
+          case 'good': return score >= 6 && score < 8;
+          case 'average': return score >= 4 && score < 6;
+          case 'needs-improvement': return score < 4;
+          default: return true;
+        }
+      });
+    }
+
+    if (filterObj.difficulty) {
+      filtered = filtered.filter(item => item.difficulty === filterObj.difficulty);
+    }
+
+    setFilteredActivity(filtered);
+  };
+
 	useEffect(() => {
-		refreshStats();
-		let socket;
-		let pollInterval;
+    refreshStats();
+    let socket;
+    let pollInterval;
 
-		(async () => {
-			try {
-				const mod = await import('socket.io-client');
-				const io = mod?.default ?? mod;
-				socket = io(process.env.REACT_APP_API_URL || '/', { transports: ['websocket'] });
-				socket.on('connect', () => console.debug('socket connected'));
-				socket.on('session:updated', () => refreshStats());
-				socket.on('disconnect', () => console.debug('socket disconnected'));
-			} catch (err) {
-				console.warn('socket.io-client not available, falling back to polling:', err);
-				pollInterval = setInterval(refreshStats, 10000);
-			}
-		})();
+    (async () => {
+      try {
+        const mod = await import("socket.io-client");
+        const io = mod?.default ?? mod;
+        const socketUrl =
+          process.env.REACT_APP_API_URL || "http://localhost:5000";
+        socket = io(socketUrl, { transports: ["websocket"] });
+        socket.on("connect", () => console.debug("socket connected"));
+        socket.on("session:updated", () => refreshStats());
+        socket.on("disconnect", () => console.debug("socket disconnected"));
+      } catch (err) {
+        console.warn(
+          "socket.io-client not available, falling back to polling:",
+          err
+        );
+      }
+    })();
 
-		return () => {
-			if (socket) { socket.off(); socket.disconnect(); }
-			if (pollInterval) clearInterval(pollInterval);
-		};
-	}, []);
+    // Always enable polling for real-time updates
+    pollInterval = setInterval(refreshStats, 10000);
+
+    return () => {
+      if (socket) {
+        socket.off();
+        socket.disconnect();
+      }
+      if (pollInterval) clearInterval(pollInterval);
+    };
+  }, []);
 
   return (
-    <div className="min-h-screen bg-slate-100">
-      {/* Navbar */}
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-semibold text-green-600">
-            VivaMate
-          </h1>
-
-          <div className="flex items-center gap-4 text-sm">
-            <span className="text-slate-600">
-              Welcome back, {user?.name} 👋
-            </span>
-            <button
-              onClick={logout}
-              className="text-green-600 hover:underline"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main */}
-      <main className="max-w-6xl mx-auto px-6 py-10 space-y-12">
+    <>
+      <Navbar />
+      <div className={`min-h-screen ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-slate-100'} px-6 py-10`}>
+        <div className="max-w-6xl mx-auto space-y-12">
         {/* Intro */}
         <section>
-          <h2 className="text-2xl font-semibold text-slate-800">
+          <h2 className={`text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
             Your Dashboard
           </h2>
-          <p className="text-slate-500 mt-2 max-w-2xl">
+          <p className={`text-slate-500 mt-2 max-w-2xl ${isDarkMode ? 'text-slate-400' : ''}`}>
             This is your personal interview preparation space.
             Start mock interviews, review feedback, and track growth.
           </p>
@@ -106,10 +181,10 @@ export default function Dashboard() {
           ].map((item, i) => (
             <div
               key={i}
-              className="bg-white border border-slate-200 rounded-xl p-6"
+              className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} border rounded-xl p-6`}
             >
-              <h3 className="text-sm text-slate-500">{item.label}</h3>
-              <p className="text-3xl font-semibold text-slate-800 mt-2">
+              <h3 className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{item.label}</h3>
+              <p className={`text-3xl font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'} mt-2`}>
                 {loading ? "..." : item.value}
               </p>
             </div>
@@ -118,7 +193,7 @@ export default function Dashboard() {
 
         {/* Actions */}
         <section>
-          <h3 className="text-xl font-semibold text-slate-800 mb-4">
+          <h3 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
             What would you like to do?
           </h3>
 
@@ -155,15 +230,14 @@ export default function Dashboard() {
                 <div
                   key={i}
                   onClick={() => navigate(card.path)}
-                  className="
+                  className={`
                     group cursor-pointer
-                    bg-white rounded-2xl border border-slate-200 p-6
+                    ${isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white hover:bg-green-50'} rounded-2xl border p-6
                     transition-all duration-300
-                    hover:bg-green-50
                     hover:border-green-500
                     hover:shadow-lg
                     hover:-translate-y-1
-                  "
+                  `}
                 >
                   <Icon
                     size={28}
@@ -174,17 +248,17 @@ export default function Dashboard() {
                     "
                   />
 
-                  <h4 className="
-                    text-lg font-semibold text-slate-800
+                  <h4 className={`
+                    text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}
                     group-hover:text-green-700 transition
-                  ">
+                  `}>
                     {card.title}
                   </h4>
 
-                  <p className="
-                    text-slate-500 text-sm mt-1
+                  <p className={`
+                    ${isDarkMode ? 'text-slate-400' : 'text-slate-500'} text-sm mt-1
                     group-hover:text-slate-700 transition
-                  ">
+                  `}>
                     {card.desc}
                   </p>
 
@@ -202,27 +276,53 @@ export default function Dashboard() {
 
         {/* Recent Activity */}
         <section>
-          <h3 className="text-xl font-semibold mb-4">
+          <h3 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
             Recent Activity
           </h3>
 
-          <div className="bg-white rounded-xl divide-y">
-            {stats.recentActivity.length === 0 && (
-              <p className="p-4 text-slate-500">No activity yet</p>
+          {/* Search and Filter Component */}
+          <SearchAndFilter
+            onSearch={handleSearch}
+            onFilter={handleFilter}
+            interviews={stats.recentActivity || []}
+          />
+
+          <div className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} rounded-xl divide-y border overflow-hidden`}>
+            {filteredActivity.length === 0 && (
+              <p className={`p-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                {stats.recentActivity?.length === 0 ? "No activity yet" : "No results match your filters"}
+              </p>
             )}
 
-            {stats.recentActivity.map((item, index) => (
+            {filteredActivity.map((item, index) => (
               <div
                 key={index}
-                className="p-4 flex justify-between text-sm"
+                className={`p-4 flex justify-between items-center text-sm ${
+                  isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-50'
+                } transition`}
               >
-                <span>{item.role}</span>
-                <span className="text-slate-400">{item.date}</span>
+                <div>
+                  <p className={`font-medium ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                    {item.role || item.type || 'Interview'}
+                  </p>
+                  <p className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                    On {item.date}
+                  </p>
+                </div>
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                  item.score >= 8 ? 'bg-green-50 text-green-700 border border-green-200' :
+                  item.score >= 6 ? 'bg-blue-50 text-blue-700 border border-blue-200' :
+                  item.score >= 4 ? 'bg-yellow-50 text-yellow-700 border border-yellow-200' :
+                  'bg-red-50 text-red-700 border border-red-200'
+                }`}>
+                  {item.score ? `${item.score}/10` : "In Progress"}
+                </span>
               </div>
             ))}
           </div>
         </section>
-      </main>
-    </div>
+        </div>
+      </div>
+    </>
   );
 }

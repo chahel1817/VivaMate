@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Navbar from "../components/Navbar";
+import RealTimeFeedback from "../components/RealTimeFeedback";
 import api from "../services/api";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -332,6 +333,36 @@ export default function Interview() {
             <p className="text-sm text-slate-500 mb-2">
               Question {currentIndex + 1} of {totalQuestions}
             </p>
+
+            {/* TIME PRESSURE TOGGLE + TIMER */}
+            <div className="flex items-center justify-between mb-3">
+              <button
+                type="button"
+                onClick={() => setTimePressureMode((prev) => !prev)}
+                className={`text-xs px-3 py-1 rounded-full border ${
+                  timePressureMode
+                    ? "bg-red-50 border-red-400 text-red-700"
+                    : "bg-slate-50 border-slate-300 text-slate-600"
+                }`}
+              >
+                {timePressureMode ? "Time Pressure Mode: ON" : "Time Pressure Mode: OFF"}
+              </button>
+
+              <div
+                className={`text-xs font-mono px-3 py-1 rounded-full ${
+                  !timePressureMode
+                    ? "bg-slate-100 text-slate-500"
+                    : timeLeft <= 15
+                    ? "bg-red-100 text-red-700 animate-pulse"
+                    : timeLeft <= 45
+                    ? "bg-yellow-100 text-yellow-700"
+                    : "bg-green-100 text-green-700"
+                }`}
+              >
+                ⏱ {String(Math.floor(timeLeft / 60)).padStart(2, "0")}:
+                {String(timeLeft % 60).padStart(2, "0")}
+              </div>
+            </div>
 
             <div className="w-full bg-slate-200 h-2 rounded-full mb-4">
               <div

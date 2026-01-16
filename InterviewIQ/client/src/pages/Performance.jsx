@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "../context/authContext";
+import { useTheme } from "../context/themeContext";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
 import {
@@ -14,6 +16,8 @@ import {
 } from "recharts";
 
 export default function Performance() {
+  const { user } = useAuth();
+  const { isDarkMode } = useTheme();
   const [responses, setResponses] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -59,7 +63,7 @@ export default function Performance() {
     return (
       <>
         <Navbar />
-        <div className="flex justify-center items-center h-screen text-slate-500">
+        <div className={`flex justify-center items-center h-screen ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
           Loading performance...
         </div>
       </>
@@ -69,11 +73,11 @@ export default function Performance() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-slate-100 px-6 py-10">
+      <div className={`min-h-screen ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-slate-100'} px-6 py-10`}>
         <div className="max-w-6xl mx-auto space-y-10">
 
           {/* HEADER */}
-          <h2 className="text-2xl font-semibold text-slate-800">
+          <h2 className={`text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
             Performance Analytics
           </h2>
 
@@ -86,10 +90,10 @@ export default function Performance() {
             ].map((item, i) => (
               <div
                 key={i}
-                className="bg-white rounded-xl border p-6 text-center"
+                className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} rounded-xl border p-6 text-center`}
               >
-                <p className="text-sm text-slate-500">{item.label}</p>
-                <p className="text-3xl font-semibold text-slate-800 mt-2">
+                <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{item.label}</p>
+                <p className={`text-3xl font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'} mt-2`}>
                   {item.value}
                 </p>
               </div>
@@ -97,17 +101,17 @@ export default function Performance() {
           </div>
 
           {/* LINE CHART */}
-          <div className="bg-white rounded-xl border p-6">
-            <h3 className="font-semibold text-slate-800 mb-4">
+          <div className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} rounded-xl border p-6`}>
+            <h3 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'} mb-4`}>
               Improvement Over Time
             </h3>
 
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="attempt" />
-                <YAxis />
-                <Tooltip />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#475569' : '#e2e8f0'} />
+                <XAxis dataKey="attempt" stroke={isDarkMode ? '#cbd5e1' : '#64748b'} />
+                <YAxis stroke={isDarkMode ? '#cbd5e1' : '#64748b'} />
+                <Tooltip contentStyle={{ backgroundColor: isDarkMode ? '#1e293b' : '#ffffff', color: isDarkMode ? '#ffffff' : '#000000' }} />
                 <Line type="monotone" dataKey="technical" stroke="#16a34a" />
                 <Line type="monotone" dataKey="clarity" stroke="#0284c7" />
                 <Line type="monotone" dataKey="confidence" stroke="#9333ea" />
@@ -116,17 +120,17 @@ export default function Performance() {
           </div>
 
           {/* BAR CHART */}
-          <div className="bg-white rounded-xl border p-6">
-            <h3 className="font-semibold text-slate-800 mb-4">
+          <div className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} rounded-xl border p-6`}>
+            <h3 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'} mb-4`}>
               Score Breakdown
             </h3>
 
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="attempt" />
-                <YAxis />
-                <Tooltip />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#475569' : '#e2e8f0'} />
+                <XAxis dataKey="attempt" stroke={isDarkMode ? '#cbd5e1' : '#64748b'} />
+                <YAxis stroke={isDarkMode ? '#cbd5e1' : '#64748b'} />
+                <Tooltip contentStyle={{ backgroundColor: isDarkMode ? '#1e293b' : '#ffffff', color: isDarkMode ? '#ffffff' : '#000000' }} />
                 <Bar dataKey="technical" fill="#16a34a" />
                 <Bar dataKey="clarity" fill="#0284c7" />
                 <Bar dataKey="confidence" fill="#9333ea" />

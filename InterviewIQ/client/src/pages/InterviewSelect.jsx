@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Navbar from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../context/themeContext";
 
 /* ================= ALL TOPICS ================= */
 const TOPICS = [
@@ -47,6 +48,7 @@ const TOPICS = [
 /* ================= COMPONENT ================= */
 export default function InterviewSelect() {
   const navigate = useNavigate();
+  const { isDarkMode } = useTheme();
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -85,7 +87,7 @@ export default function InterviewSelect() {
     <>
       <Navbar />
 
-      <div className="min-h-screen bg-slate-100 p-6">
+      <div className={`min-h-screen ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-slate-100'} p-6`}>
         <div className="max-w-6xl mx-auto">
 
           {/* SEARCH BAR */}
@@ -94,12 +96,14 @@ export default function InterviewSelect() {
             placeholder="Search topics (OS, Cloud, JavaScript...)"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full mb-6 px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-green-500"
+            className={`w-full mb-6 px-4 py-3 rounded-xl border ${
+              isDarkMode ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-400' : 'bg-white border-slate-300'
+            } focus:outline-none focus:ring-2 focus:ring-green-500`}
           />
 
           {/* NO RESULTS */}
           {filteredTopics.length === 0 && (
-            <p className="text-center text-slate-500">
+            <p className={`text-center ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
               No topics found
             </p>
           )}
@@ -108,7 +112,7 @@ export default function InterviewSelect() {
           <div className="space-y-8">
             {Object.entries(groupedTopics).map(([domain, topics]) => (
               <div key={domain}>
-                <h2 className="text-xl font-semibold mb-4">
+                <h2 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
                   {domain}
                 </h2>
 
@@ -124,14 +128,14 @@ export default function InterviewSelect() {
                           },
                         })
                       }
-                      className="
-                        bg-white p-4 rounded-xl text-left border
+                      className={`
+                        ${isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white hover:bg-green-50'} p-4 rounded-xl text-left border
                         transition-all duration-200
-                        hover:border-green-500 hover:bg-green-50 hover:shadow-md
-                      "
+                        hover:border-green-500 hover:shadow-md
+                      `}
                     >
-                      <p className="font-semibold">{t.tech}</p>
-                      <p className="text-sm text-slate-500">
+                      <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>{t.tech}</p>
+                      <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                         {t.domain}
                       </p>
                     </button>

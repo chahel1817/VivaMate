@@ -107,6 +107,31 @@ exports.createSummary = async (req, res) => {
     const averageConfidence = count > 0 ? Math.round((confidenceSum / count) * 10) / 10 : 0;
     const overallScore = Math.round(((averageTechnical + averageClarity + averageConfidence) / 3) * 10) / 10;
 
+    // Consistency score (based on variance of technical scores)
+    let consistencyScore = null;
+    let consistencyNote = null;
+    if (count > 1) {
+      const scores = perQuestionFeedback.map((p) => Number(p.technicalScore || 0));
+      const mean = scores.reduce((s, v) => s + v, 0) / scores.length;
+      const variance = scores.reduce((s, v) => s + Math.pow(v - mean, 2), 0) / scores.length;
+      const stdDev = Math.sqrt(variance);
+      const raw = Math.max(0, 10 - stdDev * 2); // higher stdDev => lower consistency
+      consistencyScore = Math.round(raw * 10) / 10;
+
+      if (consistencyScore >= 8.5) {
+        consistencyNote = "Very consistent performance across questions.";
+      } else if (consistencyScore >= 7) {
+        consistencyNote = "Generally consistent with minor fluctuations.";
+      } else if (consistencyScore >= 5.5) {
+        consistencyNote = "Technically strong but inconsistent under stress.";
+      } else {
+        consistencyNote = "High fluctuation in performance; work on staying steady under pressure.";
+      }
+    } else {
+      consistencyScore = null;
+      consistencyNote = "More questions are needed to accurately measure consistency.";
+    }
+
     // Recommendation logic
     let recommendation = null;
     if (overallScore >= 8) recommendation = "Strong hire";
@@ -128,15 +153,41 @@ exports.createSummary = async (req, res) => {
       .filter(Boolean)
       .filter((f, i, arr) => arr.indexOf(f) === i); // Remove duplicates
 
+    // Skill metrics (by tech/domain)
+    const skillMap = new Map();
+    for (const r of responses) {
+      const skillKey = (r.tech || r.domain || "").trim();
+      if (!skillKey) continue;
+      const s = r.scores || {};
+      const techScore = Number(s.technical || 0);
+      if (!skillMap.has(skillKey)) {
+        skillMap.set(skillKey, { skill: skillKey, total: 0, count: 0 });
+      }
+      const entry = skillMap.get(skillKey);
+      entry.total += techScore;
+      entry.count += 1;
+    }
+
+    const skillMetrics = Array.from(skillMap.values())
+      .map((e) => ({
+        skill: e.skill,
+        averageScore: e.count > 0 ? Math.round((e.total / e.count) * 10) / 10 : 0,
+        count: e.count,
+      }))
+      .sort((a, b) => (b.averageScore || 0) - (a.averageScore || 0));
+
     const update = {
       overallScore,
       averageTechnical,
       averageClarity,
       averageConfidence,
+      consistencyScore,
+      consistencyNote,
       recommendation,
       strengths: strengths.length > 0 ? strengths : ["Keep practicing to improve your skills"],
       weaknesses: weaknesses.length > 0 ? weaknesses : ["Focus on technical fundamentals"],
       perQuestionFeedback,
+      skillMetrics,
       endedAt: new Date(),
     };
 
