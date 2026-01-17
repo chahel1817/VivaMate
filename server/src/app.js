@@ -8,6 +8,9 @@ const protect = require("./middleware/authMiddleware");
 const responseRoutes = require("./routes/responseRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 const interviewSessionRoutes = require("./routes/interviewSessionRoutes");
+const forumRoutes = require("../routes/forum");
+const feedbackRoutes = require("../routes/feedback");
+const messageRoutes = require("../routes/message");
 app.use(cors());
 app.use(express.json());
 
@@ -16,6 +19,9 @@ app.use("/api/interviews", interviewRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/responses", responseRoutes);
 app.use("/api/interview", interviewSessionRoutes);
+app.use("/api/forum", forumRoutes);
+app.use("/api/feedback", feedbackRoutes);
+app.use("/api/messages", messageRoutes);
 
 app.get("/api/dashboard", protect, async (req, res) => {
   try {
@@ -71,22 +77,45 @@ app.get("/api/dashboard/stats", protect, async (req, res) => {
 
     const completedSessions = sessions.filter(s => s.overallScore !== null && s.overallScore !== undefined);
 
-    let avgScore = null;
+    let avgScore = 0;
+    let skillBreakdown = {
+      technical: 0,
+      communication: 0,
+      problemSolving: 0,
+      behavioral: 0
+    };
+
     if (completedSessions.length > 0) {
       avgScore = Math.round((completedSessions.reduce((sum, s) => sum + (s.overallScore || 0), 0) / completedSessions.length) * 10);
-    } else {
-      avgScore = 0;
+
+      const total = completedSessions.length;
+      skillBreakdown.technical = completedSessions.reduce((sum, s) => sum + (s.averageTechnical || 0), 0) / total;
+      skillBreakdown.communication = completedSessions.reduce((sum, s) => sum + (s.averageClarity || 0), 0) / total;
+      skillBreakdown.behavioral = completedSessions.reduce((sum, s) => sum + (s.averageConfidence || 0), 0) / total;
+      skillBreakdown.problemSolving = (skillBreakdown.technical + skillBreakdown.communication) / 2; // Derived
     }
 
+    const performanceTrend = completedSessions
+      .slice(0, 20) // Limit to last 20 for chart
+      .reverse() // Oldest first for trend line
+      .map(s => ({
+        date: s.createdAt,
+        score: s.overallScore || 0
+      }));
+
     res.json({
-      interviewsTaken: sessions.length,
+      interviewsTaken: completedSessions.length, // Only count completed interviews
       averageScore: avgScore,
-      lastInterview: sessions.length > 0 ? new Date(sessions[0].createdAt).toLocaleDateString() : null,
-      recentActivity: sessions.slice(0, 5).map((s) => ({
+      lastInterview: completedSessions.length > 0 ? new Date(completedSessions[0].createdAt).toLocaleDateString() : null,
+      recentActivity: completedSessions.slice(0, 5).map((s) => ({ // Only show completed interviews
         role: s.topic ? `${s.topic.domain || ''} ${s.topic.tech || ''}`.trim() || "Mock Interview" : "Mock Interview",
         date: new Date(s.createdAt).toLocaleDateString(),
-        score: s.overallScore ? `${s.overallScore}/10` : "In Progress",
+        score: `${s.overallScore}/10`, // Always show score for completed sessions
+        type: s.topic ? s.topic.domain : "Interview",
+        duration: 45 // Placeholder as duration might not be stored directly
       })),
+      skillBreakdown,
+      performanceTrend
     });
   } catch (error) {
     console.error("Dashboard stats error:", error);

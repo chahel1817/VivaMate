@@ -1,10 +1,12 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useState } from "react";
+import { useTheme } from "../context/themeContext";
 
 export default function InterviewConfig() {
   const { state } = useLocation();
   const navigate = useNavigate();
+  const { isDarkMode } = useTheme();
 
   const [difficulty, setDifficulty] = useState("Medium");
   const [count, setCount] = useState(5);
@@ -18,51 +20,54 @@ export default function InterviewConfig() {
     <>
       <Navbar />
 
-      <div className="min-h-screen bg-slate-100 p-6">
+      <div className={`min-h-screen ${isDarkMode ? 'bg-slate-900' : 'bg-slate-100'} p-6`}>
         <div className="max-w-3xl mx-auto space-y-6">
 
           {/* HEADER */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <h1 className="text-2xl font-semibold text-slate-800">
+          <div className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white'} rounded-2xl p-6 shadow-sm ${isDarkMode ? 'border' : ''}`}>
+            <h1 className={`text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
               Interview Setup
             </h1>
-            <p className="text-slate-500 mt-1">
+            <p className={`${isDarkMode ? 'text-slate-400' : 'text-slate-500'} mt-1`}>
               Configure your interview before you begin. Choose the difficulty
               and number of questions based on your comfort level.
             </p>
           </div>
 
           {/* TOPIC INFO */}
-          <div className="bg-white rounded-2xl p-6 border border-green-100">
-            <p className="text-sm text-slate-500">Selected Topic</p>
-            <h2 className="text-xl font-semibold text-green-700 mt-1">
+          <div className={`${isDarkMode ? 'bg-slate-800 border-green-700' : 'bg-white border-green-100'} rounded-2xl p-6 border`}>
+            <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Selected Topic</p>
+            <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-green-400' : 'text-green-700'} mt-1`}>
               {state.tech}
             </h2>
-            <p className="text-slate-600 mt-2">
+            <p className={`${isDarkMode ? 'text-slate-300' : 'text-slate-600'} mt-2`}>
               Domain: <span className="font-medium">{state.domain}</span>
             </p>
           </div>
 
           {/* CONFIG CARD */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm space-y-6">
+          <div className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white'} rounded-2xl p-6 shadow-sm space-y-6 ${isDarkMode ? 'border' : ''}`}>
 
             {/* DIFFICULTY */}
             <div>
-              <label className="block font-medium mb-2">
+              <label className={`block font-medium mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
                 Difficulty Level
               </label>
 
               <select
                 value={difficulty}
                 onChange={(e) => setDifficulty(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 ${isDarkMode
+                    ? 'bg-slate-700 border-slate-600 text-white'
+                    : 'bg-white border-slate-300 text-slate-900'
+                  }`}
               >
                 <option>Easy</option>
                 <option>Medium</option>
                 <option>Hard</option>
               </select>
 
-              <p className="text-sm text-slate-500 mt-2">
+              <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'} mt-2`}>
                 {difficulty === "Easy" &&
                   "Basic conceptual questions suitable for beginners."}
                 {difficulty === "Medium" &&
@@ -74,7 +79,7 @@ export default function InterviewConfig() {
 
             {/* QUESTION COUNT */}
             <div>
-              <label className="block font-medium mb-2">
+              <label className={`block font-medium mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
                 Number of Questions
               </label>
 
@@ -84,10 +89,13 @@ export default function InterviewConfig() {
                 max={5}
                 value={count}
                 onChange={(e) => setCount(Number(e.target.value))}
-                className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 ${isDarkMode
+                    ? 'bg-slate-700 border-slate-600 text-white'
+                    : 'bg-white border-slate-300 text-slate-900'
+                  }`}
               />
 
-              <p className="text-sm text-slate-500 mt-2">
+              <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'} mt-2`}>
                 Interviews usually contain 3–5 questions. More questions give
                 more accurate feedback.
               </p>
@@ -95,11 +103,11 @@ export default function InterviewConfig() {
           </div>
 
           {/* INFO / TIPS */}
-          <div className="bg-green-50 border border-green-200 rounded-2xl p-5">
-            <h3 className="font-semibold text-green-700 mb-2">
+          <div className={`${isDarkMode ? 'bg-green-900/30 border-green-700' : 'bg-green-50 border-green-200'} border rounded-2xl p-5`}>
+            <h3 className={`font-semibold ${isDarkMode ? 'text-green-400' : 'text-green-700'} mb-2`}>
               Interview Tips
             </h3>
-            <ul className="text-sm text-green-700 list-disc pl-5 space-y-1">
+            <ul className={`text-sm ${isDarkMode ? 'text-green-300' : 'text-green-700'} list-disc pl-5 space-y-1`}>
               <li>Ensure your camera and microphone are enabled</li>
               <li>Answer clearly and explain your thought process</li>
               <li>Real-world examples improve your score</li>
@@ -107,7 +115,7 @@ export default function InterviewConfig() {
           </div>
 
           {/* START BUTTON */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
+          <div className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white'} rounded-2xl p-6 shadow-sm ${isDarkMode ? 'border' : ''}`}>
             <button
               onClick={() =>
                 navigate("/interview", {
@@ -128,8 +136,8 @@ export default function InterviewConfig() {
               Start Interview
             </button>
 
-            <p className="text-center text-sm text-slate-500 mt-3">
-              You can’t change these settings once the interview begins
+            <p className={`text-center text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'} mt-3`}>
+              You can't change these settings once the interview begins
             </p>
           </div>
 
@@ -138,3 +146,4 @@ export default function InterviewConfig() {
     </>
   );
 }
+

@@ -18,6 +18,7 @@ import InterviewConfig from "./pages/InterviewConfig";
 import InterviewProcessing from "./pages/InterviewProcessing";
 import Profile from "./pages/Profile";
 import Analytics from "./pages/Analytics";
+import Forum from "./pages/Forum";
 export default function App() {
   return (
     <ThemeProvider>
@@ -123,6 +124,15 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+<Route
+  path="/forum"
+  element={
+    <ProtectedRoute>
+      <Forum />
+    </ProtectedRoute>
+  }
+/>
         </Routes>
         </BrowserRouter>
       </AuthProvider>

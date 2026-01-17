@@ -3,6 +3,8 @@ import Navbar from "../components/Navbar";
 import RealTimeFeedback from "../components/RealTimeFeedback";
 import api from "../services/api";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/authContext";
+import { useTheme } from "../context/themeContext";
 
 export default function Interview() {
   /* ================= ROUTE STATE ================= */
@@ -35,6 +37,9 @@ export default function Interview() {
   const [replaying, setReplaying] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
+
+  const { user } = useAuth();
+  const { isDarkMode } = useTheme();
 
   /* ================= CAMERA & MIC ================= */
   useEffect(() => {
@@ -296,7 +301,7 @@ export default function Interview() {
     return (
       <>
         <Navbar />
-        <div className="flex items-center justify-center h-screen text-slate-500">
+        <div className={`flex items-center justify-center h-screen ${isDarkMode ? 'bg-slate-900 text-slate-300' : 'bg-slate-100 text-slate-500'}`}>
           Preparing your interview…
         </div>
       </>
@@ -308,17 +313,19 @@ export default function Interview() {
     <>
       <Navbar />
 
-      <div className="min-h-screen bg-slate-100 p-6">
+      <div className={`min-h-screen ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-900'} p-6`}>
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-6">
 
+
           {/* VIDEO */}
-          <div className="lg:col-span-3 bg-black rounded-xl overflow-hidden relative">
+          <div className="lg:col-span-3 rounded-xl overflow-hidden relative" style={{ minHeight: '500px' }}>
             <video
               ref={videoRef}
               autoPlay
               muted
               playsInline
-              className="w-full h-[560px] object-cover"
+              className={`w-full h-full rounded-lg border ${isDarkMode ? 'border-slate-700' : 'border-slate-300'}`}
+              style={{ objectFit: 'cover', minHeight: '500px' }}
             />
 
             {recording && (
@@ -329,8 +336,8 @@ export default function Interview() {
           </div>
 
           {/* QUESTION */}
-          <div className="lg:col-span-2 bg-white rounded-xl p-6 flex flex-col">
-            <p className="text-sm text-slate-500 mb-2">
+          <div className={`lg:col-span-2 ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white'} rounded-xl p-6 flex flex-col ${isDarkMode ? 'border' : ''}`}>
+            <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'} mb-2`}>
               Question {currentIndex + 1} of {totalQuestions}
             </p>
 
@@ -339,32 +346,32 @@ export default function Interview() {
               <button
                 type="button"
                 onClick={() => setTimePressureMode((prev) => !prev)}
-                className={`text-xs px-3 py-1 rounded-full border ${
-                  timePressureMode
-                    ? "bg-red-50 border-red-400 text-red-700"
+                className={`text-xs px-3 py-1 rounded-full border ${timePressureMode
+                  ? "bg-red-50 border-red-400 text-red-700"
+                  : isDarkMode
+                    ? "bg-slate-700 border-slate-600 text-slate-300"
                     : "bg-slate-50 border-slate-300 text-slate-600"
-                }`}
+                  }`}
               >
                 {timePressureMode ? "Time Pressure Mode: ON" : "Time Pressure Mode: OFF"}
               </button>
 
               <div
-                className={`text-xs font-mono px-3 py-1 rounded-full ${
-                  !timePressureMode
-                    ? "bg-slate-100 text-slate-500"
-                    : timeLeft <= 15
+                className={`text-xs font-mono px-3 py-1 rounded-full ${!timePressureMode
+                  ? isDarkMode ? "bg-slate-700 text-slate-400" : "bg-slate-100 text-slate-500"
+                  : timeLeft <= 15
                     ? "bg-red-100 text-red-700 animate-pulse"
                     : timeLeft <= 45
-                    ? "bg-yellow-100 text-yellow-700"
-                    : "bg-green-100 text-green-700"
-                }`}
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-green-100 text-green-700"
+                  }`}
               >
                 ⏱ {String(Math.floor(timeLeft / 60)).padStart(2, "0")}:
                 {String(timeLeft % 60).padStart(2, "0")}
               </div>
             </div>
 
-            <div className="w-full bg-slate-200 h-2 rounded-full mb-4">
+            <div className={`w-full ${isDarkMode ? 'bg-slate-700' : 'bg-slate-200'} h-2 rounded-full mb-4`}>
               <div
                 className="bg-green-600 h-2 rounded-full"
                 style={{
@@ -373,14 +380,17 @@ export default function Interview() {
               />
             </div>
 
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">
+            <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'} mb-4`}>
               {questions[currentIndex] || "Loading question..."}
             </h3>
 
             <textarea
               value={transcript}
               onChange={(e) => setTranscript(e.target.value)}
-              className="flex-1 border rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-500"
+              className={`flex-1 border rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-500 ${isDarkMode
+                ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
+                : 'bg-white border-slate-300 text-slate-900'
+                }`}
               placeholder="Speak or type your answer..."
             />
 
@@ -388,14 +398,14 @@ export default function Interview() {
               {!recording ? (
                 <button
                   onClick={startAnswer}
-                  className="flex-1 bg-green-600 text-white py-2 rounded-lg"
+                  className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
                 >
                   Start Answer
                 </button>
               ) : (
                 <button
                   onClick={stopAnswer}
-                  className="flex-1 bg-red-600 text-white py-2 rounded-lg"
+                  className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition"
                 >
                   Stop Answer
                 </button>
@@ -404,20 +414,19 @@ export default function Interview() {
               <button
                 onClick={replayAnswer}
                 disabled={!transcript.trim() || replaying || submitting}
-                className="flex-1 bg-blue-600 text-white py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-blue-600 text-white py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition"
               >
                 {replaying ? "Replaying..." : "Replay Answer"}
               </button>
             </div>
 
             {submitMessage && (
-              <div className={`mt-3 p-3 rounded-lg text-sm ${
-                submitMessage.includes("success") 
-                  ? "bg-green-100 text-green-800" 
-                  : submitMessage.includes("error") || submitMessage.includes("Failed")
+              <div className={`mt-3 p-3 rounded-lg text-sm ${submitMessage.includes("success")
+                ? "bg-green-100 text-green-800"
+                : submitMessage.includes("error") || submitMessage.includes("Failed")
                   ? "bg-red-100 text-red-800"
                   : "bg-blue-100 text-blue-800"
-              }`}>
+                }`}>
                 {submitMessage}
               </div>
             )}
@@ -425,13 +434,16 @@ export default function Interview() {
             <button
               onClick={submitAndNext}
               disabled={!transcript.trim() || submitting}
-              className="mt-3 w-full bg-slate-800 text-white py-3 rounded-lg font-semibold hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              className={`mt-3 w-full py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition ${isDarkMode
+                ? 'bg-slate-700 text-white hover:bg-slate-600'
+                : 'bg-slate-800 text-white hover:bg-slate-900'
+                }`}
             >
-              {submitting 
-                ? "Submitting..." 
+              {submitting
+                ? "Submitting..."
                 : currentIndex === totalQuestions - 1
-                ? "Submit & Finish Interview"
-                : "Submit & Next Question"}
+                  ? "Submit & Finish Interview"
+                  : "Submit & Next Question"}
             </button>
           </div>
         </div>

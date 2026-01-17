@@ -42,6 +42,7 @@ export default function Analytics() {
   const [timeRange, setTimeRange] = useState('30d');
   const [feedback, setFeedback] = useState({});
   const [showFeedback, setShowFeedback] = useState(null);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState({});
 
   const refreshAnalytics = async () => {
     try {
@@ -65,11 +66,11 @@ export default function Analytics() {
         averageScore: data.averageScore ? data.averageScore / 10 : 0,
         totalTimeSpent: recent.reduce((sum, item) => sum + (item.duration || 0), 0),
         improvementRate: Math.round(improvementRate * 100) / 100, // Round to 2 decimals
-        skillBreakdown: {
-          technical: 4,
-          communication: 5,
-          problemSolving: 4.5,
-          behavioral: 4
+        skillBreakdown: data.skillBreakdown || {
+          technical: 0,
+          communication: 0,
+          problemSolving: 0,
+          behavioral: 0
         },
         performanceTrend,
         recentInterviews: recent
@@ -104,9 +105,10 @@ export default function Analytics() {
 
   const submitFeedback = async (interviewId, rating, comment) => {
     try {
-      // await api.post('/feedback', { interviewId, rating, comment });
-      alert('Feedback submitted successfully!');
+      await api.post('/feedback', { interviewId, userId: user?.id, rating, comment });
       setFeedback({ ...feedback, [interviewId]: { rating, comment } });
+      setFeedbackSubmitted({ ...feedbackSubmitted, [interviewId]: true });
+      setTimeout(() => setFeedbackSubmitted({ ...feedbackSubmitted, [interviewId]: false }), 3000); // Hide after 3 seconds
       setShowFeedback(null);
     } catch (e) {
       alert('Failed to submit feedback.');
@@ -381,6 +383,14 @@ export default function Analytics() {
                     >
                       <Send size={16} className="inline mr-1" /> Submit
                     </button>
+                    {feedbackSubmitted[interview.id] && (
+                      <div className="mt-2 flex items-center text-green-600">
+                        <svg className="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        Feedback submitted!
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

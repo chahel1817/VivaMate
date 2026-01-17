@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { useTheme } from "../context/themeContext";
 
 const STEPS = [
   "Analyzing your answers",
@@ -12,6 +13,7 @@ const STEPS = [
 
 export default function InterviewProcessing() {
   const navigate = useNavigate();
+  const { isDarkMode } = useTheme();
   const [step, setStep] = useState(0);
   const [progress, setProgress] = useState(10);
 
@@ -42,29 +44,29 @@ export default function InterviewProcessing() {
     <>
       <Navbar />
 
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center px-6">
-        <div className="max-w-xl w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+      <div className={`min-h-screen ${isDarkMode ? 'bg-slate-900' : 'bg-slate-100'} flex items-center justify-center px-6`}>
+        <div className={`max-w-xl w-full ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white'} rounded-2xl shadow-xl p-8 text-center ${isDarkMode ? 'border' : ''}`}>
 
           {/* TITLE */}
-          <h1 className="text-2xl font-semibold text-slate-800 mb-2">
+          <h1 className={`text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'} mb-2`}>
             Processing Your Interview
           </h1>
-          <p className="text-slate-500 text-sm mb-6">
+          <p className={`${isDarkMode ? 'text-slate-400' : 'text-slate-500'} text-sm mb-6`}>
             Please wait while our AI evaluates your performance
           </p>
 
           {/* LOADER */}
           <div className="flex justify-center mb-6">
-            <div className="w-14 h-14 rounded-full border-4 border-green-200 border-t-green-600 animate-spin" />
+            <div className={`w-14 h-14 rounded-full border-4 ${isDarkMode ? 'border-green-900 border-t-green-500' : 'border-green-200 border-t-green-600'} animate-spin`} />
           </div>
 
           {/* CURRENT STEP */}
-          <p className="text-slate-700 font-medium mb-4">
+          <p className={`${isDarkMode ? 'text-slate-200' : 'text-slate-700'} font-medium mb-4`}>
             {STEPS[step]}...
           </p>
 
           {/* PROGRESS BAR */}
-          <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+          <div className={`w-full ${isDarkMode ? 'bg-slate-700' : 'bg-slate-200'} rounded-full h-2 overflow-hidden`}>
             <div
               className="bg-green-600 h-full transition-all duration-700"
               style={{ width: `${progress}%` }}
@@ -72,7 +74,7 @@ export default function InterviewProcessing() {
           </div>
 
           {/* FOOTER TEXT */}
-          <p className="mt-6 text-xs text-slate-400">
+          <p className={`mt-6 text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
             This may take a few seconds
           </p>
         </div>
@@ -80,3 +82,4 @@ export default function InterviewProcessing() {
     </>
   );
 }
+

@@ -73,7 +73,7 @@ export default function Performance() {
   return (
     <>
       <Navbar />
-      <div className={`min-h-screen ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-slate-100'} px-6 py-10`}>
+      <div className={`min-h-screen ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-900'}`}>
         <div className="max-w-6xl mx-auto space-y-10">
 
           {/* HEADER */}

@@ -18,11 +18,11 @@ export default function Dashboard() {
   // Remove dashboardData, use only stats for all dashboard info
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
-		interviewsTaken: 0,
-		averageScore: null,
-		lastInterview: null,
-		recentActivity: []
-	});
+    interviewsTaken: 0,
+    averageScore: null,
+    lastInterview: null,
+    recentActivity: []
+  });
   const [filteredActivity, setFilteredActivity] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({});
@@ -121,7 +121,7 @@ export default function Dashboard() {
     setFilteredActivity(filtered);
   };
 
-	useEffect(() => {
+  useEffect(() => {
     refreshStats();
     let socket;
     let pollInterval;
@@ -161,76 +161,76 @@ export default function Dashboard() {
       <Navbar />
       <div className={`min-h-screen ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-slate-100'} px-6 py-10`}>
         <div className="max-w-6xl mx-auto space-y-12">
-        {/* Intro */}
-        <section>
-          <h2 className={`text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-            Your Dashboard
-          </h2>
-          <p className={`text-slate-500 mt-2 max-w-2xl ${isDarkMode ? 'text-slate-400' : ''}`}>
-            This is your personal interview preparation space.
-            Start mock interviews, review feedback, and track growth.
-          </p>
-        </section>
+          {/* Intro */}
+          <section>
+            <h2 className={`text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+              Your Dashboard
+            </h2>
+            <p className={`text-slate-500 mt-2 max-w-2xl ${isDarkMode ? 'text-slate-400' : ''}`}>
+              This is your personal interview preparation space.
+              Start mock interviews, review feedback, and track growth.
+            </p>
+          </section>
 
-        {/* Stats */}
-        <section className="grid md:grid-cols-3 gap-6">
-          {[
-            { label: "Interviews Taken", value: stats.interviewsTaken },
-            { label: "Average Score", value: `${(stats.averageScore ?? 0)}%` },
-            { label: "Last Interview", value: stats.lastInterview || "None" },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} border rounded-xl p-6`}
-            >
-              <h3 className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{item.label}</h3>
-              <p className={`text-3xl font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'} mt-2`}>
-                {loading ? "..." : item.value}
-              </p>
-            </div>
-          ))}
-        </section>
-
-        {/* Actions */}
-        <section>
-          <h3 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-            What would you like to do?
-          </h3>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* CARD */}
+          {/* Stats */}
+          <section className="grid md:grid-cols-3 gap-6">
             {[
-              {
-                icon: PlayCircle,
-                title: "Start a Mock Interview",
-                desc:
-                  "Answer real interview-style questions and get structured feedback.",
-                action: "Start interview →",
-                path: "/interview/select",
-              },
-              {
-                icon: BarChart3,
-                title: "View Performance",
-                desc:
-                  "Track your scores over time and measure your improvement.",
-                action: "View performance →",
-                path: "/performance",
-              },
-              {
-                icon: MessageSquare,
-                title: "Review Feedback",
-                desc:
-                  "Go through detailed feedback from your past interviews.",
-                action: "View feedback →",
-                path: "/feedback",
-              },
-            ].map((card, i) => {
-              const Icon = card.icon;
-              return (
-                <div
-                  key={i}
-                  onClick={() => navigate(card.path)}
-                  className={`
+              { label: "Interviews Taken", value: stats.interviewsTaken },
+              { label: "Average Score", value: `${(stats.averageScore ?? 0)}%` },
+              { label: "Last Interview", value: stats.lastInterview || "None" },
+            ].map((item, i) => (
+              <div
+                key={i}
+                className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} border rounded-xl p-6`}
+              >
+                <h3 className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{item.label}</h3>
+                <p className={`text-3xl font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'} mt-2`}>
+                  {loading ? "..." : item.value}
+                </p>
+              </div>
+            ))}
+          </section>
+
+          {/* Actions */}
+          <section>
+            <h3 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+              What would you like to do?
+            </h3>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* CARD */}
+              {[
+                {
+                  icon: PlayCircle,
+                  title: "Start a Mock Interview",
+                  desc:
+                    "Answer real interview-style questions and get structured feedback.",
+                  action: "Start interview →",
+                  path: "/interview/select",
+                },
+                {
+                  icon: BarChart3,
+                  title: "View Performance",
+                  desc:
+                    "Track your scores over time and measure your improvement.",
+                  action: "View performance →",
+                  path: "/performance",
+                },
+                {
+                  icon: MessageSquare,
+                  title: "Review Feedback",
+                  desc:
+                    "Go through detailed feedback from your past interviews.",
+                  action: "View feedback →",
+                  path: "/feedback",
+                },
+              ].map((card, i) => {
+                const Icon = card.icon;
+                return (
+                  <div
+                    key={i}
+                    onClick={() => navigate(card.path)}
+                    className={`
                     group cursor-pointer
                     ${isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white hover:bg-green-50'} rounded-2xl border p-6
                     transition-all duration-300
@@ -238,89 +238,87 @@ export default function Dashboard() {
                     hover:shadow-lg
                     hover:-translate-y-1
                   `}
-                >
-                  <Icon
-                    size={28}
-                    className="
+                  >
+                    <Icon
+                      size={28}
+                      className="
                       text-green-600 mb-4
                       transition
                       group-hover:text-green-700
                     "
-                  />
+                    />
 
-                  <h4 className={`
+                    <h4 className={`
                     text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}
                     group-hover:text-green-700 transition
                   `}>
-                    {card.title}
-                  </h4>
+                      {card.title}
+                    </h4>
 
-                  <p className={`
+                    <p className={`
                     ${isDarkMode ? 'text-slate-400' : 'text-slate-500'} text-sm mt-1
-                    group-hover:text-slate-700 transition
+                    ${isDarkMode ? 'group-hover:text-slate-300' : 'group-hover:text-slate-700'} transition
                   `}>
-                    {card.desc}
-                  </p>
+                      {card.desc}
+                    </p>
 
-                  <span className="
+                    <span className="
                     inline-block mt-4 text-green-600 text-sm
                     group-hover:underline
                   ">
-                    {card.action}
+                      {card.action}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Recent Activity */}
+          <section>
+            <h3 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+              Recent Activity
+            </h3>
+
+            {/* Search and Filter Component */}
+            <SearchAndFilter
+              onSearch={handleSearch}
+              onFilter={handleFilter}
+              interviews={stats.recentActivity || []}
+            />
+
+            <div className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} rounded-xl divide-y border overflow-hidden`}>
+              {filteredActivity.length === 0 && (
+                <p className={`p-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  {stats.recentActivity?.length === 0 ? "No activity yet" : "No results match your filters"}
+                </p>
+              )}
+
+              {filteredActivity.map((item, index) => (
+                <div
+                  key={index}
+                  className={`p-4 flex justify-between items-center text-sm ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-50'
+                    } transition`}
+                >
+                  <div>
+                    <p className={`font-medium ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                      {item.role || item.type || 'Interview'}
+                    </p>
+                    <p className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                      On {item.date}
+                    </p>
+                  </div>
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${parseFloat(item.score) >= 8 ? 'bg-green-50 text-green-700 border border-green-200' :
+                    parseFloat(item.score) >= 6 ? 'bg-blue-50 text-blue-700 border border-blue-200' :
+                      parseFloat(item.score) >= 4 ? 'bg-yellow-50 text-yellow-700 border border-yellow-200' :
+                        'bg-red-50 text-red-700 border border-red-200'
+                    }`}>
+                    {typeof item.score === 'string' && item.score.includes('/10') ? item.score : item.score ? `${item.score}/10` : "In Progress"}
                   </span>
                 </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Recent Activity */}
-        <section>
-          <h3 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-            Recent Activity
-          </h3>
-
-          {/* Search and Filter Component */}
-          <SearchAndFilter
-            onSearch={handleSearch}
-            onFilter={handleFilter}
-            interviews={stats.recentActivity || []}
-          />
-
-          <div className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} rounded-xl divide-y border overflow-hidden`}>
-            {filteredActivity.length === 0 && (
-              <p className={`p-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                {stats.recentActivity?.length === 0 ? "No activity yet" : "No results match your filters"}
-              </p>
-            )}
-
-            {filteredActivity.map((item, index) => (
-              <div
-                key={index}
-                className={`p-4 flex justify-between items-center text-sm ${
-                  isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-50'
-                } transition`}
-              >
-                <div>
-                  <p className={`font-medium ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
-                    {item.role || item.type || 'Interview'}
-                  </p>
-                  <p className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                    On {item.date}
-                  </p>
-                </div>
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                  item.score >= 8 ? 'bg-green-50 text-green-700 border border-green-200' :
-                  item.score >= 6 ? 'bg-blue-50 text-blue-700 border border-blue-200' :
-                  item.score >= 4 ? 'bg-yellow-50 text-yellow-700 border border-yellow-200' :
-                  'bg-red-50 text-red-700 border border-red-200'
-                }`}>
-                  {item.score ? `${item.score}/10` : "In Progress"}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
         </div>
       </div>
     </>
