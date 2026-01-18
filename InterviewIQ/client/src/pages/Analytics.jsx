@@ -12,9 +12,12 @@ import {
   Download,
   MessageSquare,
   Star,
-  Send
+  Send,
+  PieChart,
+  Code2
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import Navbar from "../components/Navbar";
 import api from "../services/api";
 // Assume jsPDF and papaparse are installed for export
 // import jsPDF from 'jspdf';
@@ -48,14 +51,19 @@ export default function Analytics() {
       setError(null);
       const res = await api.get("/dashboard/stats");
       const data = res.data;
-      const recent = data.recentActivity || [];
-      const performanceTrend = recent.map(item => ({ date: item.date, score: item.score || 0 }));
+      const performanceTrend = data.performanceTrend || [];
+      const skillBreakdown = data.skillBreakdown || {
+        technical: 0,
+        communication: 0,
+        problemSolving: 0,
+        behavioral: 0
+      };
+
       // Calculate improvement rate
       let improvementRate = 0;
       if (performanceTrend.length > 1) {
-        const sortedTrend = performanceTrend.sort((a, b) => new Date(a.date) - new Date(b.date));
-        const first = sortedTrend[0].score;
-        const last = sortedTrend[sortedTrend.length - 1].score;
+        const first = performanceTrend[0].score;
+        const last = performanceTrend[performanceTrend.length - 1].score;
         if (first > 0) {
           improvementRate = ((last - first) / first) * 100;
         }
@@ -63,16 +71,16 @@ export default function Analytics() {
       setAnalyticsData({
         totalInterviews: data.interviewsTaken || 0,
         averageScore: data.averageScore ? data.averageScore / 10 : 0,
-        totalTimeSpent: recent.reduce((sum, item) => sum + (item.duration || 0), 0),
+        totalTimeSpent: (data.recentActivity || []).reduce((sum, item) => sum + (item.duration || 0), 0),
         improvementRate: Math.round(improvementRate * 100) / 100, // Round to 2 decimals
         skillBreakdown: {
-          technical: 4,
-          communication: 5,
-          problemSolving: 4.5,
-          behavioral: 4
+          technical: Math.round(skillBreakdown.technical * 10) / 10,
+          communication: Math.round(skillBreakdown.communication * 10) / 10,
+          problemSolving: Math.round(skillBreakdown.problemSolving * 10) / 10,
+          behavioral: Math.round(skillBreakdown.behavioral * 10) / 10
         },
         performanceTrend,
-        recentInterviews: recent
+        recentInterviews: data.recentActivity || []
       });
     } catch (e) {
       console.error('refreshAnalytics error', e);
@@ -195,6 +203,7 @@ export default function Analytics() {
 
   return (
     <div className={`min-h-screen overflow-hidden ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-900'} transition-colors duration-300`}>
+      <Navbar />
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mt-8 mb-8">
@@ -246,24 +255,24 @@ export default function Analytics() {
               icon: BarChart3,
               color: "text-green-600"
             },
-          {
-            label: "Average Score",
-            value: `${analyticsData?.averageScore}/10`,
-            icon: Target,
-            color: "text-blue-600"
-          },
-          {
-            label: "Time Spent",
-            value: `${Math.round(analyticsData?.totalTimeSpent / 60)}h`,
-            icon: Clock,
-            color: "text-purple-600"
-          },
-          {
-            label: "Improvement",
-            value: `+${analyticsData?.improvementRate}%`,
-            icon: TrendingUp,
-            color: "text-orange-600"
-          }
+            {
+              label: "Average Score",
+              value: `${analyticsData?.averageScore}/10`,
+              icon: Target,
+              color: "text-blue-600"
+            },
+            {
+              label: "Time Spent",
+              value: `${Math.round(analyticsData?.totalTimeSpent / 60)}h`,
+              icon: Clock,
+              color: "text-purple-600"
+            },
+            {
+              label: "Improvement",
+              value: `${analyticsData?.improvementRate > 0 ? '+' : ''}${analyticsData?.improvementRate || 0}%`,
+              icon: TrendingUp,
+              color: analyticsData?.improvementRate >= 0 ? "text-green-600" : "text-red-500"
+            }
           ].map((item, index) => {
             const Icon = item.icon;
             return (
@@ -285,24 +294,45 @@ export default function Analytics() {
           })}
         </div>
 
+
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Performance Trend Chart */}
+          {/* Topic Distribution - NEW & WORKING */}
           <div className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} rounded-xl border p-6 transition-shadow duration-200 hover:shadow-lg`}>
-            <h3 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Performance Trend</h3>
-            <div className="h-64 flex items-end justify-between space-x-2">
-              {analyticsData?.performanceTrend.length > 0 ? analyticsData.performanceTrend.map((point, index) => (
-                <div key={index} className="flex-1 flex flex-col items-center">
-                  <div
-                    className="w-full bg-gradient-to-t from-green-500 to-green-400 rounded-t transition-all duration-300 hover:from-green-600 hover:to-green-500"
-                    style={{ height: `${Math.max((point.score / 10) * 100, 5)}%` }}
-                    title={`Score: ${point.score}`}
-                  ></div>
-                  <span className={`text-xs mt-2 ${isDarkMode ? 'text-slate-300' : 'text-slate-500'}`}>
-                    {new Date(point.date).toString() !== 'Invalid Date' ? new Date(point.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'N/A'}
-                  </span>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Topic Distribution</h3>
+              <PieChart size={20} className="text-green-500" />
+            </div>
+
+            <div className="space-y-6">
+              {analyticsData.recentInterviews.length > 0 ? (
+                Array.from(new Set(analyticsData.recentInterviews.map(i => i.type || 'Interview'))).slice(0, 4).map((topic, index) => {
+                  const count = analyticsData.recentInterviews.filter(i => (i.type || 'Interview') === topic).length;
+                  const percentage = (count / analyticsData.recentInterviews.length) * 100;
+                  const colors = ['bg-green-500', 'bg-blue-500', 'bg-purple-500', 'bg-orange-500'];
+
+                  return (
+                    <div key={topic} className="group">
+                      <div className="flex justify-between items-center mb-2">
+                        <div className="flex items-center gap-2">
+                          <Code2 size={16} className={isDarkMode ? 'text-slate-400' : 'text-slate-500'} />
+                          <span className={`font-medium ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>{topic}</span>
+                        </div>
+                        <span className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{count} session{count > 1 ? 's' : ''}</span>
+                      </div>
+                      <div className="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${colors[index % colors.length]} rounded-full transition-all duration-1000 ease-out`}
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="h-48 flex flex-col items-center justify-center text-center">
+                  <PieChart size={40} className="text-slate-300 mb-2" />
+                  <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Complete more interviews to see your topic distribution</p>
                 </div>
-              )) : (
-                <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>No data available</p>
               )}
             </div>
           </div>
@@ -336,7 +366,7 @@ export default function Analytics() {
             {analyticsData?.recentInterviews.length > 0 ? analyticsData.recentInterviews.map((interview) => (
               <div key={interview.id} className={`flex items-center justify-between p-4 rounded-lg transition-colors duration-200 ${isDarkMode ? 'bg-slate-700 hover:bg-slate-600' : 'bg-slate-50 hover:bg-slate-100'}`}>
                 <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${interview.score >= 8 ? 'bg-green-100 text-green-600' : interview.score >= 7 ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`}>
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${parseFloat(interview.score) >= 8 ? 'bg-green-100 text-green-600' : parseFloat(interview.score) >= 7 ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`}>
                     <Award size={20} />
                   </div>
                   <div>
@@ -353,8 +383,8 @@ export default function Analytics() {
                   >
                     <Star size={16} className="inline mr-1" /> Rate
                   </button>
-                  <div className={`text-2xl font-bold ${interview.score >= 8 ? 'text-green-600' : interview.score >= 7 ? 'text-blue-600' : 'text-orange-600'}`}>
-                    {interview.score || 0}
+                  <div className={`text-2xl font-bold ${parseFloat(interview.score) >= 8 ? 'text-green-600' : parseFloat(interview.score) >= 7 ? 'text-blue-600' : 'text-orange-600'}`}>
+                    {typeof interview.score === 'string' && interview.score.includes('/10') ? interview.score : `${interview.score}/10`}
                   </div>
                 </div>
                 {showFeedback === interview.id && (

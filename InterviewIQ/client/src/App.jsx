@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/authContext";
 import { ThemeProvider } from "./context/themeContext";
 import ProtectedRoute from "./utils/protectedRoute";
+import Layout from "./components/Layout";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -24,116 +25,118 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
-          <Routes>
-          {/* PUBLIC ROUTES */}
-          <Route path="/" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/verify-otp" element={<VerifyOtp />} />
+          <Layout>
+            <Routes>
+              {/* PUBLIC ROUTES */}
+              <Route path="/" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/verify-otp" element={<VerifyOtp />} />
 
-          {/* PROTECTED ROUTES */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+              {/* PROTECTED ROUTES */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route path="/interview-processing" element={<InterviewProcessing />} />
+              <Route path="/interview-processing" element={<InterviewProcessing />} />
 
-          <Route
-            path="/interview"
-            element={
-              <ProtectedRoute>
-                <Interview />
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/interview"
+                element={
+                  <ProtectedRoute>
+                    <Interview />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-  path="/interview-summary"
-  element={
-    <ProtectedRoute>
-      <InterviewSummary />
-    </ProtectedRoute>
-  }
-/>
+              <Route
+                path="/interview-summary"
+                element={
+                  <ProtectedRoute>
+                    <InterviewSummary />
+                  </ProtectedRoute>
+                }
+              />
 
-<Route
-  path="/interview/select"
-  element={
-    <ProtectedRoute>
-      <InterviewSelect />
-    </ProtectedRoute>
-  }
-/>
+              <Route
+                path="/interview/select"
+                element={
+                  <ProtectedRoute>
+                    <InterviewSelect />
+                  </ProtectedRoute>
+                }
+              />
 
-<Route
-  path="/interview/config"
-  element={
-    <ProtectedRoute>
-      <InterviewConfig />
-    </ProtectedRoute>
-  }
-/>
+              <Route
+                path="/interview/config"
+                element={
+                  <ProtectedRoute>
+                    <InterviewConfig />
+                  </ProtectedRoute>
+                }
+              />
 
 
-          <Route
-            path="/result"
-            element={
-              <ProtectedRoute>
-                <Result />
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/result"
+                element={
+                  <ProtectedRoute>
+                    <Result />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/performance"
-            element={
-              <ProtectedRoute>
-                <Performance />
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/performance"
+                element={
+                  <ProtectedRoute>
+                    <Performance />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/feedback"
-            element={
-              <ProtectedRoute>
-                <Feedback />
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/feedback"
+                element={
+                  <ProtectedRoute>
+                    <Feedback />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/analytics"
-            element={
-              <ProtectedRoute>
-                <Analytics />
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/analytics"
+                element={
+                  <ProtectedRoute>
+                    <Analytics />
+                  </ProtectedRoute>
+                }
+              />
 
-<Route
-  path="/forum"
-  element={
-    <ProtectedRoute>
-      <Forum />
-    </ProtectedRoute>
-  }
-/>
-        </Routes>
+              <Route
+                path="/forum"
+                element={
+                  <ProtectedRoute>
+                    <Forum />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </Layout>
         </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>

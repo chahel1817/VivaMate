@@ -84,10 +84,10 @@ export default function InterviewSelect() {
 
   /* ================= UI ================= */
   return (
-    <div className={`min-h-screen py-8 ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-900'}`}>
+    <div className={`min-h-screen ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-900'}`}>
       <Navbar />
 
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto px-4 py-12">
 
         {/* SEARCH BAR */}
         <input
@@ -95,9 +95,8 @@ export default function InterviewSelect() {
           placeholder="Search topics (OS, Cloud, JavaScript...)"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className={`w-full mb-6 px-4 py-3 rounded-xl border ${
-            isDarkMode ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-400' : 'bg-white border-slate-300'
-          } focus:outline-none focus:ring-2 focus:ring-green-500`}
+          className={`w-full mb-6 px-4 py-3 rounded-xl border ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-400' : 'bg-white border-slate-300'
+            } focus:outline-none focus:ring-2 focus:ring-green-500`}
         />
 
         {/* NO RESULTS */}

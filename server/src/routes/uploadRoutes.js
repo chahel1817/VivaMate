@@ -10,4 +10,10 @@ router.post("/video", protect, upload.single("video"), (req, res) => {
   });
 });
 
+router.post("/image", protect, upload.single("image"), (req, res) => {
+  res.json({
+    imageUrl: `/uploads/${req.file.filename}`,
+  });
+});
+
 module.exports = router;

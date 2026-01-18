@@ -145,4 +145,47 @@ const verifyOtp = async (req, res) => {
   }
 };
 
-module.exports = { register, login, requestOtp, verifyOtp };
+const updateProfile = async (req, res) => {
+  try {
+    const { name, bio, skills, experience, location, profilePic, linkedin, github, website } = req.body;
+    const user = await User.findById(req.user);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (name) user.name = name;
+    if (bio !== undefined) user.bio = bio;
+    if (skills !== undefined) user.skills = skills;
+    if (experience !== undefined) user.experience = experience;
+    if (location !== undefined) user.location = location;
+    if (profilePic !== undefined) user.profilePic = profilePic;
+    if (linkedin !== undefined) user.linkedin = linkedin;
+    if (github !== undefined) user.github = github;
+    if (website !== undefined) user.website = website;
+
+    await user.save();
+
+    res.json({
+      message: "Profile updated successfully",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        bio: user.bio,
+        skills: user.skills,
+        experience: user.experience,
+        location: user.location,
+        profilePic: user.profilePic,
+        linkedin: user.linkedin,
+        github: user.github,
+        website: user.website,
+      },
+    });
+  } catch (err) {
+    console.error("updateProfile error", err);
+    res.status(500).json({ message: "Failed to update profile" });
+  }
+};
+
+module.exports = { register, login, requestOtp, verifyOtp, updateProfile };
