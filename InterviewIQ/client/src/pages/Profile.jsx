@@ -13,19 +13,15 @@ export default function Profile() {
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
-    bio: user?.bio || "",
-    skills: user?.skills || [],
-    experience: user?.experience || "",
-    location: user?.location || "",
+    careerStage: user?.careerStage || "",
+    geoPresence: user?.geoPresence || "",
     profilePic: user?.profilePic || "",
     linkedin: user?.linkedin || "",
     github: user?.github || "",
-    website: user?.website || "",
   });
 
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [skillInput, setSkillInput] = useState("");
   const [uploading, setUploading] = useState(false);
   const [stats, setStats] = useState({ interviewsTaken: 0, averageScore: 0 });
 
@@ -34,14 +30,11 @@ export default function Profile() {
       setFormData({
         name: user.name || "",
         email: user.email || "",
-        bio: user.bio || "",
-        skills: user.skills || [],
-        experience: user.experience || "",
-        location: user.location || "",
+        careerStage: user.careerStage || "",
+        geoPresence: user.geoPresence || "",
         profilePic: user.profilePic || "",
         linkedin: user.linkedin || "",
         github: user.github || "",
-        website: user.website || "",
       });
 
       // Fetch real stats for Quick Insights
@@ -65,22 +58,7 @@ export default function Profile() {
     }));
   };
 
-  const handleAddSkill = () => {
-    if (skillInput.trim() && !formData.skills.includes(skillInput.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        skills: [...prev.skills, skillInput.trim()]
-      }));
-      setSkillInput("");
-    }
-  };
 
-  const handleRemoveSkill = (skillToRemove) => {
-    setFormData(prev => ({
-      ...prev,
-      skills: prev.skills.filter(skill => skill !== skillToRemove)
-    }));
-  };
 
   const handleImageClick = () => {
     if (isEditing) {
@@ -202,13 +180,13 @@ export default function Profile() {
                       <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-slate-700/50' : 'bg-slate-100'}`}>
                         <MapPin size={18} className="text-green-500" />
                       </div>
-                      <span className="font-medium">{formData.location || "Location not set"}</span>
+                      <span className="font-medium">{formData.geoPresence || "Geo Presence not set"}</span>
                     </div>
                     <div className={`flex items-center gap-4 ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
                       <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-slate-700/50' : 'bg-slate-100'}`}>
                         <Briefcase size={18} className="text-green-500" />
                       </div>
-                      <span className="font-medium">{formData.experience ? `${formData.experience} Experience` : "Experience not set"}</span>
+                      <span className="font-medium">{formData.careerStage ? `${formData.careerStage}` : "Career Stage not set"}</span>
                     </div>
                   </div>
 
@@ -224,12 +202,7 @@ export default function Profile() {
                         <Github size={22} className="group-hover:scale-110 transition-transform" />
                       </a>
                     )}
-                    {formData.website && (
-                      <a href={formData.website} target="_blank" rel="noopener noreferrer" className={`${isDarkMode ? 'bg-slate-700 hover:bg-emerald-600/20 hover:text-emerald-500' : 'bg-slate-100 hover:bg-emerald-50 hover:text-emerald-600'} p-3 rounded-xl transition-all duration-300 group`}>
-                        <Globe size={22} className="group-hover:scale-110 transition-transform" />
-                      </a>
-                    )}
-                    {!formData.linkedin && !formData.github && !formData.website && !isEditing && (
+                    {!formData.linkedin && !formData.github && !isEditing && (
                       <p className="text-sm text-slate-500 italic">No social links added</p>
                     )}
                   </div>
@@ -333,7 +306,7 @@ export default function Profile() {
                           </div>
                         </div>
 
-                        {/* Experience */}
+                        {/* Career Stage */}
                         <div>
                           <label className={`block text-sm font-bold uppercase tracking-widest mb-3 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                             Career Stage
@@ -341,8 +314,8 @@ export default function Profile() {
                           <div className="relative">
                             <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                             <select
-                              name="experience"
-                              value={formData.experience}
+                              name="careerStage"
+                              value={formData.careerStage}
                               onChange={handleInputChange}
                               disabled={!isEditing}
                               className={`w-full pl-12 pr-4 py-4 rounded-2xl border-2 appearance-none transition-all duration-300 ${isDarkMode
@@ -360,17 +333,17 @@ export default function Profile() {
                           </div>
                         </div>
 
-                        {/* Location */}
+                        {/* Geo Presence */}
                         <div>
                           <label className={`block text-sm font-bold uppercase tracking-widest mb-3 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                            Geographic Presence
+                            Geo Presence
                           </label>
                           <div className="relative">
                             <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                             <input
                               type="text"
-                              name="location"
-                              value={formData.location}
+                              name="geoPresence"
+                              value={formData.geoPresence}
                               onChange={handleInputChange}
                               disabled={!isEditing}
                               placeholder="City, Country"
@@ -380,25 +353,6 @@ export default function Profile() {
                                 } focus:ring-8 focus:ring-green-500/10 focus:outline-none text-lg`}
                             />
                           </div>
-                        </div>
-
-                        {/* Bio */}
-                        <div className="md:col-span-2">
-                          <label className={`block text-sm font-bold uppercase tracking-widest mb-3 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                            Elevator Pitch / Bio
-                          </label>
-                          <textarea
-                            name="bio"
-                            value={formData.bio}
-                            onChange={handleInputChange}
-                            disabled={!isEditing}
-                            rows={5}
-                            placeholder="Craft a compelling summary of your professional journey..."
-                            className={`w-full px-5 py-5 rounded-2xl border-2 transition-all duration-300 ${isDarkMode
-                              ? 'bg-slate-900 border-slate-700 text-white disabled:opacity-60 focus:border-green-500 focus:bg-slate-800'
-                              : 'bg-slate-50 border-slate-200 disabled:bg-slate-100 focus:border-green-500 focus:bg-white'
-                              } focus:ring-8 focus:ring-green-500/10 focus:outline-none resize-none leading-relaxed text-lg`}
-                          />
                         </div>
                       </div>
                     </div>
@@ -434,7 +388,7 @@ export default function Profile() {
                         </div>
 
                         {/* GitHub */}
-                        <div>
+                        <div className="md:col-span-2">
                           <label className={`block text-sm font-bold uppercase tracking-widest mb-3 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                             GitHub Profile URL
                           </label>
@@ -454,92 +408,10 @@ export default function Profile() {
                             />
                           </div>
                         </div>
-
-                        {/* Personal Website */}
-                        <div>
-                          <label className={`block text-sm font-bold uppercase tracking-widest mb-3 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                            Personal Portfolio / Website
-                          </label>
-                          <div className="relative">
-                            <ExternalLink className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500" size={20} />
-                            <input
-                              type="url"
-                              name="website"
-                              value={formData.website}
-                              onChange={handleInputChange}
-                              disabled={!isEditing}
-                              placeholder="https://yourwebsite.com"
-                              className={`w-full pl-12 pr-4 py-4 rounded-2xl border-2 transition-all duration-300 ${isDarkMode
-                                ? 'bg-slate-900 border-slate-700 text-white disabled:opacity-60 focus:border-green-500 focus:bg-slate-800'
-                                : 'bg-slate-50 border-slate-200 disabled:bg-slate-100 focus:border-green-500 focus:bg-white'
-                                } focus:ring-8 focus:ring-green-500/10 focus:outline-none`}
-                            />
-                          </div>
-                        </div>
                       </div>
                     </div>
 
-                    {/* Expertise Group */}
-                    <div className="space-y-6 pt-10 border-t border-slate-700/10 dark:border-slate-700/40">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Award className="text-yellow-500" size={20} />
-                        <h4 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Skill Ecosystem</h4>
-                      </div>
 
-                      <div className={`p-6 md:p-8 rounded-3xl border-2 ${isDarkMode ? 'bg-slate-950/50 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
-                        {isEditing && (
-                          <div className="flex gap-3 mb-8">
-                            <input
-                              type="text"
-                              value={skillInput}
-                              onChange={(e) => setSkillInput(e.target.value)}
-                              placeholder="Add a power skill (e.g. System Design, Public Speaking)"
-                              className={`flex-1 px-5 py-4 rounded-2xl border-2 transition-all duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200'
-                                } focus:border-green-500 focus:outline-none text-lg`}
-                              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddSkill())}
-                            />
-                            <button
-                              type="button"
-                              onClick={handleAddSkill}
-                              className="bg-slate-800 text-white px-6 py-4 rounded-2xl hover:bg-slate-700 active:scale-95 shadow-lg transition-all flex items-center gap-2 font-bold"
-                            >
-                              <Plus size={24} />
-                              <span className="hidden sm:inline">Add</span>
-                            </button>
-                          </div>
-                        )}
-                        <div className="flex flex-wrap gap-3">
-                          {formData.skills.length === 0 && (
-                            <div className="w-full text-center py-8">
-                              <p className="text-slate-500 italic flex items-center justify-center gap-2">
-                                <Award size={20} className="text-slate-400" />
-                                No skills added to your ecosystem yet
-                              </p>
-                            </div>
-                          )}
-                          {formData.skills.map((skill, index) => (
-                            <div
-                              key={index}
-                              className={`inline-flex items-center gap-3 px-5 py-2.5 rounded-2xl text-base font-bold transition-all transform hover:scale-105 ${isDarkMode
-                                ? 'bg-slate-800 text-green-400 border-2 border-slate-700 hover:border-green-500/50'
-                                : 'bg-white text-green-700 border-2 border-green-100 shadow-sm hover:border-green-500/50'
-                                }`}
-                            >
-                              {skill}
-                              {isEditing && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveSkill(skill)}
-                                  className="text-slate-400 hover:text-red-500 transition-colors p-1"
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
                   </form>
                 </div>
               </div>

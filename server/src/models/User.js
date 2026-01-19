@@ -15,23 +15,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    profilePic: {
+    careerStage: {
       type: String,
       default: "",
     },
-    bio: {
-      type: String,
-      default: "",
-    },
-    skills: {
-      type: [String],
-      default: [],
-    },
-    experience: {
-      type: String,
-      default: "",
-    },
-    location: {
+    geoPresence: {
       type: String,
       default: "",
     },
@@ -43,7 +31,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    website: {
+    profilePic: {
       type: String,
       default: "",
     },

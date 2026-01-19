@@ -42,24 +42,24 @@ function extractFirstJson(s = '') {
 async function callOpenRouter(prompt) {
 	console.log('OPENROUTER_API_KEY present:', !!OPENROUTER_API_KEY);
 	if (!OPENROUTER_API_KEY) throw new Error('OPENROUTER_API_KEY not configured');
-	
+
 	const body = {
 		model: MODEL,
 		messages: [{ role: 'user', content: prompt }],
-		temperature: 0.9, // Increased for more variety and uniqueness
+		temperature: 0.7, // Lowered for more consistent and grounded results
 		max_tokens: 2000, // Increased to allow for multiple questions
 		top_p: 0.95, // Nucleus sampling for diversity
 		frequency_penalty: 0.5, // Reduce repetition
 		presence_penalty: 0.6 // Encourage new topics/concepts
 	};
-	
+
 	console.log('Calling OpenRouter with model:', MODEL);
 	console.log('OpenRouter URL:', OPENROUTER_API_URL);
-	
+
 	try {
 		const res = await axios.post(OPENROUTER_API_URL, body, {
-			headers: { 
-				'Content-Type': 'application/json', 
+			headers: {
+				'Content-Type': 'application/json',
 				'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
 				'HTTP-Referer': process.env.OPENROUTER_REFERER || 'https://vivamate.com',
 				'X-Title': 'VivaMate Quiz Generator'
@@ -69,22 +69,22 @@ async function callOpenRouter(prompt) {
 				return status >= 200 && status < 500; // Don't throw on 4xx errors, we'll handle them
 			}
 		});
-		
+
 		// Check for API errors
 		if (res.status >= 400) {
 			const errorMsg = res.data?.error?.message || res.data?.message || `HTTP ${res.status}`;
 			console.error('OpenRouter API error:', errorMsg, res.data);
 			throw new Error(`OpenRouter API error: ${errorMsg}`);
 		}
-		
+
 		const json = res.data || {};
 		const content = json?.choices?.[0]?.message?.content ?? json?.choices?.[0]?.text ?? '';
-		
+
 		if (!content) {
 			console.error('OpenRouter response structure:', JSON.stringify(json, null, 2));
 			throw new Error('Empty response from OpenRouter');
 		}
-		
+
 		console.log('OpenRouter response received, length:', content.length);
 		return content;
 	} catch (error) {
@@ -94,14 +94,14 @@ async function callOpenRouter(prompt) {
 			networkError.code = error.code;
 			throw networkError;
 		}
-		
+
 		// Handle axios errors
 		if (error.response) {
 			const errorMsg = error.response.data?.error?.message || error.response.data?.message || `HTTP ${error.response.status}`;
 			console.error('OpenRouter API error response:', error.response.status, errorMsg);
 			throw new Error(`OpenRouter API error: ${errorMsg}`);
 		}
-		
+
 		// Re-throw other errors
 		console.error('OpenRouter API call failed:', error.message);
 		throw error;
@@ -112,7 +112,7 @@ async function callOpenAI(prompt) {
 	const body = {
 		model: OPENAI_MODEL,
 		messages: [{ role: 'user', content: prompt }],
-		temperature: 0.9, // Increased for more variety
+		temperature: 0.7, // Lowered for more consistency
 		max_tokens: 2000, // Increased to allow for multiple questions
 		top_p: 0.95,
 		frequency_penalty: 0.5,
@@ -195,7 +195,7 @@ async function generateUniqueQuestions(options = {}) {
 	const existingKeys = await gatherExistingKeys({ sessionId, userId });
 	const result = [];
 	const seen = new Set(existingKeys);
-	
+
 	// Get existing question texts for prompt (limited to avoid token limits)
 	const existingQuestions = [];
 	if (sessionId) {
@@ -224,7 +224,7 @@ async function generateUniqueQuestions(options = {}) {
 	while (attempts < maxAttempts && result.length < count) {
 		attempts++;
 		console.log(`Attempt ${attempts}/${maxAttempts}: Generating ${remaining} questions...`);
-		
+
 		// Generate prompt with existing questions context
 		const prompt = aiPrompt.generateQuestionPrompt(type, remaining, recentExistingQuestions);
 
@@ -245,7 +245,7 @@ async function generateUniqueQuestions(options = {}) {
 				console.error('   2. DNS resolution failure');
 				console.error('   3. Firewall/proxy blocking the connection');
 				console.error('   4. OpenRouter API is down');
-				
+
 				// If it's a network error, don't retry immediately - wait a bit
 				if (attempts < maxAttempts) {
 					console.log(`   Waiting 2 seconds before retry...`);
@@ -254,7 +254,7 @@ async function generateUniqueQuestions(options = {}) {
 			} else {
 				console.warn(`✗ OpenRouter failed (attempt ${attempts}):`, err.message);
 			}
-			
+
 			// Try OpenAI as fallback (only if OpenAI key is configured)
 			if (OPENAI_API_KEY) {
 				try {
@@ -263,7 +263,7 @@ async function generateUniqueQuestions(options = {}) {
 				} catch (openaiErr) {
 					console.error(`✗ OpenAI also failed (attempt ${attempts}):`, openaiErr.message);
 					if (attempts >= maxAttempts) {
-						const errorDetails = err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED' 
+						const errorDetails = err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED'
 							? `Network error: ${err.message}. Please check your internet connection.`
 							: `OpenRouter (${error.message}), OpenAI (${openaiErr.message})`;
 						throw new Error(`Failed to generate questions after ${maxAttempts} attempts: ${errorDetails}`);
@@ -274,7 +274,7 @@ async function generateUniqueQuestions(options = {}) {
 			} else {
 				// No OpenAI fallback available
 				if (attempts >= maxAttempts) {
-					const errorDetails = err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED' 
+					const errorDetails = err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED'
 						? `Network error: ${err.message}. Please check your internet connection and DNS settings.`
 						: error.message;
 					throw new Error(`Failed to generate questions after ${maxAttempts} attempts: ${errorDetails}`);
@@ -287,7 +287,7 @@ async function generateUniqueQuestions(options = {}) {
 		if (content) {
 			const items = parseQuestionsFromLLM(content || '');
 			console.log(`Parsed ${items.length} questions from LLM response`);
-			
+
 			let added = 0;
 			for (const it of items) {
 				if (result.length >= count) break;
@@ -303,22 +303,22 @@ async function generateUniqueQuestions(options = {}) {
 				result.push({ question: it.question || it.text, _norm: it._norm, _key: it._key });
 				added++;
 			}
-			
+
 			console.log(`Added ${added} new unique questions. Total: ${result.length}/${count}`);
 			remaining = count - result.length;
-			
+
 			if (remaining > 0 && attempts < maxAttempts) {
 				console.log(`Need ${remaining} more questions, continuing...`);
 			}
 		}
 	}
-	
+
 	if (result.length < count) {
 		const errorMsg = `Could not generate enough unique questions: got ${result.length}/${count} after ${maxAttempts} attempts`;
 		console.error(errorMsg);
 		throw new Error(errorMsg);
 	}
-	
+
 	console.log(`✓ Successfully generated ${result.length} unique questions`);
 	return result.slice(0, count).map(q => ({ question: q.question }));
 }
@@ -391,7 +391,7 @@ exports.generateQuestions = async (req, res) => {
 
 // Optional: Add a health check endpoint for debugging
 exports.health = (req, res) => {
-    res.status(200).json({ status: 'ok', openrouter: !!OPENROUTER_API_KEY, openai: !!OPENAI_API_KEY });
+	res.status(200).json({ status: 'ok', openrouter: !!OPENROUTER_API_KEY, openai: !!OPENAI_API_KEY });
 };
 
 exports.evaluateAnswer = evaluateAnswer;

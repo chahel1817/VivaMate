@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
-const interviewRoutes = require("./routes/interviewRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const app = express();
 const protect = require("./middleware/authMiddleware");
@@ -15,7 +14,6 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
-app.use("/api/interviews", interviewRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/responses", responseRoutes);
 app.use("/api/interview", interviewSessionRoutes);

@@ -147,7 +147,7 @@ const verifyOtp = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { name, bio, skills, experience, location, profilePic, linkedin, github, website } = req.body;
+    const { name, careerStage, geoPresence, profilePic, linkedin, github } = req.body;
     const user = await User.findById(req.user);
 
     if (!user) {
@@ -155,14 +155,11 @@ const updateProfile = async (req, res) => {
     }
 
     if (name) user.name = name;
-    if (bio !== undefined) user.bio = bio;
-    if (skills !== undefined) user.skills = skills;
-    if (experience !== undefined) user.experience = experience;
-    if (location !== undefined) user.location = location;
+    if (careerStage !== undefined) user.careerStage = careerStage;
+    if (geoPresence !== undefined) user.geoPresence = geoPresence;
     if (profilePic !== undefined) user.profilePic = profilePic;
     if (linkedin !== undefined) user.linkedin = linkedin;
     if (github !== undefined) user.github = github;
-    if (website !== undefined) user.website = website;
 
     await user.save();
 
@@ -172,14 +169,11 @@ const updateProfile = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        bio: user.bio,
-        skills: user.skills,
-        experience: user.experience,
-        location: user.location,
+        careerStage: user.careerStage,
+        geoPresence: user.geoPresence,
         profilePic: user.profilePic,
         linkedin: user.linkedin,
         github: user.github,
-        website: user.website,
       },
     });
   } catch (err) {

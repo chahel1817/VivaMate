@@ -12,17 +12,28 @@ exports.startSession = async (req, res) => {
 
     const sessionId = `session_${Date.now()}_${req.user}`;
 
+    // Generate questions immediately
+    console.log(`Generating ${totalQuestions} questions for session: ${sessionId}`);
+    const questionsData = await aiController.generateUniqueQuestions({
+      type: `${domain} ${tech} ${difficulty}`,
+      count: totalQuestions,
+      userId: req.user,
+    });
+
+    const questionTexts = questionsData.map(q => q.question);
+
     const session = await InterviewSession.create({
       user: req.user,
       sessionId,
       topic: { domain, tech },
       difficulty,
       totalQuestions,
+      questions: questionTexts, // Save generated questions here
       interviewType: `${domain} - ${tech} (${difficulty})`,
       startedAt: new Date(),
     });
 
-    res.json({ sessionId });
+    res.json({ sessionId, questions: questionTexts });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Session start failed" });
@@ -30,12 +41,10 @@ exports.startSession = async (req, res) => {
 };
 
 exports.createSummary = async (req, res) => {
-  // accept id in params or body
   const sessionId = req.params.id || req.body.sessionId || req.body._id;
   if (!sessionId) return res.status(400).json({ message: "Missing session id" });
 
   try {
-    // fetch existing session (by _id or sessionId string)
     let session = null;
     if (mongoose.Types.ObjectId.isValid(sessionId)) {
       session = await InterviewSession.findById(sessionId).lean();
@@ -43,71 +52,90 @@ exports.createSummary = async (req, res) => {
     if (!session) session = await InterviewSession.findOne({ sessionId }).lean();
     if (!session) return res.status(404).json({ message: "Interview session not found" });
 
-    // Fetch all responses for this session from Response model
     const responses = await Response.find({ sessionId: session.sessionId || sessionId })
       .sort({ createdAt: 1 })
       .lean();
 
     console.log(`Found ${responses.length} responses for session ${sessionId}`);
 
-    // Build per-question feedback from responses
-    const perQuestionFeedback = [];
-    let techSum = 0;
-    let claritySum = 0;
-    let confidenceSum = 0;
-    let count = 0;
-
-    for (const response of responses) {
+    // Parallelize evaluations
+    const evaluationPromises = responses.map(async (response) => {
       const questionText = String(response.question || "").trim();
       const answerText = String(response.transcript || "").trim();
-      
-      if (!questionText) continue;
 
-      // Use scores from response if available, otherwise evaluate
+      if (!questionText) return null;
+
       let technicalScore = 0;
       let clarityScore = 0;
       let confidenceScore = 0;
       let feedback = response.feedback || "";
 
-      if (response.scores) {
+      // Check if scores are actually non-zero or if feedback exists (indicating previous evaluation)
+      const hasScores = response.scores && (response.scores.technical > 0 || response.scores.clarity > 0 || response.scores.confidence > 0);
+
+      if (hasScores) {
         technicalScore = Number(response.scores.technical) || 0;
         clarityScore = Number(response.scores.clarity) || 0;
         confidenceScore = Number(response.scores.confidence) || 0;
-      } else if (answerText) {
-        // Fallback: evaluate if scores not available
+      } else if (answerText && answerText !== "No answer provided.") {
         try {
           const evalRes = await aiController.evaluateAnswer(questionText, answerText);
           technicalScore = evalRes.technicalScore || 0;
           clarityScore = evalRes.clarityScore || 0;
           confidenceScore = evalRes.confidenceScore || 0;
           feedback = evalRes.feedback || feedback;
+
+          // Optionally update the response in DB with these scores
+          await Response.findByIdAndUpdate(response._id, {
+            $set: {
+              scores: { technical: technicalScore, clarity: clarityScore, confidence: confidenceScore },
+              feedback: feedback
+            }
+          });
         } catch (e) {
           console.warn(`Failed to evaluate answer for question: ${questionText.substring(0, 50)}`, e.message);
         }
       }
 
-      perQuestionFeedback.push({
+      return {
         question: questionText,
         answer: answerText,
         technicalScore,
         clarityScore,
         confidenceScore,
         feedback,
-      });
+        tech: response.tech,
+        domain: response.domain
+      };
+    });
 
-      techSum += technicalScore;
-      claritySum += clarityScore;
-      confidenceSum += confidenceScore;
+    const perQuestionFeedbackRaw = await Promise.all(evaluationPromises);
+    const perQuestionFeedback = perQuestionFeedbackRaw.filter(Boolean);
+
+    let techSum = 0, claritySum = 0, confidenceSum = 0, count = 0;
+    const skillMap = new Map();
+
+    for (const item of perQuestionFeedback) {
+      techSum += item.technicalScore;
+      claritySum += item.clarityScore;
+      confidenceSum += item.confidenceScore;
       count++;
+
+      // Skill metrics calculation using evaluated scores
+      const skillKey = (item.tech || item.domain || "General").trim();
+      if (!skillMap.has(skillKey)) {
+        skillMap.set(skillKey, { skill: skillKey, total: 0, count: 0 });
+      }
+      const entry = skillMap.get(skillKey);
+      entry.total += item.technicalScore;
+      entry.count += 1;
     }
 
-    // Calculate averages
     const averageTechnical = count > 0 ? Math.round((techSum / count) * 10) / 10 : 0;
     const averageClarity = count > 0 ? Math.round((claritySum / count) * 10) / 10 : 0;
     const averageConfidence = count > 0 ? Math.round((confidenceSum / count) * 10) / 10 : 0;
     const overallScore = Math.round(((averageTechnical + averageClarity + averageConfidence) / 3) * 10) / 10;
 
-    // Consistency score (based on variance of technical scores)
     let consistencyScore = null;
     let consistencyNote = null;
     if (count > 1) {
@@ -115,58 +143,26 @@ exports.createSummary = async (req, res) => {
       const mean = scores.reduce((s, v) => s + v, 0) / scores.length;
       const variance = scores.reduce((s, v) => s + Math.pow(v - mean, 2), 0) / scores.length;
       const stdDev = Math.sqrt(variance);
-      const raw = Math.max(0, 10 - stdDev * 2); // higher stdDev => lower consistency
+      const raw = Math.max(0, 10 - stdDev * 2);
       consistencyScore = Math.round(raw * 10) / 10;
 
-      if (consistencyScore >= 8.5) {
-        consistencyNote = "Very consistent performance across questions.";
-      } else if (consistencyScore >= 7) {
-        consistencyNote = "Generally consistent with minor fluctuations.";
-      } else if (consistencyScore >= 5.5) {
-        consistencyNote = "Technically strong but inconsistent under stress.";
-      } else {
-        consistencyNote = "High fluctuation in performance; work on staying steady under pressure.";
-      }
+      if (consistencyScore >= 8.5) consistencyNote = "Very consistent performance across questions.";
+      else if (consistencyScore >= 7) consistencyNote = "Generally consistent with minor fluctuations.";
+      else if (consistencyScore >= 5.5) consistencyNote = "Technically strong but inconsistent under stress.";
+      else consistencyNote = "High fluctuation in performance; work on staying steady under pressure.";
     } else {
-      consistencyScore = null;
       consistencyNote = "More questions are needed to accurately measure consistency.";
     }
 
-    // Recommendation logic
-    let recommendation = null;
+    let recommendation = "Needs improvement";
     if (overallScore >= 8) recommendation = "Strong hire";
     else if (overallScore >= 6) recommendation = "Consider with reservations";
     else if (overallScore >= 4) recommendation = "Needs improvement";
     else recommendation = "Not recommended";
 
-    // Strengths: top 2 highest technicalScore feedback entries
     const sortedByTech = [...perQuestionFeedback].sort((a, b) => (b.technicalScore || 0) - (a.technicalScore || 0));
-    const strengths = sortedByTech.slice(0, 2)
-      .map((p) => p.feedback)
-      .filter(Boolean)
-      .filter((f, i, arr) => arr.indexOf(f) === i); // Remove duplicates
-
-    // Weaknesses: bottom 2 lowest technicalScore feedback entries
-    const weaknesses = sortedByTech.slice(-2)
-      .reverse()
-      .map((p) => p.feedback)
-      .filter(Boolean)
-      .filter((f, i, arr) => arr.indexOf(f) === i); // Remove duplicates
-
-    // Skill metrics (by tech/domain)
-    const skillMap = new Map();
-    for (const r of responses) {
-      const skillKey = (r.tech || r.domain || "").trim();
-      if (!skillKey) continue;
-      const s = r.scores || {};
-      const techScore = Number(s.technical || 0);
-      if (!skillMap.has(skillKey)) {
-        skillMap.set(skillKey, { skill: skillKey, total: 0, count: 0 });
-      }
-      const entry = skillMap.get(skillKey);
-      entry.total += techScore;
-      entry.count += 1;
-    }
+    const strengths = sortedByTech.slice(0, 2).map((p) => p.feedback).filter(Boolean);
+    const weaknesses = sortedByTech.slice(-2).reverse().map((p) => p.feedback).filter(Boolean);
 
     const skillMetrics = Array.from(skillMap.values())
       .map((e) => ({
@@ -191,31 +187,19 @@ exports.createSummary = async (req, res) => {
       endedAt: new Date(),
     };
 
-    // Atomic update by _id or sessionId
     let updatedSession = null;
     if (mongoose.Types.ObjectId.isValid(sessionId)) {
-      updatedSession = await InterviewSession.findByIdAndUpdate(sessionId, { $set: update }, { new: true, runValidators: true });
+      updatedSession = await InterviewSession.findByIdAndUpdate(sessionId, { $set: update }, { new: true });
     }
     if (!updatedSession) {
-      updatedSession = await InterviewSession.findOneAndUpdate({ sessionId }, { $set: update }, { new: true, runValidators: true });
+      updatedSession = await InterviewSession.findOneAndUpdate({ sessionId }, { $set: update }, { new: true });
     }
+
     if (!updatedSession) return res.status(404).json({ message: "Failed to update session summary" });
-
-    console.log(`Summary created for session ${sessionId}: Overall score = ${overallScore}`);
-
-    // Emit socket event if available
-    if (global.io) {
-      try {
-        global.io.emit("session:updated", { id: updatedSession._id, sessionId: updatedSession.sessionId });
-      } catch (e) {
-        /* ignore emit errors */
-      }
-    }
 
     return res.status(200).json(updatedSession);
   } catch (err) {
     console.error("createSummary error", err);
-    if (err.name === "CastError") return res.status(400).json({ message: "Invalid id format" });
     return res.status(500).json({ message: err.message || "Internal server error" });
   }
 };

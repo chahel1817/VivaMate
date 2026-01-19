@@ -75,7 +75,7 @@ export default function InterviewProcessing() {
 
           {/* FOOTER TEXT */}
           <p className={`mt-6 text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-            This may take a few seconds
+            This might take up to a minute. Please wait while we generate your detailed report.
           </p>
         </div>
       </div>
