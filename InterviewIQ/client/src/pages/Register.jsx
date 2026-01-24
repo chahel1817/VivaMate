@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, User } from "lucide-react";
-import { useState } from "react";
+import { Mail, Lock, User, Check, X } from "lucide-react";
+import { useState, useMemo } from "react";
 import AuthBranding from "../components/AuthBranding";
 
 export default function Register() {
@@ -12,12 +12,32 @@ export default function Register() {
     password: "",
   });
 
+  const [error, setError] = useState("");
+
+  const passwordRequirements = useMemo(() => {
+    const { password } = formData;
+    return [
+      { id: "length", label: "At least 8 characters", met: password.length >= 8 },
+      { id: "uppercase", label: "One uppercase letter", met: /[A-Z]/.test(password) },
+      { id: "number", label: "One number", met: /[0-9]/.test(password) },
+      { id: "special", label: "One special character", met: /[^A-Za-z0-9]/.test(password) },
+    ];
+  }, [formData.password]);
+
+  const isPasswordValid = passwordRequirements.every((req) => req.met);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleRegister = async () => {
+    if (!isPasswordValid) {
+      setError("Please meet all password requirements");
+      return;
+    }
+
     try {
+      setError("");
       const res = await fetch("http://localhost:5000/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -27,15 +47,15 @@ export default function Register() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.message);
+        setError(data.message || "Registration failed");
         return;
       }
 
-      alert("Registration successful");
-      navigate("/");
+      // Redirect to login with success state instead of alert
+      navigate("/", { state: { message: "You're registered, login to access." } });
     } catch (err) {
       console.error(err);
-      alert("Registration failed");
+      setError("Registration failed. Please try again later.");
     }
   };
 
@@ -88,22 +108,44 @@ export default function Register() {
             </div>
 
             {/* Password */}
-            <div className="relative">
-              <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                onChange={handleChange}
-                className="w-full border border-slate-300 rounded-lg pl-10 pr-4 py-2
-                focus:outline-none focus:ring-2 focus:ring-green-500"
-                required
-              />
+            <div className="space-y-2">
+              <div className="relative">
+                <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  onChange={handleChange}
+                  className="w-full border border-slate-300 rounded-lg pl-10 pr-4 py-2
+                  focus:outline-none focus:ring-2 focus:ring-green-500"
+                  required
+                />
+              </div>
+
+              {/* Password Requirements UI */}
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {passwordRequirements.map((req) => (
+                  <div key={req.id} className="flex items-center space-x-2 text-xs">
+                    {req.met ? (
+                      <Check size={14} className="text-green-500" />
+                    ) : (
+                      <X size={14} className="text-red-500" />
+                    )}
+                    <span className={req.met ? "text-green-600" : "text-red-600"}>
+                      {req.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
+
+            {error && <p className="text-red-500 text-sm">{error}</p>}
 
             <button
               type="submit"
-              className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
+              className={`w-full py-2 rounded-lg transition text-white ${isPasswordValid ? "bg-green-600 hover:bg-green-700" : "bg-slate-400 cursor-not-allowed"
+                }`}
+              disabled={!isPasswordValid}
             >
               Register
             </button>
@@ -120,3 +162,4 @@ export default function Register() {
     </div>
   );
 }
+

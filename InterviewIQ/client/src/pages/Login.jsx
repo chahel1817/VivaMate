@@ -1,20 +1,31 @@
-import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock } from "lucide-react";
-import { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Mail, Lock, CheckCircle } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../context/authContext";
 import AuthBranding from "../components/AuthBranding";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMsg(location.state.message);
+      // Clear the state to avoid showing the message on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleLogin = async () => {
     try {
       setError("");
+      setSuccessMsg("");
       await login(email, password);
       navigate("/dashboard");
     } catch (err) {
@@ -36,10 +47,18 @@ export default function Login() {
             Continue your interview preparation
           </p>
 
+          {successMsg && (
+            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-2 text-green-700 text-sm">
+              <CheckCircle size={18} />
+              <span>{successMsg}</span>
+            </div>
+          )}
+
           <form
             onSubmit={(e) => { e.preventDefault(); handleLogin(); }}
             className="mt-6 space-y-4"
           >
+
 
             {/* Email */}
             <div>
