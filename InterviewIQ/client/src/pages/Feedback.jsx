@@ -74,7 +74,7 @@ export default function Feedback() {
               {/* Video Playback */}
               {r.videoUrl && (
                 <video
-                  src={`http://localhost:5000${r.videoUrl}`}
+                  src={`${(import.meta.env.VITE_API_URL || 'http://localhost:5000').replace('/api', '')}${r.videoUrl}`}
                   controls
                   className="w-full rounded-lg border"
                 />

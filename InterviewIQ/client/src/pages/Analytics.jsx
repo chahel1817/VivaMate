@@ -149,7 +149,7 @@ export default function Analytics() {
       try {
         const mod = await import("socket.io-client");
         const io = mod?.default ?? mod;
-        const socketUrl = "http://localhost:5000";
+        const socketUrl = (import.meta.env.VITE_API_URL || "http://localhost:5000").replace('/api', '');
         socket = io(socketUrl, { transports: ["websocket"] });
         socket.on("connect", () => console.debug("socket connected"));
         socket.on("session:updated", () => refreshAnalytics());

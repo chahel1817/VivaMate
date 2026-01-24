@@ -128,7 +128,7 @@ export default function Profile() {
                     <div className={`w-full h-full rounded-3xl overflow-hidden border-4 ${isDarkMode ? 'border-slate-800 shadow-black/40' : 'border-white shadow-xl'} shadow-lg bg-slate-100 flex items-center justify-center relative transform group-hover:scale-[1.02] transition-transform duration-300`}>
                       {formData.profilePic ? (
                         <img
-                          src={formData.profilePic.startsWith('http') ? formData.profilePic : `http://localhost:5000${formData.profilePic}`}
+                          src={formData.profilePic.startsWith('http') ? formData.profilePic : `${(import.meta.env.VITE_API_URL || 'http://localhost:5000').replace('/api', '')}${formData.profilePic}`}
                           alt="Profile"
                           className="w-full h-full object-cover"
                         />

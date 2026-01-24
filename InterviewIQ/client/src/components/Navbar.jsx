@@ -44,7 +44,7 @@ export default function Navbar() {
               <div className="w-9 h-9 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 overflow-hidden border border-green-200 dark:border-green-800">
                 {user?.profilePic ? (
                   <img
-                    src={user.profilePic.startsWith('http') ? user.profilePic : `http://localhost:5000${user.profilePic}`}
+                    src={user.profilePic.startsWith('http') ? user.profilePic : `${(import.meta.env.VITE_API_URL || 'http://localhost:5000').replace('/api', '')}${user.profilePic}`}
                     alt="profile"
                     className="w-full h-full object-cover"
                   />

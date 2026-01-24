@@ -2,9 +2,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, User, Check, X } from "lucide-react";
 import { useState, useMemo } from "react";
 import AuthBranding from "../components/AuthBranding";
+import { useAuth } from "../context/authContext";
 
 export default function Register() {
   const navigate = useNavigate();
+  const { register } = useAuth();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -38,24 +40,13 @@ export default function Register() {
 
     try {
       setError("");
-      const res = await fetch("http://localhost:5000/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      await register(formData.name, formData.email, formData.password);
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.message || "Registration failed");
-        return;
-      }
-
-      // Redirect to login with success state instead of alert
+      // Redirect to login with success state
       navigate("/", { state: { message: "You're registered, login to access." } });
     } catch (err) {
       console.error(err);
-      setError("Registration failed. Please try again later.");
+      setError(err.message || "Registration failed. Please try again later.");
     }
   };
 
@@ -162,4 +153,3 @@ export default function Register() {
     </div>
   );
 }
-
