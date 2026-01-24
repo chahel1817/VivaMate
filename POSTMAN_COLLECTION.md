@@ -1,155 +1,230 @@
 # VivaMate API Postman Collection
 
-This document provides a comprehensive list of API endpoints with request examples, Postman tests, and sample responses.
+This document provides the full list of API endpoints organized by functional modules, including request headers, body examples, and Postman test scripts.
 
 ## Base URL
 `http://localhost:5000/api`
 
 ---
 
-## 🔐 Authentication (`/auth`)
+## 📂 01. Auth & Profile
 
 ### 1. Register User
 - **Method**: `POST`
-- **URL**: `/auth/register`
-- **Request Body**:
+- **URL**: `{{url}}/auth/register`
+- **Headers**:
+  - `Content-Type`: `application/json`
+- **Body (JSON)**:
   ```json
   {
-    "name": "John Doe",
-    "email": "john@example.com",
-    "password": "password123"
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "password": "Password123!"
   }
   ```
 - **Tests**:
   ```javascript
-  pm.test("Status code is 201", function () {
+  pm.test("Registration successful", function () {
       pm.response.to.have.status(201);
+      pm.expect(pm.response.json().message).to.include("registered successfully");
   });
   ```
-- **Response**: `{"message": "User registered successfully"}`
 
-### 2. Login User
+### 2. Login
 - **Method**: `POST`
-- **URL**: `/auth/login`
-- **Request Body**: `{"email": "john@example.com", "password": "password123"}`
-- **Tests**:
-  ```javascript
-  pm.test("Token exists", () => pm.expect(pm.response.json().token).to.be.a("string"));
-  pm.environment.set("token", pm.response.json().token);
-  ```
-- **Response**: `{"token": "...", "user": {...}}`
-
-### 3. Update Profile
-- **Method**: `PUT`
-- **URL**: `/auth/profile`
-- **Protected**: Yes
-- **Request Body**:
+- **URL**: `{{url}}/auth/login`
+- **Headers**:
+  - `Content-Type`: `application/json`
+- **Body (JSON)**:
   ```json
   {
-    "bio": "Full Stack Developer",
-    "skills": ["React", "Express", "MongoDB"],
-    "location": "New York"
+    "email": "jane@example.com",
+    "password": "Password123!"
   }
   ```
-- **Response**: `{"message": "Profile updated successfully", "user": {...}}`
+- **Tests**:
+  ```javascript
+  pm.test("Status code is 200", () => pm.response.to.have.status(200));
+  pm.test("Token is returned", function () {
+      const jsonData = pm.response.json();
+      pm.expect(jsonData.token).to.be.a("string");
+      pm.environment.set("token", jsonData.token);
+  });
+  ```
+
+### 3. Update Profile (New Model)
+- **Method**: `PUT`
+- **URL**: `{{url}}/auth/profile`
+- **Headers**:
+  - `Content-Type`: `application/json`
+  - `Authorization`: `Bearer {{token}}`
+- **Body (JSON)**:
+  ```json
+  {
+    "name": "Jane Smith",
+    "bio": "Senior Software Engineer",
+    "skills": ["React", "Node.js", "Docker"]
+  }
+  ```
+- **Tests**:
+  ```javascript
+  pm.test("Profile updated", () => pm.response.to.have.status(200));
+  ```
+
+### 4. Get My Data
+- **Method**: `GET`
+- **URL**: `{{url}}/auth/me`
+- **Headers**:
+  - `Authorization`: `Bearer {{token}}`
+- **Tests**:
+  ```javascript
+  pm.test("User data loaded", function () {
+      pm.response.to.have.status(200);
+      pm.expect(pm.response.json()).to.have.property("email");
+  });
+  ```
 
 ---
 
-## 👨‍💼 Interview Sessions (`/interview`)
+## 📂 02. Interview Flow
 
 ### 1. Start Session
 - **Method**: `POST`
-- **URL**: `/interview/start`
-- **Protected**: Yes
-- **Request Body**:
+- **URL**: `{{url}}/interview/start-session`
+- **Headers**:
+  - `Content-Type`: `application/json`
+  - `Authorization`: `Bearer {{token}}`
+- **Body (JSON)**:
   ```json
   {
-    "domain": "Software Engineering",
+    "domain": "Frontend",
     "tech": "React",
-    "difficulty": "Intermediate",
-    "totalQuestions": 5
+    "difficulty": "Mid-level",
+    "totalQuestions": 3
   }
   ```
-- **Response**: `{"sessionId": "session_1705600000_..."}`
+- **Tests**:
+  ```javascript
+  pm.test("Session started", function () {
+      pm.response.to.have.status(201);
+      pm.environment.set("current_session_id", pm.response.json()._id);
+  });
+  ```
 
-### 2. Create Session Summary (Finish)
+### 2. Save Response
 - **Method**: `POST`
-- **URL**: `/interview/summary`
-- **Request Body**: `{"sessionId": "session_..."}`
-- **Response**: Full JSON object of the completed session with scores and feedback.
-
----
-
-## 🤖 AI Interaction (`/ai`)
-
-### 1. Generate Questions
-- **Method**: `POST`
-- **URL**: `/ai/generate-questions`
-- **Request Body**: `{"type": "Node.js", "count": 5}`
-- **Response**: `{"success": true, "questions": [...]}`
-
-### 2. Analyze Answer
-- **Method**: `POST`
-- **URL**: `/ai/analyze-answer`
-- **Request Body**:
+- **URL**: `{{url}}/responses/`
+- **Headers**:
+  - `Content-Type`: `application/json`
+  - `Authorization`: `Bearer {{token}}`
+- **Body (JSON)**:
   ```json
   {
-    "question": "What is JSX?",
-    "answer": "JSX is a syntax extension for JavaScript that looks like HTML."
+    "sessionId": "{{current_session_id}}",
+    "question": "What is the Virtual DOM?",
+    "answer": "It is a lightweight representation of the real DOM.",
+    "scores": {
+      "technical": 9,
+      "clarity": 8,
+      "confidence": 10
+    }
   }
   ```
-- **Response**:
+- **Tests**:
+  ```javascript
+  pm.test("Response saved", () => pm.response.to.have.status(201));
+  ```
+
+### 3. Generate AI Summary
+- **Method**: `POST`
+- **URL**: `{{url}}/interview/summary`
+- **Headers**:
+  - `Content-Type`: `application/json`
+  - `Authorization`: `Bearer {{token}}`
+- **Body (JSON)**:
   ```json
   {
-    "technicalScore": 9,
-    "clarityScore": 10,
-    "confidenceScore": 8,
-    "feedback": "Perfect and concise definition."
+    "sessionId": "{{current_session_id}}"
   }
+  ```
+- **Tests**:
+  ```javascript
+  pm.test("Summary generated", () => pm.response.to.have.status(200));
+  ```
+
+### 4. Fetch Latest Report
+- **Method**: `GET`
+- **URL**: `{{url}}/interview/summary`
+- **Headers**:
+  - `Authorization`: `Bearer {{token}}`
+- **Tests**:
+  ```javascript
+  pm.test("Reports fetched", function () {
+      pm.response.to.have.status(200);
+      pm.expect(pm.response.json()).to.be.an("array");
+  });
   ```
 
 ---
 
-## 📊 Dashboard (`/dashboard`)
+## 📂 03. Community & Messaging
 
-### 1. Overview
-- **Method**: `GET`
-- **URL**: `/api/dashboard`
-- **Response**: `{"interviewsTaken": 5, "averageScore": 82, "recentActivity": [...]}`
-
-### 2. Detailed Stats
-- **Method**: `GET`
-- **URL**: `/api/dashboard/stats`
-- **Response**: Includes `skillBreakdown` (Technical, Communication, Behavioral) and `performanceTrend`.
-
----
-
-## 💬 Forum & Messages
-
-### 1. Get Forum Posts
-- **Method**: `GET`
-- **URL**: `/forum`
-- **Response**: Array of post objects.
-
-### 2. Create Post
+### 1. Create Forum Post
 - **Method**: `POST`
-- **URL**: `/forum`
-- **Request Body**: `{"title": "Title", "content": "Body", "author": "Name"}`
+- **URL**: `{{url}}/forum/`
+- **Headers**:
+  - `Content-Type`: `application/json`
+  - `Authorization`: `Bearer {{token}}`
+- **Body (JSON)**:
+  ```json
+  {
+    "title": "Tips for System Design",
+    "content": "Focus on scalability and reliable transport layers.",
+    "author": "Jane Smith"
+  }
+  ```
+- **Tests**:
+  ```javascript
+  pm.test("Post created", () => pm.response.to.have.status(201));
+  ```
+
+### 2. Get All Posts
+- **Method**: `GET`
+- **URL**: `{{url}}/forum/`
+- **Headers**:
+  - `Authorization`: `Bearer {{token}}`
+- **Tests**:
+  ```javascript
+  pm.test("Posts retrieved", () => pm.response.to.have.status(200));
+  ```
+
+### 3. Get Dashboard Stats
+- **Method**: `GET`
+- **URL**: `{{url}}/dashboard/stats`
+- **Headers**:
+  - `Authorization`: `Bearer {{token}}`
+- **Tests**:
+  ```javascript
+  pm.test("Stats loaded", function () {
+      pm.response.to.have.status(200);
+      const data = pm.response.json();
+      pm.expect(data).to.have.property("skillBreakdown");
+      pm.expect(data).to.have.property("performanceTrend");
+  });
+  ```
 
 ---
 
-## 📁 File Uploads (`/upload`)
+## 🛠️ Postman Setup Guide
 
-### 1. Resume Upload
-- **Method**: `POST`
-- **URL**: `/upload/resume`
-- **Body Type**: `form-data` (Key: `resume`)
-- **Response**: `{"message": "Resume uploaded successfully", "resumeUrl": "..."}`
+1. **Environment Variables**:
+   - `url`: `http://localhost:5000/api`
+   - `token`: (Automatically set after a successful Login)
+   - `current_session_id`: (Automatically set after starting a session)
 
----
+2. **Global Headers**:
+   - Ensure `Content-Type: application/json` is set for all `POST` and `PUT` requests.
+   - For all routes except Register and Login, add `Authorization: Bearer {{token}}`.
 
-## Setup Instructions
-
-1. **Authorization**: Use **Bearer Token** with the value from login.
-2. **Environment Variable**: Set `url` as `http://localhost:5000/api`.
-3. **Automated Tests**: Every endpoint includes basic status code checks in the collection.
+3. **Collection Runner**:
+   - You can run the entire collection in order: Register -> Login -> Start Session -> Save Response -> Generate Summary.
