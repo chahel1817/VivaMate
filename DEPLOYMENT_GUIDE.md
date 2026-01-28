@@ -85,4 +85,8 @@ This guide outlines the steps to deploy your MERN stack application to **Render 
     -   I added a `vercel.json` file to handle routing, so refreshing pages should work.
 -   **Backend Connection Failed**:
     -   Check if `VITE_API_URL` is correct in Vercel.
-    -   Check Render logs to see if the server crashed (often due to wrong `MONGO_URI`).
+-   **Deployment Error (vite: command not found)**:
+    -   This means Vercel is trying to run `vite` globally.
+    -   **FIX**: Go to **Vercel Settings** -> **Build & Development Settings**.
+    -   Change **Build Command** to: `npm run build`
+    -   Click **Save** and **Redeploy**.
