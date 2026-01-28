@@ -20,7 +20,25 @@ const challengeRoutes = require("./routes/challengeRoutes");
 app.use(helmet()); // Secure HTTP headers
 app.use(morgan("dev")); // Request logging
 app.use(cookieParser());
-app.use(cors({ origin: "http://localhost:5173", credentials: true })); // Update CORS for cookies
+// CORS Configuration: Allow both local development and production
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://viva-mate.vercel.app"
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 app.use(express.json());
 
 // Rate Limiter: Prevent brute force (100 reqs per 15 min per IP)
