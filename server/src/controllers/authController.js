@@ -126,23 +126,12 @@ const requestOtp = async (req, res) => {
     user.resetOtpExpires = new Date(expires);
     await user.save();
 
-    try {
-      await sendOtpEmail(user.email, otp);
-      return res.status(200).json({ message: "OTP sent to your email. It is valid for 10 minutes." });
-    } catch (emailError) {
-      console.error("Email sending failed:", emailError.message);
-      // Rollback OTP if email fails
-      user.resetOtp = undefined;
-      user.resetOtpExpires = undefined;
-      await user.save();
+    await sendOtpEmail(user.email, otp);
 
-      return res.status(500).json({
-        message: emailError.message || "Failed to send OTP. Please try again later."
-      });
-    }
+    return res.status(200).json({ message: "OTP sent to your email. It is valid for 10 minutes." });
   } catch (err) {
     console.error("requestOtp error", err);
-    return res.status(500).json({ message: "Server error. Please try again later." });
+    return res.status(500).json({ message: "Failed to send OTP" });
   }
 };
 

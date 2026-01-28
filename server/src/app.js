@@ -23,7 +23,8 @@ app.use(cookieParser());
 // CORS Configuration: Allow both local development and production
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://viva-mate.vercel.app"
+  "https://vivamate.vercel.app",
+  "https://viva-mate.vercel.app" // In case you have both URLs
 ];
 
 app.use(cors({
