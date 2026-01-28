@@ -116,6 +116,7 @@ const requestOtp = async (req, res) => {
 
     // For security: respond with success even if user not found
     if (!user) {
+      console.log(`⚠️  OTP requested for non-existent email: ${email}`);
       return res.status(200).json({ message: "If this email is registered, an OTP has been sent." });
     }
 
@@ -126,11 +127,14 @@ const requestOtp = async (req, res) => {
     user.resetOtpExpires = new Date(expires);
     await user.save();
 
+    console.log(`📧 Attempting to send OTP to: ${user.email}`);
     await sendOtpEmail(user.email, otp);
+    console.log(`✅ OTP email sent successfully to: ${user.email}`);
 
     return res.status(200).json({ message: "OTP sent to your email. It is valid for 10 minutes." });
   } catch (err) {
-    console.error("requestOtp error", err);
+    console.error("❌ requestOtp error:", err.message);
+    console.error("Full error:", err);
     return res.status(500).json({ message: "Failed to send OTP" });
   }
 };
