@@ -52,8 +52,8 @@ This guide outlines the steps to deploy your MERN stack application to **Render 
     -   **Framework Preset**: Vite (should be detected automatically).
     -   **Root Directory**: Click "Edit" and select `InterviewIQ/client` (⚠️ **CRITICAL**: Assumes your client code is here).
 
-3.  **Build Settings** (should be auto-filled):
-    -   **Build Command**: `vite build`
+3.  **Build Settings** (should be auto-filled, but verify):
+    -   **Build Command**: `npm run build` (⚠️ **CRITICAL**: Use this instead of `vite build` to avoid "command not found" errors).
     -   **Output Directory**: `dist`
     -   **Install Command**: `npm install`
 
