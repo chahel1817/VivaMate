@@ -18,7 +18,8 @@ const transporter = nodemailer.createTransport({
 
 async function sendOtpEmail(to, otp) {
   if (!EMAIL_USER || !EMAIL_PASS) {
-    throw new Error("Email credentials not configured on server (.env).");
+    console.error("❌ Email credentials not configured. Cannot send OTP.");
+    throw new Error("Email service not configured on server. Please contact support.");
   }
 
   const fromAddress = process.env.EMAIL_FROM || EMAIL_USER;
@@ -45,7 +46,15 @@ async function sendOtpEmail(to, otp) {
     `,
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    console.log(`📧 Attempting to send OTP to ${to}...`);
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ OTP email sent successfully to ${to}. Message ID: ${info.messageId}`);
+    return info;
+  } catch (error) {
+    console.error(`❌ Failed to send OTP email to ${to}:`, error.message);
+    throw new Error(`Failed to send email: ${error.message}`);
+  }
 }
 
 module.exports = { sendOtpEmail };
