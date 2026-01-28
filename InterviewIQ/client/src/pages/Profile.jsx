@@ -87,6 +87,28 @@ export default function Profile() {
     }
   };
 
+  // Skeleton Loader Component
+  const ProfileSkeleton = () => (
+    <div className={`min-h-screen ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'} pb-20 animate-pulse`}>
+      <div className="h-56 md:h-80 bg-slate-200 dark:bg-slate-800" />
+      <div className="max-w-6xl mx-auto px-4 md:px-6 -mt-24 md:-mt-40">
+        <div className="grid lg:grid-cols-12 gap-8">
+          {/* Left Col Skeleton */}
+          <div className="lg:col-span-4 lg:sticky lg:top-24">
+            <div className="bg-slate-100 dark:bg-slate-800 rounded-3xl h-96 w-full mb-6" />
+            <div className="bg-slate-100 dark:bg-slate-800 rounded-3xl h-40 w-full" />
+          </div>
+          {/* Right Col Skeleton */}
+          <div className="lg:col-span-8">
+            <div className="bg-slate-100 dark:bg-slate-800 rounded-3xl h-[600px] w-full" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (!user && loading) return <ProfileSkeleton />;
+
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     setLoading(true);

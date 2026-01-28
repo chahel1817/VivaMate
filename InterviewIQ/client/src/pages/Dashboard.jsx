@@ -2,6 +2,8 @@ import {
   PlayCircle,
   BarChart3,
   MessageSquare,
+  Trophy,
+  Flame
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -121,6 +123,25 @@ export default function Dashboard() {
     setFilteredActivity(filtered);
   };
 
+  // Skeleton Component
+  const DashboardSkeleton = () => (
+    <div className={`min-h-screen ${isDarkMode ? 'bg-slate-900' : 'bg-slate-100'} px-6 py-10 animate-pulse`}>
+      <div className="max-w-6xl mx-auto space-y-12">
+        <div className="h-8 bg-slate-300 dark:bg-slate-700 w-1/3 rounded-lg" />
+        <div className="grid md:grid-cols-3 gap-6">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-32 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+          ))}
+        </div>
+        <div className="grid md:grid-cols-3 gap-6">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-48 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   useEffect(() => {
     refreshStats();
     let socket;
@@ -156,6 +177,15 @@ export default function Dashboard() {
     };
   }, []);
 
+  if (loading && !stats.interviewsTaken) {
+    return (
+      <>
+        <Navbar />
+        <DashboardSkeleton />
+      </>
+    );
+  }
+
   return (
     <>
       <Navbar />
@@ -173,20 +203,32 @@ export default function Dashboard() {
           </section>
 
           {/* Stats */}
-          <section className="grid md:grid-cols-3 gap-6">
+          <section className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
               { label: "Interviews Taken", value: stats.interviewsTaken },
               { label: "Average Score", value: `${(stats.averageScore ?? 0)}%` },
+              { label: "Current Streak", value: user?.streak || 0, icon: Flame, color: "text-orange-500" },
               { label: "Last Interview", value: stats.lastInterview || "None" },
             ].map((item, i) => (
               <div
                 key={i}
-                className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} border rounded-xl p-6`}
+                className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} border rounded-xl p-6 relative overflow-hidden`}
               >
-                <h3 className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{item.label}</h3>
-                <p className={`text-3xl font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'} mt-2`}>
-                  {loading ? "..." : item.value}
-                </p>
+                <div className="relative z-10">
+                  <h3 className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{item.label}</h3>
+                  <div className="flex items-center gap-2 mt-2">
+                    {item.icon && <item.icon className={`${item.color} animate-pulse`} size={24} />}
+                    <p className={`text-3xl font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+                      {loading ? "..." : item.value}
+                    </p>
+                    {item.label === "Current Streak" && <span className="text-xs font-bold text-slate-400 self-end mb-1">DAYS</span>}
+                  </div>
+                </div>
+                {item.label === "Current Streak" && (
+                  <div className="absolute -right-4 -bottom-4 opacity-10">
+                    <Flame size={100} className="text-orange-500" />
+                  </div>
+                )}
               </div>
             ))}
           </section>
@@ -207,6 +249,14 @@ export default function Dashboard() {
                     "Answer real interview-style questions and get structured feedback.",
                   action: "Start interview →",
                   path: "/interview/select",
+                },
+                {
+                  icon: Trophy,
+                  title: "Daily Challenge",
+                  desc:
+                    "Keep your streak alive! Solve today's technical puzzle.",
+                  action: "Play now →",
+                  path: "/daily-challenge",
                 },
                 {
                   icon: BarChart3,

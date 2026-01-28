@@ -32,19 +32,39 @@ export default function Forum() {
 
   const addPost = async () => {
     if (newPost.title && newPost.content) {
+      // Optimistic Update
+      const tempId = Date.now();
+      const optimisticPost = {
+        _id: tempId,
+        title: newPost.title,
+        content: newPost.content,
+        author: user?.name || "You",
+        date: new Date().toISOString(),
+        comments: []
+      };
+
+      setPosts([optimisticPost, ...posts]);
+      setPostSubmitted(true);
+      setShowModal(false);
+
+      // Reset form immediately
+      setNewPost({ title: "", content: "" });
+      setTimeout(() => setPostSubmitted(false), 3000);
+
       try {
         const res = await api.post('/forum', {
-          ...newPost,
+          ...optimisticPost,
           author: user?.name || user?.username || "Anonymous"
         });
-        console.log('Post created in database:', res.data);
-        setPosts([res.data, ...posts]);
-        setNewPost({ title: "", content: "" });
-        setPostSubmitted(true);
-        setShowModal(false);
-        setTimeout(() => setPostSubmitted(false), 3000);
+
+        // Replace optimistic post with real server response
+        setPosts((currentPosts) =>
+          currentPosts.map(p => p._id === tempId ? res.data : p)
+        );
       } catch (err) {
         console.error('Failed to add post:', err);
+        // Revert on failure
+        setPosts((currentPosts) => currentPosts.filter(p => p._id !== tempId));
         alert('Failed to create post. Please try again.');
       }
     }

@@ -37,6 +37,26 @@ const userSchema = new mongoose.Schema(
     },
     resetOtp: String,
     resetOtpExpires: Date,
+    xp: { type: Number, default: 0 },
+    level: { type: Number, default: 1 },
+    badges: [{ type: String }], // e.g., "Novice", "Streak Master"
+    completedChallenges: [{
+      challengeId: { type: mongoose.Schema.Types.ObjectId, ref: 'DailyChallenge' },
+      date: Date,
+      score: Number,
+      total: Number,
+      xpEarned: Number
+    }],
+    streak: { type: Number, default: 0 },
+    lastChallengeDate: { type: Date, default: null },
+    bookmarks: [{
+      questionId: String, // Or just embed the question content
+      question: String,
+      options: [String],
+      correctAnswer: String,
+      type: String,
+      savedAt: { type: Date, default: Date.now }
+    }]
   },
   { timestamps: true }
 );

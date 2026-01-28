@@ -33,8 +33,18 @@ export default function Register() {
   };
 
   const handleRegister = async () => {
+    if (!formData.name || !formData.email || !formData.password) {
+      setError("All fields are required");
+      return;
+    }
+
     if (!isPasswordValid) {
       setError("Please meet all password requirements");
+      return;
+    }
+
+    if (!formData.email.includes('@')) {
+      setError("Email must contain an '@' symbol");
       return;
     }
 

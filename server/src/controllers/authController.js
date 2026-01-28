@@ -3,12 +3,27 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { sendOtpEmail } = require("../utils/mailer");
 
+// Helper to set cookie
+const setTokenCookie = (res, token) => {
+  const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  };
+  res.cookie('token', token, cookieOptions);
+};
+
 const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (!email.includes('@')) {
+      return res.status(400).json({ message: "Invalid email: Must contain '@'" });
     }
 
     const existingUser = await User.findOne({ email });
@@ -18,13 +33,22 @@ const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await User.create({
+    const user = await User.create({
       name,
       email,
       password: hashedPassword,
     });
 
-    res.status(201).json({ message: "User registered successfully" });
+    // Create token
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+    // Set Cookie
+    setTokenCookie(res, token);
+
+    res.status(201).json({
+      message: "User registered successfully",
+      user: { id: user._id, name: user.name, email: user.email }
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Registration failed" });
@@ -34,6 +58,14 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (!email.includes('@')) {
+      return res.status(400).json({ message: "Invalid email: Must contain '@'" });
+    }
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -51,8 +83,10 @@ const login = async (req, res) => {
       { expiresIn: "7d" }
     );
 
+    setTokenCookie(res, token);
+
     res.json({
-      token,
+      message: "Login successful",
       user: {
         id: user._id,
         name: user.name,
@@ -72,6 +106,10 @@ const requestOtp = async (req, res) => {
 
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
+    }
+
+    if (!email.includes('@')) {
+      return res.status(400).json({ message: "Invalid email: Must contain '@'" });
     }
 
     const user = await User.findOne({ email });
@@ -131,8 +169,10 @@ const verifyOtp = async (req, res) => {
       { expiresIn: "7d" }
     );
 
+    setTokenCookie(res, token);
+
     return res.json({
-      token,
+      message: "OTP verified",
       user: {
         id: user._id,
         name: user.name,
@@ -182,4 +222,12 @@ const updateProfile = async (req, res) => {
   }
 };
 
-module.exports = { register, login, requestOtp, verifyOtp, updateProfile };
+const logout = (req, res) => {
+  res.cookie('token', '', {
+    httpOnly: true,
+    expires: new Date(0)
+  });
+  res.status(200).json({ message: "Logged out successfully" });
+};
+
+module.exports = { register, login, requestOtp, verifyOtp, updateProfile, logout };

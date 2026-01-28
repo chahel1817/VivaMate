@@ -1,5 +1,9 @@
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
+const morgan = require("morgan");
+const rateLimit = require("express-rate-limit");
+const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/authRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const app = express();
@@ -10,8 +14,22 @@ const interviewSessionRoutes = require("./routes/interviewSessionRoutes");
 const forumRoutes = require("../routes/forum");
 const feedbackRoutes = require("../routes/feedback");
 const messageRoutes = require("../routes/message");
-app.use(cors());
+const challengeRoutes = require("./routes/challengeRoutes");
+
+// Security & Utility Middleware
+app.use(helmet()); // Secure HTTP headers
+app.use(morgan("dev")); // Request logging
+app.use(cookieParser());
+app.use(cors({ origin: "http://localhost:5173", credentials: true })); // Update CORS for cookies
 app.use(express.json());
+
+// Rate Limiter: Prevent brute force (100 reqs per 15 min per IP)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: "Too many requests from this IP, please try again later."
+});
+app.use("/api/", limiter);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/ai", aiRoutes);
@@ -20,6 +38,7 @@ app.use("/api/interview", interviewSessionRoutes);
 app.use("/api/forum", forumRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/challenge", challengeRoutes);
 
 app.get("/api/dashboard", protect, async (req, res) => {
   try {

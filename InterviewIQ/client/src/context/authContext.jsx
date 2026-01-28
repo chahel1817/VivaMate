@@ -17,35 +17,26 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Check if user is logged in on mount (via cookie)
   useEffect(() => {
-  const loadUser = async () => {
-    const token = localStorage.getItem("token");
+    const loadUser = async () => {
+      try {
+        const res = await api.get("/auth/me");
+        setUser(res.data);
+      } catch (err) {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const res = await api.get("/auth/me");
-      setUser(res.data); // ✅ real user
-    } catch (err) {
-      localStorage.removeItem("token");
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  loadUser();
-}, []);
-
-
+    loadUser();
+  }, []);
 
   const login = async (email, password) => {
     try {
       const data = await loginService(email, password);
-      localStorage.setItem('token', data.token);
+      // Cookie is set by server automatically
       setUser(data.user);
       return data;
     } catch (error) {
@@ -56,22 +47,30 @@ export const AuthProvider = ({ children }) => {
   const register = async (name, email, password) => {
     try {
       const data = await registerService(name, email, password);
+      // Register might set cookie too if auto-login is enabled in backend (yes it is)
+      setUser(data.user);
       return data;
     } catch (error) {
       throw error;
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
+  const logout = async () => {
+    try {
+      await api.post("/auth/logout");
+      setUser(null);
+    } catch (err) {
+      console.error("Logout failed", err);
+      // Force logout on client anyway
+      setUser(null);
+    }
   };
 
-  // For OTP-based login flows: directly set token + user
+  // For OTP-based login flows
   const loginWithToken = (token, userData) => {
-    if (token) {
-      localStorage.setItem("token", token);
-    }
+    // This function is less relevant with cookies unless we manually reload
+    // or if the OTP verification returns a set-cookie header (which it does now).
+    // So we just update the user state.
     if (userData) {
       setUser(userData);
     }
@@ -89,7 +88,6 @@ export const AuthProvider = ({ children }) => {
   const verifyOtp = async (email, otp) => {
     try {
       const data = await verifyOtpService(email, otp);
-      localStorage.setItem('token', data.token);
       setUser(data.user);
       return data;
     } catch (error) {

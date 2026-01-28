@@ -26,6 +26,17 @@ export default function Login() {
     try {
       setError("");
       setSuccessMsg("");
+
+      if (!email || !password) {
+        setError("All fields are required");
+        return;
+      }
+
+      if (!email.includes('@')) {
+        setError("Email must contain an '@' symbol");
+        return;
+      }
+
       await login(email, password);
       navigate("/dashboard");
     } catch (err) {

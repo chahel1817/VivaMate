@@ -62,3 +62,40 @@ Give output ONLY in valid JSON format:
 
 Ensure all questions are practical and suitable for an interview context.`;
 };
+exports.generateDailyChallengePrompt = (count = 5) => {
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const today = days[new Date().getDay()];
+
+  let topic = "Full-Stack Web Development (Mix)";
+  if (today === "Monday") topic = "Frontend Development (React, CSS, HTML)";
+  if (today === "Tuesday") topic = "Backend Development (Node.js, Express, APIs)";
+  if (today === "Wednesday") topic = "Databases (MongoDB, SQL, Schema Design)";
+  if (today === "Thursday") topic = "JavaScript Core (ES6+, Async/Await, Closures)";
+  if (today === "Friday") topic = "System Design & Architecture (Scalability, Security, Patterns)";
+  if (today === "Saturday") topic = "Algorithms, Data Structures & Logic";
+
+  return `
+You are a senior technical interviewer creating a daily coding challenge quiz.
+Today is ${today}, so the theme is: ${topic}.
+
+Generate ${count} multiple-choice questions testing ONLY ${topic}.
+
+Requirements:
+- Questions should be challenging but solvable (Mid-Senior Level).
+- Strictly adhere to the theme: ${topic}.
+- Provide 4 distinct options for each question.
+- Clearly identify the correct answer.
+
+Give output ONLY in valid JSON format:
+{
+  "questions": [
+    {
+       "question": "Question text here?",
+       "options": ["Option A", "Option B", "Option C", "Option D"],
+       "correctAnswer": "Option B",
+       "type": "multiple-choice"
+    }
+  ]
+}
+`;
+};

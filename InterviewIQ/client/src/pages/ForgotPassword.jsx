@@ -16,6 +16,12 @@ export default function ForgotPassword() {
     setError("");
     setLoading(true);
 
+    if (!email.includes('@')) {
+      setError("Email must contain an '@' symbol");
+      setLoading(false);
+      return;
+    }
+
     try {
       await requestOtp(email);
       navigate("/verify-otp", { state: { email } });
