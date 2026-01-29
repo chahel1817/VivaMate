@@ -34,6 +34,25 @@ export default function InterviewSummary() {
     loadSummary();
   }, []);
 
+  // Prevent back navigation to interview page
+  useEffect(() => {
+    // Replace current history entry so back button goes to dashboard
+    window.history.pushState(null, '', window.location.href);
+
+    const handlePopState = (e) => {
+      // Prevent default back behavior
+      window.history.pushState(null, '', window.location.href);
+      // Navigate to dashboard instead
+      navigate('/dashboard', { replace: true });
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [navigate]);
+
   /* ================= PDF DOWNLOAD ================= */
   const downloadPDF = async () => {
     const element = reportRef.current;
@@ -246,8 +265,8 @@ function StatCard({ title, value, highlight, isDarkMode }) {
   return (
     <div
       className={`rounded-2xl p-6 shadow ${highlight
-          ? isDarkMode ? "bg-green-900/30 border border-green-700" : "bg-green-50 border border-green-400"
-          : isDarkMode ? "bg-slate-800 border border-slate-700" : "bg-white"
+        ? isDarkMode ? "bg-green-900/30 border border-green-700" : "bg-green-50 border border-green-400"
+        : isDarkMode ? "bg-slate-800 border border-slate-700" : "bg-white"
         }`}
     >
       <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{title}</p>

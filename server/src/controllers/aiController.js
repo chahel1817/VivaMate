@@ -323,6 +323,37 @@ async function generateUniqueQuestions(options = {}) {
 	return result.slice(0, count).map(q => ({ question: q.question }));
 }
 
+// Apply a generous score boost to encourage students
+// This ensures that reasonable attempts get good scores
+function applyGenerousScoreCurve(score) {
+	// Ensure score is a number
+	const numScore = Number(score) || 0;
+
+	// Apply generous curve:
+	// - Scores 0-3: Add +2 boost (very generous for low scores)
+	// - Scores 4-6: Add +1.5 boost (good boost for medium scores)
+	// - Scores 7-8: Add +1 boost (small boost for good scores)
+	// - Scores 9-10: Add +0.5 boost (minimal boost for excellent scores)
+
+	let boostedScore = numScore;
+
+	if (numScore <= 3) {
+		boostedScore = numScore + 2;
+	} else if (numScore <= 6) {
+		boostedScore = numScore + 1.5;
+	} else if (numScore <= 8) {
+		boostedScore = numScore + 1;
+	} else {
+		boostedScore = numScore + 0.5;
+	}
+
+	// Cap at 10 (maximum score)
+	boostedScore = Math.min(10, boostedScore);
+
+	// Round to 1 decimal place
+	return Math.round(boostedScore * 10) / 10;
+}
+
 // Evaluate answer using AI
 async function evaluateAnswer(question, answer) {
 	const prompt = aiPrompt.evaluateAnswerPrompt(question, answer);
@@ -350,10 +381,17 @@ async function evaluateAnswer(question, answer) {
 	const parsed = extractFirstJson(content || '');
 	if (!parsed) throw new Error('Invalid response from AI for evaluation');
 
+	// Apply generous score curve to all scores
+	const technicalScore = applyGenerousScoreCurve(parsed.technicalScore || 0);
+	const clarityScore = applyGenerousScoreCurve(parsed.clarityScore || 0);
+	const confidenceScore = applyGenerousScoreCurve(parsed.confidenceScore || 0);
+
+	console.log(`📊 Score Boost Applied - Original: [T:${parsed.technicalScore}, C:${parsed.clarityScore}, Conf:${parsed.confidenceScore}] → Boosted: [T:${technicalScore}, C:${clarityScore}, Conf:${confidenceScore}]`);
+
 	return {
-		technicalScore: parsed.technicalScore || 0,
-		clarityScore: parsed.clarityScore || 0,
-		confidenceScore: parsed.confidenceScore || 0,
+		technicalScore,
+		clarityScore,
+		confidenceScore,
 		feedback: parsed.feedback || 'No feedback provided'
 	};
 }

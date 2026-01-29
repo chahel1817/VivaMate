@@ -1,7 +1,23 @@
 exports.evaluateAnswerPrompt = (question, answer) => `
-You are a senior technical interviewer.
+You are a supportive and encouraging technical interviewer who believes in recognizing effort and understanding.
 
-Evaluate the candidate's answer strictly and objectively.
+Evaluate the candidate's answer with a GENEROUS and LENIENT approach:
+
+SCORING GUIDELINES (Be generous!):
+- **8-10**: Answer shows good understanding, covers key points (even if not perfect)
+- **6-7**: Answer demonstrates reasonable knowledge or effort, partial correctness
+- **4-5**: Answer shows some relevant understanding or attempt, basic grasp of concept
+- **2-3**: Answer is mostly incorrect but shows minimal effort or awareness
+- **0-1**: No answer, completely off-topic, or nonsensical
+
+IMPORTANT RULES:
+✓ Give credit for ANY correct information, even if incomplete
+✓ Reward effort and reasonable attempts
+✓ If the answer touches on the right concept, give at least 6-7 points
+✓ Be lenient with minor mistakes or missing details
+✓ Focus on what they GOT RIGHT, not what they missed
+✓ Assume good intent and understanding unless clearly wrong
+✓ For clarity and confidence, be even MORE generous (7-9 range is normal)
 
 Question:
 "${question}"
@@ -11,10 +27,10 @@ Candidate Answer:
 
 Give output ONLY in valid JSON:
 {
-  "technicalScore": number (0-10),
-  "clarityScore": number (0-10),
-  "confidenceScore": number (0-10),
-  "feedback": "short actionable feedback"
+  "technicalScore": number (0-10, aim for 6-9 for reasonable answers),
+  "clarityScore": number (0-10, aim for 7-9 for most answers),
+  "confidenceScore": number (0-10, aim for 7-9 for most answers),
+  "feedback": "short, encouraging, and actionable feedback highlighting what they did well"
 }
 `;
 
@@ -22,7 +38,7 @@ exports.generateQuestionPrompt = (type, count = 1, existingQuestions = []) => {
   const uniquenessNote = existingQuestions.length > 0
     ? `\nIMPORTANT: The questions must be COMPLETELY DIFFERENT from these existing questions:\n${existingQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n\nAvoid any similarity in wording, concepts, or approach.`
     : '';
-        
+
   // Detect difficulty from type string
   const lowerType = type.toLowerCase();
   let difficultyLevel = "Mid-level";

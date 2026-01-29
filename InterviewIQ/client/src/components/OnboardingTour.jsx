@@ -1,140 +1,112 @@
 import { useState, useEffect } from 'react';
-import Joyride, { STATUS } from 'react-joyride';
 import { useAuth } from '../context/authContext';
-import { useTheme } from '../context/themeContext';
 import api from '../services/api';
 
 /**
- * Interactive Onboarding Tour Component
- * Guides new users through key features
+ * Simple Onboarding Welcome Component
+ * Replaces react-joyride for React 19 compatibility
  */
 export default function OnboardingTour() {
     const { user } = useAuth();
-    const { isDarkMode } = useTheme();
-    const [run, setRun] = useState(false);
+    const [showWelcome, setShowWelcome] = useState(false);
 
     useEffect(() => {
         // Check if user has completed onboarding
         if (user && !user.hasCompletedOnboarding) {
-            // Delay tour start to let page load
+            // Delay welcome message to let page load
             const timer = setTimeout(() => {
-                setRun(true);
+                setShowWelcome(true);
             }, 1000);
             return () => clearTimeout(timer);
         }
     }, [user]);
 
-    const steps = [
-        {
-            target: 'body',
-            content: (
-                <div>
-                    <h2 className="text-xl font-bold mb-2">Welcome to VivaMate! 🎉</h2>
-                    <p>Let's take a quick tour to help you get started with your interview preparation journey.</p>
-                </div>
-            ),
-            placement: 'center',
-            disableBeacon: true,
-        },
-        {
-            target: '[data-tour="dashboard"]',
-            content: 'This is your Dashboard - your command center for tracking progress and accessing all features.',
-            placement: 'bottom',
-        },
-        {
-            target: '[data-tour="start-interview"]',
-            content: 'Click here to start a mock interview. Choose your domain, technology, and difficulty level.',
-            placement: 'bottom',
-        },
-        {
-            target: '[data-tour="daily-challenge"]',
-            content: 'Take the Daily Challenge to maintain your streak and earn XP! 🔥',
-            placement: 'bottom',
-        },
-        {
-            target: '[data-tour="performance"]',
-            content: 'View detailed analytics of your interview performance and track your improvement over time.',
-            placement: 'bottom',
-        },
-        {
-            target: '[data-tour="profile"]',
-            content: 'Customize your profile, update your career stage, and manage your preferences here.',
-            placement: 'left',
-        },
-        {
-            target: 'body',
-            content: (
-                <div>
-                    <h2 className="text-xl font-bold mb-2">You're all set! 🚀</h2>
-                    <p className="mb-3">Start practicing and ace your next interview!</p>
-                    <p className="text-sm text-slate-500">
-                        <strong>Pro tip:</strong> Press <kbd className="px-2 py-1 bg-slate-200 dark:bg-slate-700 rounded text-xs">Ctrl+K</kbd> anytime to open the command palette.
-                    </p>
-                </div>
-            ),
-            placement: 'center',
-        },
-    ];
+    const handleClose = async () => {
+        setShowWelcome(false);
 
-    const handleJoyrideCallback = async (data) => {
-        const { status } = data;
-        const finishedStatuses = [STATUS.FINISHED, STATUS.SKIPPED];
-
-        if (finishedStatuses.includes(status)) {
-            setRun(false);
-
-            // Mark onboarding as complete - only if user is logged in
-            if (user) {
-                try {
-                    await api.put('/preferences/onboarding', { completed: true });
-                } catch (error) {
-                    console.error('Failed to update onboarding status:', error);
-                }
+        // Mark onboarding as complete
+        if (user) {
+            try {
+                await api.put('/preferences/onboarding', { completed: true });
+            } catch (error) {
+                console.error('Failed to update onboarding status:', error);
             }
         }
     };
 
+    if (!showWelcome) return null;
+
     return (
-        <Joyride
-            steps={steps}
-            run={run}
-            continuous
-            showProgress
-            showSkipButton
-            callback={handleJoyrideCallback}
-            styles={{
-                options: {
-                    primaryColor: '#16a34a',
-                    textColor: isDarkMode ? '#f1f5f9' : '#1e293b',
-                    backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
-                    arrowColor: isDarkMode ? '#1e293b' : '#ffffff',
-                    overlayColor: 'rgba(0, 0, 0, 0.5)',
-                    zIndex: 10000,
-                },
-                tooltip: {
-                    borderRadius: 12,
-                    padding: 20,
-                },
-                buttonNext: {
-                    backgroundColor: '#16a34a',
-                    borderRadius: 8,
-                    padding: '8px 16px',
-                },
-                buttonBack: {
-                    color: isDarkMode ? '#94a3b8' : '#64748b',
-                    marginRight: 10,
-                },
-                buttonSkip: {
-                    color: isDarkMode ? '#94a3b8' : '#64748b',
-                },
-            }}
-            locale={{
-                back: 'Back',
-                close: 'Close',
-                last: 'Finish',
-                next: 'Next',
-                skip: 'Skip Tour',
-            }}
-        />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 animate-fadeIn">
+            <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl max-w-2xl w-full p-8 animate-slideUp">
+                {/* Header */}
+                <div className="text-center mb-6">
+                    <div className="text-6xl mb-4">🎉</div>
+                    <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+                        Welcome to VivaMate!
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-300">
+                        Your AI-powered interview preparation platform
+                    </p>
+                </div>
+
+                {/* Features */}
+                <div className="space-y-4 mb-8">
+                    <FeatureItem
+                        icon="🎤"
+                        title="Mock Interviews"
+                        description="Practice with AI-generated questions tailored to your role"
+                    />
+                    <FeatureItem
+                        icon="📊"
+                        title="Performance Analytics"
+                        description="Track your progress with detailed insights and feedback"
+                    />
+                    <FeatureItem
+                        icon="🔥"
+                        title="Daily Challenges"
+                        description="Maintain your streak and improve your skills daily"
+                    />
+                    <FeatureItem
+                        icon="💬"
+                        title="Community Forum"
+                        description="Connect with other job seekers and share tips"
+                    />
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                    <button
+                        onClick={handleClose}
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg active:scale-95"
+                    >
+                        Get Started 🚀
+                    </button>
+                </div>
+
+                {/* Pro Tip */}
+                <div className="mt-6 p-4 bg-slate-100 dark:bg-slate-700 rounded-xl">
+                    <p className="text-sm text-slate-600 dark:text-slate-300">
+                        <strong className="text-green-600 dark:text-green-400">Pro tip:</strong> Start with an easy interview to get familiar with the platform!
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function FeatureItem({ icon, title, description }) {
+    return (
+        <div className="flex gap-4 items-start">
+            <div className="text-3xl flex-shrink-0">{icon}</div>
+            <div>
+                <h3 className="font-semibold text-slate-900 dark:text-white mb-1">
+                    {title}
+                </h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                    {description}
+                </p>
+            </div>
+        </div>
     );
 }

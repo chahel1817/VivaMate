@@ -23,6 +23,7 @@ export default function Interview() {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const speechRef = useRef(null);
+  const submittingRef = useRef(false); // Track submitting state to avoid stale closures
 
   /* ================= STATE ================= */
   const [sessionId, setSessionId] = useState(null);
@@ -40,6 +41,10 @@ export default function Interview() {
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
   const [replaying, setReplaying] = useState(false);
+
+  // Tab switch detection
+  const [tabSwitchCount, setTabSwitchCount] = useState(0);
+  const [showTabWarning, setShowTabWarning] = useState(false);
 
   const { isDarkMode } = useTheme();
 
@@ -65,6 +70,80 @@ export default function Interview() {
 
     init();
   }, [domain, tech, difficulty, totalQuestions]);
+
+  /* ================= TAB SWITCH DETECTION ================= */
+  useEffect(() => {
+    if (!interviewStarted || submitting) return;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // User switched away from tab
+        setTabSwitchCount(prev => {
+          const newCount = prev + 1;
+
+          if (newCount === 1) {
+            // First warning
+            setShowTabWarning(true);
+            setTimeout(() => setShowTabWarning(false), 5000);
+          } else if (newCount >= 2) {
+            // Second violation - auto submit interview
+            setError("Interview terminated due to tab switching!");
+            setTimeout(() => {
+              // Force submit all remaining questions
+              forceEndInterview();
+            }, 2000);
+          }
+
+          return newCount;
+        });
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [interviewStarted, submitting]);
+
+  /* ================= FORCE END INTERVIEW ================= */
+  const forceEndInterview = async () => {
+    try {
+      submittingRef.current = true;
+      setSubmitting(true);
+      stopSpeech();
+
+      // Submit current answer if any
+      const answer = transcript.trim() || "No answer provided.";
+      await api.post("/responses", {
+        sessionId,
+        question: questions[currentIndex],
+        transcript: answer,
+        domain,
+        tech,
+        difficulty,
+      });
+
+      // Submit empty answers for remaining questions
+      for (let i = currentIndex + 1; i < totalQuestions; i++) {
+        await api.post("/responses", {
+          sessionId,
+          question: questions[i],
+          transcript: "Interview terminated - No answer provided.",
+          domain,
+          tech,
+          difficulty,
+        });
+      }
+
+      // Generate summary
+      await api.post("/interview/summary", { sessionId });
+      navigate("/interview-processing");
+    } catch (err) {
+      console.error("Force end error:", err);
+      navigate("/dashboard");
+    }
+  };
 
   /* ================= CAMERA ================= */
   useEffect(() => {
@@ -111,7 +190,7 @@ export default function Interview() {
 
   /* ================= SPEECH (100% WORKING RESTART) ================= */
   const startSpeech = useCallback(() => {
-    if (submitting) return;
+    if (submittingRef.current) return; // Use ref instead of state
 
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) return;
@@ -161,8 +240,9 @@ export default function Interview() {
     };
 
     recognition.onend = () => {
-      // ONLY restart if NOT submitting and NOT destroyed
-      if (!submitting) {
+      // CRITICAL FIX: Use ref to avoid stale closure bug
+      // This prevents auto-restart when transitioning between questions
+      if (!submittingRef.current) {
         try {
           recognition.start();
         } catch (e) {
@@ -177,7 +257,7 @@ export default function Interview() {
     try {
       recognition.start();
     } catch (e) { }
-  }, [submitting]);
+  }, []); // Remove submitting from dependencies since we use ref
 
   const stopSpeech = () => {
     if (speechRef.current) {
@@ -204,6 +284,7 @@ export default function Interview() {
     if (submitting) return;
 
     setSubmitting(true);
+    submittingRef.current = true; // Update ref immediately
     stopSpeech(); // Properly kill recognition
     setSubmitMessage("Evaluating...");
 
@@ -224,10 +305,14 @@ export default function Interview() {
 
       if (currentIndex < totalQuestions - 1) {
         setCurrentIndex(i => i + 1);
-        setSubmitting(false);
         setSubmitMessage("");
         // Give browser a break before restarting recognition
-        setTimeout(() => startSpeech(), 800);
+        // IMPORTANT: Clear submitting AFTER speech starts to prevent race condition
+        setTimeout(() => {
+          submittingRef.current = false; // Clear ref first
+          startSpeech();
+          setSubmitting(false);
+        }, 800);
       } else {
         setSubmitMessage("Generating Results...");
         await api.post("/interview/summary", { sessionId });
@@ -409,6 +494,21 @@ export default function Interview() {
           </div>
         </div>
       </div>
+
+      {/* TAB SWITCH WARNING */}
+      {showTabWarning && (
+        <div className="fixed inset-0 bg-red-600/20 backdrop-blur-sm flex items-center justify-center z-[3000] animate-pulse">
+          <div className="bg-red-600 text-white px-12 py-8 rounded-3xl font-bold shadow-2xl text-center max-w-md animate-bounce">
+            <div className="text-6xl mb-4">⚠️</div>
+            <h2 className="text-3xl font-black mb-3">WARNING!</h2>
+            <p className="text-xl mb-2">Tab switching is not allowed!</p>
+            <p className="text-sm opacity-90">One more violation will end your interview.</p>
+            <div className="mt-4 text-xs opacity-75">
+              Violations: {tabSwitchCount}/2
+            </div>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-full font-bold shadow-2xl z-[2000] animate-bounce">
