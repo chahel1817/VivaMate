@@ -37,6 +37,7 @@ const register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      hasCompletedOnboarding: false // Explicitly set to false for NEW users
     });
 
     // Create token
@@ -50,7 +51,13 @@ const register = async (req, res) => {
 
     res.status(201).json({
       message: "User registered successfully",
-      user: { id: user._id, name: user.name, email: user.email }
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        hasCompletedOnboarding: user.hasCompletedOnboarding,
+        keyboardShortcutsEnabled: user.keyboardShortcutsEnabled
+      }
     });
   } catch (err) {
     console.error(err);
@@ -86,6 +93,33 @@ const login = async (req, res) => {
       { expiresIn: "7d" }
     );
 
+    // MIGRATION: Auto-complete onboarding for existing users created before today
+    // This allows us to grandfather in users who registered before the feature launched
+    const onboardingCutoff = new Date(); // Use current deploy time as simplistic cutoff
+    // Note: In real prod, this date should be fixed constant string
+    // But since this code deploys now, "now" works for anyone logging in AFTER this deploy who was created BEFORE.
+    // Actually, checking createdAt < Date.now() is basically "everyone already in DB".
+    // We want to avoid running this on brand new users we just created above (in register flow, but this is login flow).
+    // So logic: If user was created > 5 minutes ago (safety) AND hasCompletedOnboarding is false...
+    // Actually, simpler: If we assume Schema default is now true.
+    // Existing users in DB still have false (if they existed).
+    // We want to flip them to true.
+    if (!user.hasCompletedOnboarding) {
+      // Double check creation time to be safe? Or just do it.
+      // Let's rely on the fact that NEW users we create from now on (via register) will have false.
+      // Wait, if I flip everyone to true here, then NEW users (created 1 min ago) who log in again (e.g. session refresh) might get flipped?
+      // Ah. `register` sets it false. User logs in.
+      // If they haven't completed it, they see it.
+      // User wants: "if existing user logins then dont show them".
+      // "Existing user" = User created BEFORE feature launch.
+      // So I need a hardcoded Timestamp of Feature Launch.
+      const FEATURE_LAUNCH_DATE = new Date('2026-01-30T00:00:00.000Z'); // Adjust as needed
+      if (user.createdAt < FEATURE_LAUNCH_DATE) {
+        user.hasCompletedOnboarding = true;
+        await user.save();
+      }
+    }
+
     setTokenCookie(res, token);
 
     res.json({
@@ -94,6 +128,8 @@ const login = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        hasCompletedOnboarding: user.hasCompletedOnboarding,
+        keyboardShortcutsEnabled: user.keyboardShortcutsEnabled
       },
     });
   } catch (err) {
@@ -184,6 +220,8 @@ const verifyOtp = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        hasCompletedOnboarding: user.hasCompletedOnboarding,
+        keyboardShortcutsEnabled: user.keyboardShortcutsEnabled
       },
     });
   } catch (err) {

@@ -56,7 +56,22 @@ const userSchema = new mongoose.Schema(
       correctAnswer: String,
       type: String,
       savedAt: { type: Date, default: Date.now }
-    }]
+    }],
+    // UI/UX Preferences
+    hasCompletedOnboarding: { type: Boolean, default: true },
+    dashboardLayout: {
+      type: Object,
+      default: null // Will store react-grid-layout positions
+    },
+    keyboardShortcutsEnabled: { type: Boolean, default: true },
+    preferences: {
+      type: Object,
+      default: {
+        theme: 'light',
+        notifications: true,
+        emailUpdates: true
+      }
+    }
   },
   { timestamps: true }
 );

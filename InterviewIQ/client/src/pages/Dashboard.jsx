@@ -12,6 +12,7 @@ import { useTheme } from "../context/themeContext";
 import SearchAndFilter from "../components/SearchAndFilter";
 import Navbar from "../components/Navbar";
 import api from "../services/api";
+import { NoActivityEmpty } from "../components/EmptyState";
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -249,6 +250,7 @@ export default function Dashboard() {
                     "Answer real interview-style questions and get structured feedback.",
                   action: "Start interview →",
                   path: "/interview/select",
+                  tourId: "start-interview",
                 },
                 {
                   icon: Trophy,
@@ -257,6 +259,7 @@ export default function Dashboard() {
                     "Keep your streak alive! Solve today's technical puzzle.",
                   action: "Play now →",
                   path: "/daily-challenge",
+                  tourId: "daily-challenge",
                 },
                 {
                   icon: BarChart3,
@@ -265,6 +268,7 @@ export default function Dashboard() {
                     "Track your scores over time and measure your improvement.",
                   action: "View performance →",
                   path: "/performance",
+                  tourId: "performance",
                 },
                 {
                   icon: MessageSquare,
@@ -280,6 +284,7 @@ export default function Dashboard() {
                   <div
                     key={i}
                     onClick={() => navigate(card.path)}
+                    data-tour={card.tourId}
                     className={`
                     group cursor-pointer
                     ${isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white hover:bg-green-50'} rounded-2xl border p-6
@@ -339,9 +344,13 @@ export default function Dashboard() {
 
             <div className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} rounded-xl divide-y border overflow-hidden`}>
               {filteredActivity.length === 0 && (
-                <p className={`p-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                  {stats.recentActivity?.length === 0 ? "No activity yet" : "No results match your filters"}
-                </p>
+                stats.recentActivity?.length === 0 ? (
+                  <NoActivityEmpty />
+                ) : (
+                  <p className={`p-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    No results match your filters
+                  </p>
+                )
               )}
 
               {filteredActivity.map((item, index) => (

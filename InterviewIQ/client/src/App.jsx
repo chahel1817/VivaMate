@@ -5,6 +5,10 @@ import ProtectedRoute from "./utils/protectedRoute";
 import Layout from "./components/Layout";
 import { Suspense, lazy } from "react";
 import { Toaster } from "react-hot-toast";
+import { TooltipProvider } from "./components/Tooltip";
+import OnboardingTour from "./components/OnboardingTour";
+import KeyboardShortcuts from "./components/KeyboardShortcuts";
+import CommandPalette from "./components/CommandPalette";
 
 // Lazy Load Pages for Performance
 const Login = lazy(() => import("./pages/Login"));
@@ -38,151 +42,156 @@ export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <BrowserRouter>
-          <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
-          <Layout>
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-                {/* PUBLIC ROUTES */}
-                <Route path="/" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/verify-otp" element={<VerifyOtp />} />
+        <TooltipProvider>
+          <BrowserRouter>
+            <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
+            <OnboardingTour />
+            <KeyboardShortcuts />
+            <CommandPalette />
+            <Layout>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  {/* PUBLIC ROUTES */}
+                  <Route path="/" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/verify-otp" element={<VerifyOtp />} />
 
-                {/* PROTECTED ROUTES */}
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* PROTECTED ROUTES */}
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute>
-                      <Profile />
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/profile"
+                    element={
+                      <ProtectedRoute>
+                        <Profile />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route path="/interview-processing" element={<InterviewProcessing />} />
+                  <Route path="/interview-processing" element={<InterviewProcessing />} />
 
-                <Route
-                  path="/interview"
-                  element={
-                    <ProtectedRoute>
-                      <Interview />
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/interview"
+                    element={
+                      <ProtectedRoute>
+                        <Interview />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/interview-summary"
-                  element={
-                    <ProtectedRoute>
-                      <InterviewSummary />
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/interview-summary"
+                    element={
+                      <ProtectedRoute>
+                        <InterviewSummary />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/interview/select"
-                  element={
-                    <ProtectedRoute>
-                      <InterviewSelect />
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/interview/select"
+                    element={
+                      <ProtectedRoute>
+                        <InterviewSelect />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/interview/config"
-                  element={
-                    <ProtectedRoute>
-                      <InterviewConfig />
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/interview/config"
+                    element={
+                      <ProtectedRoute>
+                        <InterviewConfig />
+                      </ProtectedRoute>
+                    }
+                  />
 
 
-                <Route
-                  path="/result"
-                  element={
-                    <ProtectedRoute>
-                      <Result />
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/result"
+                    element={
+                      <ProtectedRoute>
+                        <Result />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/performance"
-                  element={
-                    <ProtectedRoute>
-                      <Performance />
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/performance"
+                    element={
+                      <ProtectedRoute>
+                        <Performance />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/feedback"
-                  element={
-                    <ProtectedRoute>
-                      <Feedback />
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/feedback"
+                    element={
+                      <ProtectedRoute>
+                        <Feedback />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/analytics"
-                  element={
-                    <ProtectedRoute>
-                      <Analytics />
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/analytics"
+                    element={
+                      <ProtectedRoute>
+                        <Analytics />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/forum"
-                  element={
-                    <ProtectedRoute>
-                      <Forum />
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/forum"
+                    element={
+                      <ProtectedRoute>
+                        <Forum />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/daily-challenge"
-                  element={
-                    <ProtectedRoute>
-                      <DailyChallenge />
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/daily-challenge"
+                    element={
+                      <ProtectedRoute>
+                        <DailyChallenge />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/history"
-                  element={
-                    <ProtectedRoute>
-                      <ChallengeHistory />
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/history"
+                    element={
+                      <ProtectedRoute>
+                        <ChallengeHistory />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/bookmarks"
-                  element={
-                    <ProtectedRoute>
-                      <Bookmarks />
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/bookmarks"
+                    element={
+                      <ProtectedRoute>
+                        <Bookmarks />
+                      </ProtectedRoute>
+                    }
+                  />
 
-              </Routes>
-            </Suspense>
-          </Layout>
-        </BrowserRouter>
+                </Routes>
+              </Suspense>
+            </Layout>
+          </BrowserRouter>
+        </TooltipProvider>
       </AuthProvider>
     </ThemeProvider>
   );

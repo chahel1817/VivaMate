@@ -14,6 +14,7 @@ const forumRoutes = require("../routes/forum");
 const feedbackRoutes = require("../routes/feedback");
 const messageRoutes = require("../routes/message");
 const challengeRoutes = require("./routes/challengeRoutes");
+const preferencesRoutes = require("./routes/preferencesRoutes");
 
 // CORS Configuration: Allow local development and all Vercel deployments
 const app = express();
@@ -57,6 +58,7 @@ const limiter = rateLimit({
   message: "Too many requests from this IP, please try again later."
 });
 app.use("/api/", limiter);
+app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/ai", aiRoutes);
@@ -66,6 +68,7 @@ app.use("/api/forum", forumRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/challenge", challengeRoutes);
+app.use("/api/preferences", preferencesRoutes);
 
 app.get("/api/dashboard", protect, async (req, res) => {
   try {

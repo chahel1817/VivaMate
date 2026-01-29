@@ -3,6 +3,7 @@ import { useTheme } from "../context/themeContext";
 import { useNavigate } from "react-router-dom";
 import { Sun, Moon, User, LogOut, Settings, BarChart3, LayoutDashboard, ChevronDown, History, Bookmark } from "lucide-react";
 import { useState } from "react";
+import Tooltip from "./Tooltip";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -26,13 +27,14 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-6">
-          <button
-            onClick={toggleTheme}
-            className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200"
-            title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-          >
-            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
+          <Tooltip content={isDarkMode ? "Switch to light mode" : "Switch to dark mode"} shortcut="T">
+            <button
+              onClick={toggleTheme}
+              className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200"
+            >
+              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+          </Tooltip>
 
           {/* User Profile Dropdown */}
           <div
@@ -64,6 +66,7 @@ export default function Navbar() {
                 <div className="p-2">
                   <button
                     onClick={() => navigate("/dashboard")}
+                    data-tour="dashboard"
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 rounded-xl transition-colors"
                   >
                     <LayoutDashboard size={18} />
@@ -71,6 +74,7 @@ export default function Navbar() {
                   </button>
                   <button
                     onClick={() => navigate("/profile")}
+                    data-tour="profile"
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 rounded-xl transition-colors"
                   >
                     <Settings size={18} />

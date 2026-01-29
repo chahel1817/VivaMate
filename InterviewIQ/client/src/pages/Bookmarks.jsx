@@ -3,6 +3,8 @@ import api from "../services/api";
 import { useTheme } from "../context/themeContext";
 import Navbar from "../components/Navbar";
 import { Bookmark, Trash2, ArrowLeft, CheckCircle } from "lucide-react";
+import { NoBookmarksEmpty } from "../components/EmptyState";
+import { ListSkeleton } from "../components/SkeletonLoader";
 
 export default function Bookmarks() {
     const { isDarkMode } = useTheme();
@@ -50,14 +52,9 @@ export default function Bookmarks() {
                     </div>
 
                     {loading ? (
-                        <div className="flex justify-center p-12">
-                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
-                        </div>
+                        <ListSkeleton count={3} />
                     ) : bookmarks.length === 0 ? (
-                        <div className="text-center p-12 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700">
-                            <Bookmark size={48} className="mx-auto text-slate-300 mb-4" />
-                            <p className="text-xl text-slate-500">No saved questions yet.</p>
-                        </div>
+                        <NoBookmarksEmpty />
                     ) : (
                         <div className="grid gap-6">
                             {bookmarks.map((item, index) => (
