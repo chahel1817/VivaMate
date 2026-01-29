@@ -6,7 +6,6 @@ const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/authRoutes");
 const aiRoutes = require("./routes/aiRoutes");
-const app = express();
 const protect = require("./middleware/authMiddleware");
 const responseRoutes = require("./routes/responseRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
@@ -16,25 +15,34 @@ const feedbackRoutes = require("../routes/feedback");
 const messageRoutes = require("../routes/message");
 const challengeRoutes = require("./routes/challengeRoutes");
 
-// Security & Utility Middleware
-app.use(helmet()); // Secure HTTP headers
-app.use(morgan("dev")); // Request logging
-app.use(cookieParser());
-// CORS Configuration: Allow both local development and production
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://vivamate.vercel.app",
-  "https://viva-mate.vercel.app" // In case you have both URLs
-];
+// CORS Configuration: Allow local development and all Vercel deployments
+const app = express();
 
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
 
+    // Allow localhost (any port)
+    if (origin.startsWith("http://localhost:")) {
+      return callback(null, true);
+    }
+
+    // Allow any Vercel deployment
+    if (origin.endsWith(".vercel.app")) {
+      return callback(null, true);
+    }
+
+    // Check against specific allowed list if needed (optional backup)
+    const allowedOrigins = [
+      "https://vivamate.vercel.app",
+      "https://viva-mate.vercel.app"
+    ];
+
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
+      console.log("Blocked by CORS:", origin); // Log blocked origins for debugging
       callback(new Error('Not allowed by CORS'));
     }
   },
