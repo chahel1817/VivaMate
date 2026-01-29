@@ -10,7 +10,7 @@ if (!EMAIL_FROM) {
   console.warn("⚠ EMAIL_FROM is not set. Emails will have no valid sender.");
 }
 
-const resend = new Resend(RESEND_API_KEY);
+const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
 /**
  * Send OTP Email
@@ -18,7 +18,7 @@ const resend = new Resend(RESEND_API_KEY);
  * @param {string} otp - OTP code
  */
 async function sendOtpEmail(to, otp) {
-  if (!RESEND_API_KEY || !EMAIL_FROM) {
+  if (!resend || !EMAIL_FROM) {
     throw new Error("Email credentials not configured (RESEND_API_KEY / EMAIL_FROM missing).");
   }
 
@@ -65,7 +65,7 @@ async function sendOtpEmail(to, otp) {
  * @param {string} name - User's name
  */
 async function sendWelcomeEmail(to, name) {
-  if (!RESEND_API_KEY || !EMAIL_FROM) {
+  if (!resend || !EMAIL_FROM) {
     console.warn("⚠ Email credentials missing, skipping welcome email.");
     return;
   }
