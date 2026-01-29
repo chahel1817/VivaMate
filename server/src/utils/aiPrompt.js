@@ -22,7 +22,7 @@ exports.generateQuestionPrompt = (type, count = 1, existingQuestions = []) => {
   const uniquenessNote = existingQuestions.length > 0
     ? `\nIMPORTANT: The questions must be COMPLETELY DIFFERENT from these existing questions:\n${existingQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n\nAvoid any similarity in wording, concepts, or approach.`
     : '';
-
+        
   // Detect difficulty from type string
   const lowerType = type.toLowerCase();
   let difficultyLevel = "Mid-level";
