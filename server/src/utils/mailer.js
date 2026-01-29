@@ -8,8 +8,11 @@ if (!EMAIL_USER || !EMAIL_PASS) {
 }
 
 // Basic Gmail-compatible transport; can be customized via env later
+// Explicit Gmail configuration to avoid timeouts on some cloud providers
 const transporter = nodemailer.createTransport({
-  service: process.env.EMAIL_SERVICE || "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true, // use SSL
   auth: {
     user: EMAIL_USER,
     pass: EMAIL_PASS,
