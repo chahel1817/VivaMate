@@ -8,15 +8,19 @@ if (!EMAIL_USER || !EMAIL_PASS) {
 }
 
 // Basic Gmail-compatible transport; can be customized via env later
-// Explicit Gmail configuration to avoid timeouts on some cloud providers
+// Explicit Gmail configuration - Trying Port 587 (STARTTLS)
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // use SSL
+  port: 587,
+  secure: false, // true for 465, false for other ports
   auth: {
     user: EMAIL_USER,
     pass: EMAIL_PASS,
   },
+  tls: {
+    rejectUnauthorized: false // Helps if server has certificate issues
+  },
+  connectionTimeout: 10000, // 10 seconds
 });
 
 async function sendOtpEmail(to, otp) {
