@@ -1,67 +1,112 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require('resend');
 
-const EMAIL_USER = process.env.EMAIL_USER || process.env.SMTP_USER || process.env.MAIL_USER;
-const EMAIL_PASS = process.env.EMAIL_PASS || process.env.SMTP_PASS || process.env.MAIL_PASS;
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const EMAIL_FROM = process.env.EMAIL_FROM;
 
-if (!EMAIL_USER || !EMAIL_PASS) {
-  console.warn("⚠ Email credentials (EMAIL_USER/EMAIL_PASS) are not fully configured. Forgot password emails will fail.");
+if (!RESEND_API_KEY) {
+  console.warn("⚠ RESEND_API_KEY is not set. Emails will fail in production.");
+}
+if (!EMAIL_FROM) {
+  console.warn("⚠ EMAIL_FROM is not set. Emails will have no valid sender.");
 }
 
-// Basic Gmail-compatible transport; can be customized via env later
-// Explicit Gmail configuration - Enforcing IPv4 + Port 587
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: EMAIL_USER,
-    pass: EMAIL_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false
-  },
-  family: 4, // Force IPv4 (fixes timeouts on some IPv6 networks)
-  connectionTimeout: 30000, // 30 seconds
-  greetingTimeout: 30000,
-  socketTimeout: 30000
-});
+const resend = new Resend(RESEND_API_KEY);
 
+/**
+ * Send OTP Email
+ * @param {string} to - Recipient email
+ * @param {string} otp - OTP code
+ */
 async function sendOtpEmail(to, otp) {
-  if (!EMAIL_USER || !EMAIL_PASS) {
-    throw new Error("Email credentials not configured on server (.env).");
+  if (!RESEND_API_KEY || !EMAIL_FROM) {
+    throw new Error("Email credentials not configured (RESEND_API_KEY / EMAIL_FROM missing).");
   }
 
-  const fromAddress = process.env.EMAIL_FROM || EMAIL_USER;
-
-  const mailOptions = {
-    from: `VivaMate <${fromAddress}>`,
-    to,
-    subject: "Your VivaMate login OTP",
-    text: `Your one-time password (OTP) for VivaMate is: ${otp}\n\nThis code will expire in 10 minutes.\nIf you did not request this, you can ignore this email.`,
-    html: `
-      <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 16px;">
-        <h2 style="color:#16a34a; margin-bottom: 8px;">VivaMate Login OTP</h2>
-        <p style="margin: 0 0 12px 0;">Use the following one-time password to login to your VivaMate account:</p>
-        <div style="font-size: 24px; font-weight: 600; letter-spacing: 4px; margin: 12px 0; color:#111827;">
-          ${otp}
-        </div>
-        <p style="margin: 0 0 4px 0; font-size: 14px; color:#6b7280;">
-          This code is valid for <strong>10 minutes</strong>.
-        </p>
-        <p style="margin: 0; font-size: 12px; color:#9ca3af;">
-          If you did not request this, you can safely ignore this email.
-        </p>
+  const html = `
+    <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 16px;">
+      <h2 style="color:#16a34a; margin-bottom: 8px;">VivaMate Login OTP</h2>
+      <p style="margin: 0 0 12px 0;">Use the following one-time password to login to your VivaMate account:</p>
+      <div style="font-size: 24px; font-weight: 600; letter-spacing: 4px; margin: 12px 0; color:#111827;">
+        ${otp}
       </div>
-    `,
-  };
+      <p style="margin: 0 0 4px 0; font-size: 14px; color:#6b7280;">
+        This code is valid for <strong>10 minutes</strong>.
+      </p>
+      <p style="margin: 0; font-size: 12px; color:#9ca3af;">
+        If you did not request this, you can safely ignore this email.
+      </p>
+    </div>
+  `;
 
   try {
-    await transporter.sendMail(mailOptions);
-    console.log(`✅ Email sent successfully to ${to}`);
+    const { data, error } = await resend.emails.send({
+      from: `VivaMate <${EMAIL_FROM}>`,
+      to: [to],
+      subject: "Your VivaMate login OTP",
+      html: html,
+    });
+
+    if (error) {
+      console.error('❌ Resend API Error:', error);
+      throw error;
+    }
+
+    console.log(`✅ OTP email sent via Resend to ${to}`, data);
+    return data;
   } catch (error) {
-    console.error(`❌ Error sending email to ${to}:`, error.message);
+    console.error(`❌ Error sending OTP email to ${to}:`, error.message);
     throw error;
   }
 }
 
-module.exports = { sendOtpEmail };
+/**
+ * Send Welcome Email
+ * @param {string} to - Recipient email
+ * @param {string} name - User's name
+ */
+async function sendWelcomeEmail(to, name) {
+  if (!RESEND_API_KEY || !EMAIL_FROM) {
+    console.warn("⚠ Email credentials missing, skipping welcome email.");
+    return;
+  }
+
+  const html = `
+    <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 24px;">
+      <h2 style="color:#16a34a; margin-bottom: 16px;">Welcome to VivaMate, ${name}! 🎉</h2>
+      <p style="margin-bottom: 12px;">We're excited to have you on board. VivaMate is your companion for acing interviews and tracking your career progress.</p>
+      
+      <p style="margin-bottom: 24px;">Here is what you can do next:</p>
+      
+      <ul style="margin-bottom: 24px; line-height: 1.6;">
+        <li>🚀 <strong>Start a Mock Interview:</strong> Practice with our AI interviewer.</li>
+        <li>📊 <strong>Track Your Progress:</strong> See your analytics improve over time.</li>
+        <li>📝 <strong>Review Feedback:</strong> Get detailed insights on your performance.</li>
+      </ul>
+
+      <p style="color:#6b7280; font-size: 14px;">Happy Interviewing! <br>- The VivaMate Team</p>
+    </div>
+  `;
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: `VivaMate <${EMAIL_FROM}>`,
+      to: [to],
+      subject: "Welcome to VivaMate! 🚀",
+      html: html,
+    });
+
+    if (error) {
+      console.error('❌ Resend Welcome Email Error:', error);
+      // We don't throw here to avoid blocking registration flow
+    } else {
+      console.log(`✅ Welcome email sent via Resend to ${to}`, data);
+    }
+    return data;
+  } catch (error) {
+    console.error(`❌ Error sending welcome email to ${to}:`, error.message);
+    // Suppress error so it doesn't fail the request
+  }
+}
+
+module.exports = { sendOtpEmail, sendWelcomeEmail };
+

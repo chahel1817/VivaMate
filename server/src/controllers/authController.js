@@ -1,7 +1,7 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { sendOtpEmail } = require("../utils/mailer");
+const { sendOtpEmail, sendWelcomeEmail } = require("../utils/mailer");
 
 // Helper to set cookie
 const setTokenCookie = (res, token) => {
@@ -41,6 +41,9 @@ const register = async (req, res) => {
 
     // Create token
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+    // Send Welcome Email (Non-blocking)
+    sendWelcomeEmail(user.email, user.name).catch(console.error);
 
     // Set Cookie
     setTokenCookie(res, token);
