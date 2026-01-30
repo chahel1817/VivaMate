@@ -105,6 +105,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const refreshUser = async () => {
+    try {
+      const res = await api.get("/auth/me");
+      setUser(res.data);
+      return res.data;
+    } catch (error) {
+      console.error("Failed to refresh user", error);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     login,
@@ -114,6 +125,7 @@ export const AuthProvider = ({ children }) => {
     requestOtp,
     verifyOtp,
     updateProfile,
+    refreshUser,
     loading,
   };
 

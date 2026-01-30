@@ -162,8 +162,10 @@ const submitChallenge = async (req, res) => {
         const xpPerQuestion = challenge.xpReward / challenge.questions.length;
         const xpGained = Math.round(xpPerQuestion * correctCount);
 
-        // STREAK LOGIC
+        // STREAK LOGIC - Fixed to properly handle consecutive days
         const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset to start of day for accurate comparison
+
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
 
@@ -171,20 +173,37 @@ const submitChallenge = async (req, res) => {
 
         if (user.lastChallengeDate) {
             const lastDate = new Date(user.lastChallengeDate);
-            // Check if last date matches yesterday (ignoring time)
-            if (lastDate.toDateString() === yesterday.toDateString()) {
+            lastDate.setHours(0, 0, 0, 0); // Reset to start of day
+
+            const todayStr = today.toDateString();
+            const yesterdayStr = yesterday.toDateString();
+            const lastDateStr = lastDate.toDateString();
+
+            console.log('Streak Debug:', { todayStr, yesterdayStr, lastDateStr, currentStreak: user.streak });
+
+            // If last challenge was yesterday, increment streak
+            if (lastDateStr === yesterdayStr) {
                 user.streak += 1;
                 streakBonus = user.streak * 10; // 10 XP per streak day
-            } else if (lastDate.toDateString() === today.toDateString()) {
-                // Already did one today?
-            } else {
-                // Warning: Streak reset
+                console.log('Streak incremented:', user.streak);
+            }
+            // If last challenge was today, don't change streak (already completed today)
+            else if (lastDateStr === todayStr) {
+                // Keep current streak, no bonus for multiple challenges same day
+                streakBonus = 0;
+                console.log('Already completed today, streak maintained:', user.streak);
+            }
+            // If last challenge was before yesterday, reset streak
+            else {
                 user.streak = 1;
                 streakBonus = 10;
+                console.log('Streak reset to 1 (gap detected)');
             }
         } else {
+            // First time completing a challenge
             user.streak = 1;
             streakBonus = 10;
+            console.log('First challenge completed, streak set to 1');
         }
 
         user.lastChallengeDate = today;

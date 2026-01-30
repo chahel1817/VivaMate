@@ -6,7 +6,7 @@ import { useAuth } from "../context/authContext";
 import { useTheme } from "../context/themeContext";
 
 export default function DailyChallenge() {
-    const { user } = useAuth();
+    const { user, refreshUser } = useAuth();
     const { isDarkMode } = useTheme();
 
     const [challenge, setChallenge] = useState(null);
@@ -71,6 +71,8 @@ export default function DailyChallenge() {
                 answers: finalAnswers
             });
             setResult(res.data);
+            // Refresh user data to update streak and XP in the UI
+            await refreshUser();
         } catch (err) {
             console.error("Submit failed", err);
         } finally {
@@ -138,6 +140,24 @@ export default function DailyChallenge() {
                                     <p className="text-3xl font-black mt-1 text-yellow-500">+{result.xpGained} XP</p>
                                 </div>
                             </div>
+
+                            {/* Streak Info */}
+                            {result.streakBonus > 0 && (
+                                <div className={`p-4 rounded-xl border mb-6 ${isDarkMode ? 'bg-orange-900/20 border-orange-700/50' : 'bg-orange-50 border-orange-200'}`}>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="text-orange-500">
+                                                <Flame size={24} />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-sm">Streak Bonus!</p>
+                                                <p className="text-xs text-slate-500">Current Streak: {result.currentStreak} days</p>
+                                            </div>
+                                        </div>
+                                        <p className="text-xl font-black text-orange-500">+{result.streakBonus} XP</p>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Breakdown */}
                             <div className="text-left space-y-3 mb-8">
