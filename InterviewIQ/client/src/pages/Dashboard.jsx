@@ -3,7 +3,8 @@ import {
   BarChart3,
   MessageSquare,
   Trophy,
-  Flame
+  Flame,
+  Info
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -192,6 +193,20 @@ export default function Dashboard() {
       <Navbar />
       <div className={`min-h-screen ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-slate-100'} px-6 py-10`}>
         <div className="max-w-6xl mx-auto space-y-12">
+
+          {/* Auto-refresh Info Banner */}
+          <div className={`${isDarkMode ? 'bg-blue-900/20 border-blue-700/50 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-700'} border rounded-lg p-4 flex items-start gap-3`}>
+            <Info size={20} className="flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium">
+                📊 Live Dashboard Updates
+              </p>
+              <p className={`text-xs mt-1 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                This page automatically refreshes every 10 seconds to show your latest progress and activities. No need to worry if you see updates—it's working perfectly!
+              </p>
+            </div>
+          </div>
+
           {/* Intro */}
           <section>
             <h2 className={`text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>

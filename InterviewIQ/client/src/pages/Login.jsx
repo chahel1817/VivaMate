@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Mail, Lock, CheckCircle } from "lucide-react";
+import { Mail, Lock, CheckCircle, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/authContext";
 import AuthBranding from "../components/AuthBranding";
@@ -13,6 +13,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (location.state?.message) {
@@ -26,14 +27,17 @@ export default function Login() {
     try {
       setError("");
       setSuccessMsg("");
+      setLoading(true);
 
       if (!email || !password) {
         setError("All fields are required");
+        setLoading(false);
         return;
       }
 
       if (!email.includes('@')) {
         setError("Email must contain an '@' symbol");
+        setLoading(false);
         return;
       }
 
@@ -41,6 +45,7 @@ export default function Login() {
       navigate("/dashboard");
     } catch (err) {
       setError(err.message);
+      setLoading(false);
     }
   };
 
@@ -110,9 +115,17 @@ export default function Login() {
             {error && <p className="text-red-500 text-sm">{error}</p>}
             <button
               type="submit"
-              className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
+              disabled={loading}
+              className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              Login
+              {loading ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  <span>Logging in...</span>
+                </>
+              ) : (
+                "Login"
+              )}
             </button>
           </form>
 
