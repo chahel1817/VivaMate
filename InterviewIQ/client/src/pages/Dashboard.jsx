@@ -5,7 +5,8 @@ import {
   Trophy,
   Flame,
   Info,
-  Award
+  Award,
+  BookOpen
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -315,6 +316,16 @@ export default function Dashboard() {
                     "Go through detailed feedback from your past interviews.",
                   action: "View feedback →",
                   path: "/feedback",
+                },
+                {
+                  icon: BookOpen,
+                  title: "Question Bank",
+                  desc:
+                    "Browse and practice interview questions for specific subjects.",
+                  action: "Select subjects →",
+                  path: "/questions-subject",
+                  color: "text-blue-500",
+                  bgColor: "bg-blue-50 dark:bg-blue-900/20",
                 },
               ].map((card, i) => {
                 const Icon = card.icon;

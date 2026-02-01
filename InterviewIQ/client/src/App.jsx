@@ -32,6 +32,8 @@ const ChallengeHistory = lazy(() => import("./pages/ChallengeHistory"));
 const Bookmarks = lazy(() => import("./pages/Bookmarks"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const Achievements = lazy(() => import("./pages/Achievements"));
+const QuestionBank = lazy(() => import("./pages/QuestionBank"));
+const QuestionSubjectSelect = lazy(() => import("./pages/QuestionSubjectSelect"));
 
 // Loading Component
 const PageLoader = () => (
@@ -197,6 +199,24 @@ export default function App() {
                     element={
                       <ProtectedRoute>
                         <Achievements />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/questions-subject"
+                    element={
+                      <ProtectedRoute>
+                        <QuestionSubjectSelect />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/questions"
+                    element={
+                      <ProtectedRoute>
+                        <QuestionBank />
                       </ProtectedRoute>
                     }
                   />
