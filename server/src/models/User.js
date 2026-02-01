@@ -57,6 +57,32 @@ const userSchema = new mongoose.Schema(
       type: String,
       savedAt: { type: Date, default: Date.now }
     }],
+
+    // Achievements & Gamification
+    achievements: [{
+      achievementId: String,
+      unlockedAt: { type: Date, default: Date.now },
+      progress: { type: Number, default: 0 }
+    }],
+
+    weeklyStats: {
+      currentWeek: String, // "2026-W05"
+      weeklyXP: { type: Number, default: 0 },
+      weeklyChallenges: { type: Number, default: 0 }
+    },
+
+    leaderboardStats: {
+      globalRank: Number,
+      weeklyRank: Number,
+      lastUpdated: Date
+    },
+
+    friends: [{
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      addedAt: { type: Date, default: Date.now },
+      status: { type: String, enum: ['pending', 'accepted'], default: 'pending' }
+    }],
+
     // UI/UX Preferences
     hasCompletedOnboarding: { type: Boolean, default: true },
     dashboardLayout: {

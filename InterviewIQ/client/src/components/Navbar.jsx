@@ -1,7 +1,7 @@
 import { useAuth } from "../context/authContext";
 import { useTheme } from "../context/themeContext";
 import { useNavigate } from "react-router-dom";
-import { Sun, Moon, User, LogOut, Settings, BarChart3, LayoutDashboard, ChevronDown, History, Bookmark } from "lucide-react";
+import { Sun, Moon, User, LogOut, Settings, BarChart3, LayoutDashboard, ChevronDown, History, Bookmark, Trophy, Award } from "lucide-react";
 import { useState } from "react";
 import Tooltip from "./Tooltip";
 
@@ -86,6 +86,20 @@ export default function Navbar() {
                   >
                     <BarChart3 size={18} />
                     Analytics
+                  </button>
+                  <button
+                    onClick={() => navigate("/leaderboard")}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 rounded-xl transition-colors"
+                  >
+                    <Trophy size={18} />
+                    Leaderboard
+                  </button>
+                  <button
+                    onClick={() => navigate("/achievements")}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 rounded-xl transition-colors"
+                  >
+                    <Award size={18} />
+                    Achievements
                   </button>
                   <button
                     onClick={() => navigate("/bookmarks")}

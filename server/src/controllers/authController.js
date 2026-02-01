@@ -122,6 +122,12 @@ const login = async (req, res) => {
 
     setTokenCookie(res, token);
 
+    // Sync user to Redis leaderboards (async, non-blocking)
+    const leaderboardService = require('../services/leaderboardService');
+    leaderboardService.syncUserToRedis(user._id).catch(err => {
+      console.error('Redis sync error on login:', err);
+    });
+
     res.json({
       message: "Login successful",
       user: {
@@ -213,6 +219,12 @@ const verifyOtp = async (req, res) => {
     );
 
     setTokenCookie(res, token);
+
+    // Sync user to Redis leaderboards (async, non-blocking)
+    const leaderboardService = require('../services/leaderboardService');
+    leaderboardService.syncUserToRedis(user._id).catch(err => {
+      console.error('Redis sync error on OTP login:', err);
+    });
 
     return res.json({
       message: "OTP verified",

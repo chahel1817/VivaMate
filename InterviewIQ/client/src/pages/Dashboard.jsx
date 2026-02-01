@@ -4,7 +4,8 @@ import {
   MessageSquare,
   Trophy,
   Flame,
-  Info
+  Info,
+  Award
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -15,8 +16,9 @@ import Navbar from "../components/Navbar";
 import api from "../services/api";
 import { NoActivityEmpty } from "../components/EmptyState";
 
+
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
   // Remove dashboardData, use only stats for all dashboard info
@@ -31,7 +33,7 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({});
 
-  console.log("Dashboard component rendering", { user, loading });
+  console.log("Dashboard component rendering", { user, loading, authLoading });
 
   // Remove fetchDashboardData, setLoading is handled in refreshStats
 
@@ -179,7 +181,8 @@ export default function Dashboard() {
     };
   }, []);
 
-  if (loading && !stats.interviewsTaken) {
+  // Show loading skeleton while auth is loading OR stats are loading
+  if (authLoading || (loading && !stats.interviewsTaken)) {
     return (
       <>
         <Navbar />
@@ -284,6 +287,26 @@ export default function Dashboard() {
                   action: "View performance →",
                   path: "/performance",
                   tourId: "performance",
+                },
+                {
+                  icon: Trophy,
+                  title: "Leaderboard",
+                  desc:
+                    "Compete with others and see where you rank globally!",
+                  action: "View leaderboard →",
+                  path: "/leaderboard",
+                  color: "text-yellow-500",
+                  bgColor: "bg-yellow-50 dark:bg-yellow-900/20",
+                },
+                {
+                  icon: Award,
+                  title: "Achievements",
+                  desc:
+                    "Unlock achievements and earn exclusive badges.",
+                  action: "View achievements →",
+                  path: "/achievements",
+                  color: "text-purple-500",
+                  bgColor: "bg-purple-50 dark:bg-purple-900/20",
                 },
                 {
                   icon: MessageSquare,

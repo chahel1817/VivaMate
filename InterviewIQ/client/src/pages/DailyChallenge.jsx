@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Trophy, Star, Target, CheckCircle, Zap, ArrowRight, Award } from "lucide-react";
+import { Trophy, Star, Target, CheckCircle, Zap, ArrowRight, Award, Flame } from "lucide-react";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/authContext";

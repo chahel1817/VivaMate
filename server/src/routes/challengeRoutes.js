@@ -9,8 +9,12 @@ const {
 } = require("../controllers/challengeController");
 const protect = require("../middleware/authMiddleware");
 
+// Validation
+const validate = require("../middleware/validate");
+const { submitChallengeSchema } = require("../schemas/challengeSchemas");
+
 router.get("/daily", protect, getDailyChallenge);
-router.post("/submit", protect, submitChallenge);
+router.post("/submit", protect, validate(submitChallengeSchema), submitChallenge);
 router.get("/history", protect, getChallengeHistory);
 router.get("/bookmarks", protect, getBookmarks);
 router.post("/bookmark", protect, toggleBookmark);

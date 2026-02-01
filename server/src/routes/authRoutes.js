@@ -5,12 +5,16 @@ const { register, login, requestOtp, verifyOtp, updateProfile, logout } = requir
 const protect = require("../middleware/authMiddleware");
 const User = require("../models/User");
 
-router.post("/register", register);
-router.post("/login", login);
+// Validation
+const validate = require("../middleware/validate");
+const { registerSchema, loginSchema, requestOtpSchema, verifyOtpSchema, updateProfileSchema } = require("../schemas/authSchemas");
+
+router.post("/register", validate(registerSchema), register);
+router.post("/login", validate(loginSchema), login);
 router.post("/logout", logout);
-router.post("/forgot-password", requestOtp);
-router.post("/verify-otp", verifyOtp);
-router.put("/profile", protect, updateProfile);
+router.post("/forgot-password", validate(requestOtpSchema), requestOtp);
+router.post("/verify-otp", validate(verifyOtpSchema), verifyOtp);
+router.put("/profile", protect, validate(updateProfileSchema), updateProfile);
 
 // ✅ Persist login on refresh
 router.get("/me", protect, async (req, res) => {
