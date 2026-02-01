@@ -21,7 +21,7 @@ export default function KeyboardShortcuts() {
     const shortcuts = [
         { key: 'ctrl+d, cmd+d', action: () => navigate('/dashboard'), label: 'Go to Dashboard', category: 'Navigation' },
         { key: 'ctrl+i, cmd+i', action: () => navigate('/interview/select'), label: 'Start Interview', category: 'Navigation' },
-        { key: 'ctrl+p, cmd+p', action: () => navigate('/performance'), label: 'View Performance', category: 'Navigation' },
+        { key: 'ctrl+alt+a, cmd+alt+a', action: () => navigate('/analytics'), label: 'View Analytics', category: 'Navigation' },
         { key: 'ctrl+shift+p, cmd+shift+p', action: () => navigate('/profile'), label: 'Go to Profile', category: 'Navigation' },
         { key: 'ctrl+shift+f, cmd+shift+f', action: () => navigate('/forum'), label: 'Open Forum', category: 'Navigation' },
         { key: 'ctrl+shift+c, cmd+shift+c', action: () => navigate('/daily-challenge'), label: 'Daily Challenge', category: 'Navigation' },
@@ -32,7 +32,7 @@ export default function KeyboardShortcuts() {
     // Register shortcuts individually
     useHotkeys('ctrl+d, cmd+d', (e) => { if (shortcutsEnabled) { e.preventDefault(); navigate('/dashboard'); } }, { enableOnFormTags: false });
     useHotkeys('ctrl+i, cmd+i', (e) => { if (shortcutsEnabled) { e.preventDefault(); navigate('/interview/select'); } }, { enableOnFormTags: false });
-    useHotkeys('ctrl+p, cmd+p', (e) => { if (shortcutsEnabled) { e.preventDefault(); navigate('/performance'); } }, { enableOnFormTags: false });
+    useHotkeys('ctrl+alt+a, cmd+alt+a', (e) => { if (shortcutsEnabled) { e.preventDefault(); navigate('/analytics'); } }, { enableOnFormTags: false });
     useHotkeys('ctrl+shift+p, cmd+shift+p', (e) => { if (shortcutsEnabled) { e.preventDefault(); navigate('/profile'); } }, { enableOnFormTags: false });
     useHotkeys('ctrl+shift+f, cmd+shift+f', (e) => { if (shortcutsEnabled) { e.preventDefault(); navigate('/forum'); } }, { enableOnFormTags: false });
     useHotkeys('ctrl+shift+c, cmd+shift+c', (e) => { if (shortcutsEnabled) { e.preventDefault(); navigate('/daily-challenge'); } }, { enableOnFormTags: false });

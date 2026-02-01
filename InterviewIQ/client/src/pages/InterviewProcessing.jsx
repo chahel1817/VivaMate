@@ -52,7 +52,7 @@ export default function InterviewProcessing() {
             Processing Your Interview
           </h1>
           <p className={`${isDarkMode ? 'text-slate-400' : 'text-slate-500'} text-sm mb-6`}>
-            Please wait while our AI evaluates your performance
+            Please wait while our AI evaluates your answers
           </p>
 
           {/* LOADER */}

@@ -155,10 +155,10 @@ app.get("/api/dashboard/stats", protect, async (req, res) => {
     res.json({
       interviewsTaken: completedSessions.length, // Only count completed interviews
       averageScore: avgScore,
-      lastInterview: completedSessions.length > 0 ? new Date(completedSessions[0].createdAt).toLocaleDateString() : null,
+      lastInterview: completedSessions.length > 0 ? new Date(completedSessions[0].createdAt).toISOString() : null,
       recentActivity: completedSessions.slice(0, 5).map((s) => ({ // Only show completed interviews
         role: s.topic ? `${s.topic.domain || ''} ${s.topic.tech || ''}`.trim() || "Mock Interview" : "Mock Interview",
-        date: new Date(s.createdAt).toLocaleDateString(),
+        date: new Date(s.createdAt).toLocaleDateString(), // Keep simple for list, or assume frontend formats it? Frontend logic currently uses it as string "On {item.date}". 
         score: `${s.overallScore}/10`, // Always show score for completed sessions
         type: s.topic ? s.topic.domain : "Interview",
         duration: 45 // Placeholder as duration might not be stored directly

@@ -4,7 +4,7 @@ const sentences = [
     "AI-powered interview analysis for real growth.",
     "Get instant, actionable feedback after every session.",
     "Master technical, communication, and confidence skills.",
-    "Track your progress with detailed performance metrics."
+    "Track your progress with detailed analytics."
 ];
 
 export default function AuthBranding() {

@@ -42,13 +42,7 @@ export default function CommandPalette() {
             action: () => navigate('/interview/select'),
             keywords: ['mock', 'practice', 'begin'],
         },
-        {
-            id: 'performance',
-            label: 'View Performance',
-            icon: BarChart3,
-            action: () => navigate('/performance'),
-            keywords: ['stats', 'analytics', 'progress'],
-        },
+
         {
             id: 'profile',
             label: 'My Profile',

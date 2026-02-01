@@ -224,10 +224,10 @@ export default function Dashboard() {
           {/* Stats */}
           <section className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { label: "Interviews Taken", value: stats.interviewsTaken },
-              { label: "Average Score", value: `${(stats.averageScore ?? 0)}%` },
+              { label: "Interviews Taken", value: stats.interviewsTaken, icon: MessageSquare, color: "text-blue-500" },
+              { label: "Average Score", value: `${(stats.averageScore ?? 0)}%`, icon: Award, color: "text-purple-500" },
               { label: "Current Streak", value: user?.streak || 0, icon: Flame, color: "text-orange-500" },
-              { label: "Last Interview", value: stats.lastInterview || "None" },
+              { label: "Last Interview", value: stats.lastInterview ? new Date(stats.lastInterview).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : "None", icon: PlayCircle, color: "text-green-500" },
             ].map((item, i) => (
               <div
                 key={i}
@@ -243,9 +243,9 @@ export default function Dashboard() {
                     {item.label === "Current Streak" && <span className="text-xs font-bold text-slate-400 self-end mb-1">DAYS</span>}
                   </div>
                 </div>
-                {item.label === "Current Streak" && (
+                {(
                   <div className="absolute -right-4 -bottom-4 opacity-10">
-                    <Flame size={100} className="text-orange-500" />
+                    <item.icon size={100} className={item.color} />
                   </div>
                 )}
               </div>
@@ -281,12 +281,12 @@ export default function Dashboard() {
                 },
                 {
                   icon: BarChart3,
-                  title: "View Performance",
+                  title: "View Analytics",
                   desc:
                     "Track your scores over time and measure your improvement.",
-                  action: "View performance →",
-                  path: "/performance",
-                  tourId: "performance",
+                  action: "View analytics →",
+                  path: "/analytics",
+                  tourId: "analytics",
                 },
                 {
                   icon: Trophy,

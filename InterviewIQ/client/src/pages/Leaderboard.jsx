@@ -168,10 +168,10 @@ const Leaderboard = () => {
                                 {/* Top 3 Podium */}
                                 {offset === 0 && leaderboard.length >= 3 && (
                                     <div className={`p-8 border-b ${isDarkMode ? 'border-slate-700 bg-slate-900/50' : 'border-gray-200 bg-gray-50'}`}>
-                                        <div className="flex items-end justify-center gap-4 max-w-2xl mx-auto">
+                                        <div className="flex flex-col md:flex-row items-center md:items-end justify-center gap-4 max-w-2xl mx-auto">
                                             {/* 2nd Place */}
                                             {leaderboard[1] && (
-                                                <div className="flex-1 text-center">
+                                                <div className="flex-1 text-center order-2 md:order-1">
                                                     <div className="relative inline-block mb-3">
                                                         <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gray-300 to-gray-500 flex items-center justify-center text-white font-black text-2xl border-4 border-gray-400">
                                                             {leaderboard[1].name?.charAt(0).toUpperCase()}
@@ -191,7 +191,7 @@ const Leaderboard = () => {
 
                                             {/* 1st Place */}
                                             {leaderboard[0] && (
-                                                <div className="flex-1 text-center -mt-8">
+                                                <div className="flex-1 text-center md:-mt-8 order-1 md:order-2 w-full md:w-auto mb-6 md:mb-0 z-10">
                                                     <div className="relative inline-block mb-3">
                                                         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-yellow-300 to-yellow-600 flex items-center justify-center text-white font-black text-3xl border-4 border-yellow-400 shadow-lg">
                                                             {leaderboard[0].name?.charAt(0).toUpperCase()}
@@ -214,7 +214,7 @@ const Leaderboard = () => {
 
                                             {/* 3rd Place */}
                                             {leaderboard[2] && (
-                                                <div className="flex-1 text-center">
+                                                <div className="flex-1 text-center order-3 md:order-3">
                                                     <div className="relative inline-block mb-3">
                                                         <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-400 to-orange-700 flex items-center justify-center text-white font-black text-2xl border-4 border-orange-500">
                                                             {leaderboard[2].name?.charAt(0).toUpperCase()}

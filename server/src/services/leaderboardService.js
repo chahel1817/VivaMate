@@ -16,6 +16,12 @@ const KEYS = {
     USER_CACHE: (userId) => `user:${userId}:cache`
 };
 
+// In-memory cache for fallback speed
+const memoryCache = {
+    global_xp: { data: null, expiry: 0 },
+    global_streak: { data: null, expiry: 0 }
+};
+
 /**
  * Update user's score in all relevant leaderboards
  */
@@ -62,7 +68,23 @@ async function getGlobalLeaderboard(type = 'xp', limit = 100, offset = 0) {
 
     if (!useRedis) {
         // Fallback to MongoDB
-        return getLeaderboardFromMongoDB(type, limit, offset);
+        // Check memory cache first
+        const cacheKey = type === 'xp' ? 'global_xp' : 'global_streak';
+        const now = Date.now();
+        if (memoryCache[cacheKey].data && memoryCache[cacheKey].expiry > now && offset === 0 && limit <= 100) {
+            return memoryCache[cacheKey].data; // Return cached top 100
+        }
+
+        const data = await getLeaderboardFromMongoDB(type, limit, offset);
+
+        // Cache if fetching page 1
+        if (offset === 0) {
+            memoryCache[cacheKey] = {
+                data: data,
+                expiry: now + 60000 // 60 seconds
+            };
+        }
+        return data;
     }
 
     try {

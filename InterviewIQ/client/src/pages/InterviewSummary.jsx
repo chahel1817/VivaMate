@@ -101,10 +101,10 @@ export default function InterviewSummary() {
             <div className="flex justify-between items-start">
               <div>
                 <h1 className={`text-3xl font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-                  Interview Performance Report
+                  Interview Analysis Report
                 </h1>
                 <p className={`${isDarkMode ? 'text-slate-400' : 'text-slate-500'} mt-2 max-w-2xl`}>
-                  A detailed evaluation of your interview performance with
+                  A detailed evaluation of your interview results with
                   insights, analytics, and improvement guidance.
                 </p>
               </div>

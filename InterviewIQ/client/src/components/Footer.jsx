@@ -58,7 +58,7 @@ export default function Footer() {
                             {[
                                 { name: "Dashboard", path: "/dashboard" },
                                 { name: "Start Mock", path: "/interview/select" },
-                                { name: "Analysis", path: "/performance" },
+                                { name: "Analysis", path: "/analytics" },
                                 { name: "Profile", path: "/profile" }
                             ].map((link) => (
                                 <li key={link.name}>

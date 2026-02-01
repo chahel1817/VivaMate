@@ -9,6 +9,7 @@ import { TooltipProvider } from "./components/Tooltip";
 import OnboardingTour from "./components/OnboardingTour";
 import KeyboardShortcuts from "./components/KeyboardShortcuts";
 import CommandPalette from "./components/CommandPalette";
+import ScrollToTop from "./components/ScrollToTop";
 
 // Lazy Load Pages for Performance
 const Login = lazy(() => import("./pages/Login"));
@@ -18,7 +19,6 @@ const VerifyOtp = lazy(() => import("./pages/VerifyOtp"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Interview = lazy(() => import("./pages/Interview"));
 const Result = lazy(() => import("./pages/Result"));
-const Performance = lazy(() => import("./pages/Performance"));
 const Feedback = lazy(() => import("./pages/Feedback"));
 const InterviewSummary = lazy(() => import("./pages/InterviewSummary"));
 const InterviewSelect = lazy(() => import("./pages/InterviewSelect"));
@@ -50,6 +50,7 @@ export default function App() {
             <OnboardingTour />
             <KeyboardShortcuts />
             <CommandPalette />
+            <ScrollToTop />
             <Layout>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
@@ -126,14 +127,7 @@ export default function App() {
                     }
                   />
 
-                  <Route
-                    path="/performance"
-                    element={
-                      <ProtectedRoute>
-                        <Performance />
-                      </ProtectedRoute>
-                    }
-                  />
+
 
                   <Route
                     path="/feedback"
