@@ -9,7 +9,11 @@ export default function Layout({ children }) {
         "/interview",
         "/interview-processing",
         "/interview/select",
-        "/interview/config"
+        "/interview/config",
+        "/",
+        "/register",
+        "/forgot-password",
+        "/verify-otp"
     ];
 
     const shouldHideFooter = hideFooterPaths.includes(location.pathname);
