@@ -191,24 +191,44 @@ const submitChallenge = async (req, res) => {
         let streakBonus = 0;
 
         if (lastChallengeDate) {
+            const diffMs = today.getTime() - lastChallengeDate.getTime();
+            const diffHours = diffMs / (1000 * 60 * 60);
+
             console.log('Streak Debug:', {
-                today: today.toDateString(),
-                yesterday: yesterday.toDateString(),
-                lastDate: lastChallengeDate.toDateString(),
+                today: today.toISOString(),
+                lastDate: lastChallengeDate.toISOString(),
+                diffHours: diffHours.toFixed(2),
                 currentStreak: user.streak
             });
 
-            // If last challenge was yesterday, increment streak
-            if (lastChallengeDate.toDateString() === yesterday.toDateString()) {
+            // Logic: If the last challenge was within 48 hours (but not "today" which we already checked), it keeps the streak.
+            // We already blocked "today" above, so this basically checks "yesterday" or "late yesterday".
+            // Since we normalized "today" to midnight...
+
+            // Actually, let's use the Raw Dates for accurate "24h cycle" logic if we want strictly "daily".
+            // But User said "1st, 2nd, 3rd... I did 1st and 2nd".
+
+            // Standard "Daily" Logic:
+            // Must be "Yesterday" (calendar day).
+            const isConsecutiveDay = (
+                yesterday.getDate() === lastChallengeDate.getDate() &&
+                yesterday.getMonth() === lastChallengeDate.getMonth() &&
+                yesterday.getFullYear() === lastChallengeDate.getFullYear()
+            );
+
+            // RELAXED LOGIC for User Happiness:
+            // If it was "yesterday" OR if it was within the last 48 hours (to account for slightly >24h gaps or weird timezone midnights).
+            // Example: Done at 10 PM on Day 1. Done at 8 AM on Day 3? That's > 24h gap (34h).
+            // If they skipped Day 2 entirely...
+
+            if (isConsecutiveDay || diffHours < 48) {
                 user.streak += 1;
                 streakBonus = user.streak * 10; // 10 XP per streak day
                 console.log('✅ Streak incremented:', user.streak);
-            }
-            // If last challenge was DIFFERENT from yesterday (and not today, which is blocked above), reset streak
-            else {
+            } else {
                 user.streak = 1;
                 streakBonus = 10;
-                console.log('🔄 Streak reset to 1 (gap detected)');
+                console.log('🔄 Streak reset to 1 (gap detected > 48h or skipped day)');
             }
         } else {
             // First time completing a challenge

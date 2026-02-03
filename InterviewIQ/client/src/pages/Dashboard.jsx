@@ -19,7 +19,7 @@ import { NoActivityEmpty } from "../components/EmptyState";
 
 
 export default function Dashboard() {
-  const { user, logout, loading: authLoading } = useAuth();
+  const { user, logout, loading: authLoading, refreshUser } = useAuth();
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
   // Remove dashboardData, use only stats for all dashboard info
@@ -149,6 +149,9 @@ export default function Dashboard() {
 
   useEffect(() => {
     refreshStats();
+    // Refresh user data immediately to ensure streak is up to date
+    refreshUser().catch(err => console.debug("Silent refresh failed on mount"));
+
     let socket;
     let pollInterval;
 
@@ -170,8 +173,11 @@ export default function Dashboard() {
       }
     })();
 
-    // Always enable polling for real-time updates
-    pollInterval = setInterval(refreshStats, 10000);
+    // Always enable polling for real-time updates (stats + user streak)
+    pollInterval = setInterval(() => {
+      refreshStats();
+      refreshUser().catch(() => { }); // Silent fail
+    }, 10000);
 
     return () => {
       if (socket) {
@@ -243,6 +249,12 @@ export default function Dashboard() {
                     </p>
                     {item.label === "Current Streak" && <span className="text-xs font-bold text-slate-400 self-end mb-1">DAYS</span>}
                   </div>
+                  {item.label === "Current Streak" && (
+                    <p className={`text-[10px] mt-2 leading-tight ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse mr-1"></span>
+                      Includes 48-hour grace period to safe-guard streaks across different timezones.
+                    </p>
+                  )}
                 </div>
                 {(
                   <div className="absolute -right-4 -bottom-4 opacity-10">

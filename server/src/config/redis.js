@@ -6,7 +6,12 @@ const redisConfig = {
     port: process.env.REDIS_PORT || 6379,
     password: process.env.REDIS_PASSWORD || undefined,
     retryStrategy: (times) => {
-        const delay = Math.min(times * 50, 2000);
+        // Stop retrying after 5 attempts
+        if (times > 5) {
+            console.error('❌ Redis: Maximum reconnection attempts reached. giving up.');
+            return null; // Stop retrying
+        }
+        const delay = Math.min(times * 100, 3000);
         return delay;
     },
     maxRetriesPerRequest: 3,
