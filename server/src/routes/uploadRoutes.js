@@ -16,4 +16,11 @@ router.post("/image", protect, upload.single("image"), (req, res) => {
   });
 });
 
+const multer = require("multer");
+const memoryStorage = multer.memoryStorage();
+const memoryUpload = multer({ storage: memoryStorage });
+const resumeController = require("../controllers/resumeController");
+
+router.post("/resume", protect, memoryUpload.single("resume"), resumeController.parseResume);
+
 module.exports = router;

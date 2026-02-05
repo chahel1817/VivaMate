@@ -57,6 +57,9 @@ export default function Interview() {
           tech,
           difficulty,
           totalQuestions,
+          isResumeMode: state.isResumeMode,
+          extractedSkills: state.extractedSkills,
+          extractedProjects: state.extractedProjects
         });
 
         setSessionId(res.data.sessionId);

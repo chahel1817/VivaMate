@@ -280,7 +280,7 @@ export default function Dashboard() {
                   desc:
                     "Answer real interview-style questions and get structured feedback.",
                   action: "Start interview →",
-                  path: "/interview/select",
+                  path: "/interview/type",
                   tourId: "start-interview",
                 },
                 {

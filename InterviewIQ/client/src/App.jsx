@@ -34,6 +34,7 @@ const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const Achievements = lazy(() => import("./pages/Achievements"));
 const QuestionBank = lazy(() => import("./pages/QuestionBank"));
 const QuestionSubjectSelect = lazy(() => import("./pages/QuestionSubjectSelect"));
+const TypeSelection = lazy(() => import("./pages/TypeSelection"));
 
 // Loading Component
 const PageLoader = () => (
@@ -106,6 +107,15 @@ export default function App() {
                     element={
                       <ProtectedRoute>
                         <InterviewSelect />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/interview/type"
+                    element={
+                      <ProtectedRoute>
+                        <TypeSelection />
                       </ProtectedRoute>
                     }
                   />

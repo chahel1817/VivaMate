@@ -428,9 +428,25 @@ exports.generateQuestions = async (req, res) => {
 };
 
 // Optional: Add a health check endpoint for debugging
-exports.health = (req, res) => {
-	res.status(200).json({ status: 'ok', openrouter: !!OPENROUTER_API_KEY, openai: !!OPENAI_API_KEY });
+exports.generateResumeData = async (prompt) => {
+	let content = null;
+	try {
+		content = await callOpenRouter(prompt);
+	} catch (err) {
+		console.warn('OpenRouter failed for resume, trying OpenAI:', err.message);
+		if (OPENAI_API_KEY) {
+			content = await callOpenAI(prompt);
+		} else {
+			throw err;
+		}
+	}
+	const parsed = extractFirstJson(content || '');
+	if (!parsed) throw new Error('Failed to parse AI response for resume');
+	return parsed;
 };
 
 exports.evaluateAnswer = evaluateAnswer;
 exports.generateUniqueQuestions = generateUniqueQuestions;
+exports.health = (req, res) => {
+	res.status(200).json({ status: 'ok', openrouter: !!OPENROUTER_API_KEY, openai: !!OPENAI_API_KEY });
+};

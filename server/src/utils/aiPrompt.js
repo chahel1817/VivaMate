@@ -115,3 +115,31 @@ Give output ONLY in valid JSON format:
 }
 `;
 };
+exports.resumeParserPrompt = (text) => `
+You are an expert technical recruiter and AI resume analyzer.
+Your task is to extract key professional information from the following resume text.
+
+Resume Text:
+"""
+${text}
+"""
+
+Extract the following in JSON format:
+1. "skills": A list of top 5-7 most relevant technical skills (e.g., "React.js", "Node.js", "PostgreSQL").
+2. "projects": A list of 2-3 most significant projects described in the resume. 
+3. "domain": The primary domain (e.g., "Full-stack Developer", "Frontend Engineer", "Data Scientist").
+4. "experienceLevel": Estimated level (e.g., "Fresher", "Mid-level", "Senior").
+
+Rules:
+- Be precise. If skills are missing, infer from project descriptions.
+- Focus on modern tech stacks mentioned.
+- Ignore personal information (names, emails, addresses).
+
+Give output ONLY in valid JSON:
+{
+  "skills": [],
+  "projects": [],
+  "domain": "",
+  "experienceLevel": ""
+}
+`;

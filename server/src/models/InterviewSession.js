@@ -21,6 +21,7 @@ const interviewSessionSchema = new mongoose.Schema(
 
     difficulty: String,
     totalQuestions: Number,
+    isResumeMode: { type: Boolean, default: false },
 
     questions: {
       type: [String], // 👈 IMPORTANT

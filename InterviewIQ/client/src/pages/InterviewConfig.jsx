@@ -36,13 +36,34 @@ export default function InterviewConfig() {
 
           {/* TOPIC INFO */}
           <div className={`${isDarkMode ? 'bg-slate-800 border-green-700' : 'bg-white border-green-100'} rounded-2xl p-6 border`}>
-            <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Selected Topic</p>
+            <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+              {state.isResumeMode ? "Resume Background" : "Selected Topic"}
+            </p>
             <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-green-400' : 'text-green-700'} mt-1`}>
-              {state.tech}
+              {state.isResumeMode ? state.resumeFileName : state.tech}
             </h2>
             <p className={`${isDarkMode ? 'text-slate-300' : 'text-slate-600'} mt-2`}>
               Domain: <span className="font-medium">{state.domain}</span>
             </p>
+
+            {state.isResumeMode && state.extractedSkills && (
+              <div className="mt-4">
+                <p className={`text-xs uppercase font-bold tracking-wider ${isDarkMode ? 'text-slate-500' : 'text-slate-400'} mb-2`}>
+                  Key Skills Detected
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {state.extractedSkills.map((skill, i) => (
+                    <span
+                      key={i}
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${isDarkMode ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-green-50 text-green-700 border border-green-100'
+                        }`}
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* CONFIG CARD */}
@@ -58,8 +79,8 @@ export default function InterviewConfig() {
                 value={difficulty}
                 onChange={(e) => setDifficulty(e.target.value)}
                 className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 ${isDarkMode
-                    ? 'bg-slate-700 border-slate-600 text-white'
-                    : 'bg-white border-slate-300 text-slate-900'
+                  ? 'bg-slate-700 border-slate-600 text-white'
+                  : 'bg-white border-slate-300 text-slate-900'
                   }`}
               >
                 <option>Easy</option>
@@ -90,8 +111,8 @@ export default function InterviewConfig() {
                 value={count}
                 onChange={(e) => setCount(Number(e.target.value))}
                 className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 ${isDarkMode
-                    ? 'bg-slate-700 border-slate-600 text-white'
-                    : 'bg-white border-slate-300 text-slate-900'
+                  ? 'bg-slate-700 border-slate-600 text-white'
+                  : 'bg-white border-slate-300 text-slate-900'
                   }`}
               />
 
@@ -121,9 +142,12 @@ export default function InterviewConfig() {
                 navigate("/interview", {
                   state: {
                     domain: state.domain,
-                    tech: state.tech,
+                    tech: state.isResumeMode ? "Resume-Based Interview" : state.tech,
                     difficulty,
                     totalQuestions: count,
+                    isResumeMode: state.isResumeMode,
+                    extractedSkills: state.extractedSkills,
+                    extractedProjects: state.extractedProjects
                   },
                 })
               }

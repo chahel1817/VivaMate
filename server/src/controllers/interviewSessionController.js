@@ -5,17 +5,27 @@ const aiController = require("./aiController");
 
 exports.startSession = async (req, res) => {
   try {
-    let { domain, tech, difficulty, totalQuestions } = req.body;
+    let { domain, tech, difficulty, totalQuestions, isResumeMode, extractedSkills, extractedProjects } = req.body;
 
     difficulty =
       difficulty.charAt(0).toUpperCase() + difficulty.slice(1).toLowerCase();
 
     const sessionId = `session_${Date.now()}_${req.user}`;
 
+    // Create custom prompt type for resume
+    let generationType = `${domain} ${tech} ${difficulty}`;
+    if (isResumeMode) {
+      generationType = `Professional Interview based on Resume. 
+      Domain: ${domain}. 
+      Skills: ${extractedSkills ? extractedSkills.join(", ") : "Not specified"}. 
+      Recent Projects: ${extractedProjects ? extractedProjects.join(", ") : "Not specified"}. 
+      Difficulty: ${difficulty}`;
+    }
+
     // Generate questions immediately
-    console.log(`Generating ${totalQuestions} questions for session: ${sessionId}`);
+    console.log(`Generating ${totalQuestions} questions for session: ${sessionId} (ResumeMode: ${!!isResumeMode})`);
     const questionsData = await aiController.generateUniqueQuestions({
-      type: `${domain} ${tech} ${difficulty}`,
+      type: generationType,
       count: totalQuestions,
       userId: req.user,
     });
@@ -28,8 +38,9 @@ exports.startSession = async (req, res) => {
       topic: { domain, tech },
       difficulty,
       totalQuestions,
+      isResumeMode: !!isResumeMode,
       questions: questionTexts, // Save generated questions here
-      interviewType: `${domain} - ${tech} (${difficulty})`,
+      interviewType: isResumeMode ? `Resume-Based (${difficulty})` : `${domain} - ${tech} (${difficulty})`,
       startedAt: new Date(),
     });
 
