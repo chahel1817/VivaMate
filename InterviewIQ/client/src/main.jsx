@@ -5,10 +5,13 @@ import "../index.css";
 import posthog from "posthog-js";
 
 // Initialize PostHog
-if (import.meta.env.VITE_POSTHOG_KEY) {
-  posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
-    api_host: import.meta.env.VITE_POSTHOG_HOST || "https://us.i.posthog.com",
-    person_profiles: "identified_only", // or 'always' if you want to track anonymous users as well
+const POSTHOG_KEY = import.meta.env.VITE_PUBLIC_POSTHOG_KEY || import.meta.env.VITE_POSTHOG_KEY;
+const POSTHOG_HOST = import.meta.env.VITE_PUBLIC_POSTHOG_HOST || import.meta.env.VITE_POSTHOG_HOST || "https://us.i.posthog.com";
+
+if (POSTHOG_KEY) {
+  posthog.init(POSTHOG_KEY, {
+    api_host: POSTHOG_HOST,
+    person_profiles: "identified_only",
     capture_pageview: true,
   });
 }

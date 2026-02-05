@@ -1,10 +1,12 @@
 import posthog from "posthog-js";
 
+const POSTHOG_KEY = import.meta.env.VITE_PUBLIC_POSTHOG_KEY || import.meta.env.VITE_POSTHOG_KEY;
+
 /**
  * Identify the user in PostHog once they log in.
  */
 export const identifyUser = (userId, userData = {}) => {
-    if (import.meta.env.VITE_POSTHOG_KEY) {
+    if (POSTHOG_KEY) {
         posthog.identify(userId, userData);
     }
 };
@@ -13,7 +15,7 @@ export const identifyUser = (userId, userData = {}) => {
  * Track a custom event with optional properties.
  */
 export const trackEvent = (eventName, properties = {}) => {
-    if (import.meta.env.VITE_POSTHOG_KEY) {
+    if (POSTHOG_KEY) {
         posthog.capture(eventName, properties);
     }
 };
@@ -22,7 +24,7 @@ export const trackEvent = (eventName, properties = {}) => {
  * Reset PostHog data on logout.
  */
 export const resetPostHog = () => {
-    if (import.meta.env.VITE_POSTHOG_KEY) {
+    if (POSTHOG_KEY) {
         posthog.reset();
     }
 };
