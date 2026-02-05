@@ -6,19 +6,23 @@ const redisConfig = {
     port: process.env.REDIS_PORT || 6379,
     password: process.env.REDIS_PASSWORD || undefined,
     retryStrategy: (times) => {
-        // Stop retrying after 5 attempts
-        if (times > 5) {
+        // Stop retrying after 3 attempts in development to fail fast
+        const maxRetries = process.env.NODE_ENV === 'production' ? 10 : 3;
+        if (times > maxRetries) {
             console.error('❌ Redis: Maximum reconnection attempts reached. giving up.');
             return null; // Stop retrying
         }
-        const delay = Math.min(times * 100, 3000);
+        const delay = Math.min(times * 200, 2000);
         return delay;
     },
-    maxRetriesPerRequest: 3,
+    maxRetriesPerRequest: 1, // Fail fast on requests
+    connectTimeout: 5000, // 5 seconds timeout for connection
     enableReadyCheck: true,
     lazyConnect: true,
     // TLS support for cloud Redis (Upstash, Redis Cloud, etc.)
-    tls: process.env.REDIS_TLS === 'true' ? {} : undefined
+    tls: process.env.REDIS_TLS === 'true' ? {
+        rejectUnauthorized: false // Often needed for some cloud providers
+    } : undefined
 };
 
 // Create Redis client
@@ -34,39 +38,46 @@ redis.on('ready', () => {
 });
 
 redis.on('error', (err) => {
-    console.error('❌ Redis error:', err.message);
-    // Don't crash the app if Redis is unavailable
-    // We'll fallback to MongoDB for leaderboards
+    // Only log error if not in reconnecting state, to avoid terminal spam
+    if (redis.status !== 'reconnecting' && redis.status !== 'wait') {
+        console.error('❌ Redis error:', err.message);
+    }
 });
 
 redis.on('close', () => {
-    console.log('⚠️  Redis: Connection closed');
+    if (redis.status === 'end') {
+        console.log('⚠️  Redis: Connection closed permanently');
+    } else {
+        console.log('⚠️  Redis: Connection closed');
+    }
 });
 
-redis.on('reconnecting', () => {
-    console.log('🔄 Redis: Reconnecting...');
+redis.on('reconnecting', (ms) => {
+    console.log(`🔄 Redis: Reconnecting in ${ms}ms...`);
 });
 
 // Connect to Redis
 redis.connect().catch((err) => {
-    console.error('❌ Redis: Failed to connect:', err.message);
-    console.log('⚠️  Leaderboards will use MongoDB fallback (slower)');
+    // This will error if the first connection fails, but retryStrategy will kick in
+    console.debug('Redis initial connection attempt finished');
 });
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
-    await redis.quit();
+    try {
+        await redis.quit();
+    } catch (e) { }
     process.exit(0);
 });
 
-// Helper function to check if Redis is available
+/**
+ * Fast check for Redis availability
+ * Returns true only if the connection is ready to use
+ */
 async function isRedisAvailable() {
-    try {
-        await redis.ping();
-        return true;
-    } catch (err) {
-        return false;
-    }
+    return redis.status === 'ready';
 }
 
 module.exports = { redis, isRedisAvailable };
+
+
