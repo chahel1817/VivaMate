@@ -5,7 +5,6 @@ import { useTheme } from "../context/themeContext";
 import Navbar from "../components/Navbar";
 import { toast } from "react-hot-toast";
 import api from "../services/api";
-import { trackEvent } from "../services/analytics";
 
 export default function TypeSelection() {
     const navigate = useNavigate();
@@ -33,13 +32,6 @@ export default function TypeSelection() {
             if (res.data.success) {
                 toast.success("Resume analyzed successfully!");
                 const { skills, projects, domain, experienceLevel } = res.data.data;
-
-                // Track analytics
-                trackEvent("resume_uploaded", {
-                    skills_count: skills?.length || 0,
-                    domain: domain,
-                    experience_level: experienceLevel
-                });
 
                 // Navigate to config with extracted data
                 navigate("/interview/config", {

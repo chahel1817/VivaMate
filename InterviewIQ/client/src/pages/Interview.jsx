@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Navbar from "../components/Navbar";
 import api from "../services/api";
-import { trackEvent } from "../services/analytics";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "../context/themeContext";
 
@@ -65,15 +64,6 @@ export default function Interview() {
 
         setSessionId(res.data.sessionId);
         setQuestions(res.data.questions);
-
-        // Track analytics
-        trackEvent("interview_started", {
-          domain,
-          tech,
-          difficulty,
-          is_resume_mode: !!state.isResumeMode,
-          total_questions: totalQuestions
-        });
       } catch {
         setError("Failed to start interview.");
       } finally {
