@@ -124,19 +124,22 @@ Resume Text:
 ${text}
 """
 
-Extract the following in JSON format:
-1. "skills": A list of top 5-7 most relevant technical skills (e.g., "React.js", "Node.js", "PostgreSQL").
-2. "projects": A list of 2-3 most significant projects described in the resume. 
-3. "domain": The primary domain (e.g., "Full-stack Developer", "Frontend Engineer", "Data Scientist").
-4. "experienceLevel": Estimated level (e.g., "Fresher", "Mid-level", "Senior").
+ Extract the following in JSON format:
+1. "isResume": A boolean indicating if this text represents a professional resume or CV. Set to false if it's a random document, book, manual, or anything else.
+2. "skills": A list of top 5-7 most relevant technical skills (e.g., "React.js", "Node.js", "PostgreSQL").
+3. "projects": A list of 2-3 most significant projects described in the resume. 
+4. "domain": The primary domain (e.g., "Full-stack Developer", "Frontend Engineer", "Data Scientist").
+5. "experienceLevel": Estimated level (e.g., "Fresher", "Mid-level", "Senior").
 
 Rules:
 - Be precise. If skills are missing, infer from project descriptions.
 - Focus on modern tech stacks mentioned.
 - Ignore personal information (names, emails, addresses).
+- If "isResume" is false, other fields can be empty/null.
 
 Give output ONLY in valid JSON:
 {
+  "isResume": true/false,
   "skills": [],
   "projects": [],
   "domain": "",

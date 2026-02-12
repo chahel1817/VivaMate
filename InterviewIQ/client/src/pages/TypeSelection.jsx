@@ -49,7 +49,8 @@ export default function TypeSelection() {
             }
         } catch (error) {
             console.error(error);
-            toast.error("Error connecting to server. Make sure you are logged in.");
+            const errorMsg = error.response?.data?.message || "Error connecting to server. Make sure you are logged in.";
+            toast.error(errorMsg);
         } finally {
             setIsUploading(false);
         }

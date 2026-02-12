@@ -110,6 +110,10 @@ const getDailyChallenge = async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
+        // Validate streak whenever they fetch today's challenge (usually on dashboard load)
+        const { validateAndFixStreak } = require("../services/streakService");
+        await validateAndFixStreak(user);
+
         // Check if user has completed THIS challenge OR ANY challenge today
         let completed = user.completedChallenges.some(c => c.challengeId && c.challengeId.toString() === challenge._id.toString());
 

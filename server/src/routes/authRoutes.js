@@ -16,12 +16,18 @@ router.post("/forgot-password", validate(requestOtpSchema), requestOtp);
 router.post("/verify-otp", validate(verifyOtpSchema), verifyOtp);
 router.put("/profile", protect, validate(updateProfileSchema), updateProfile);
 
+const { validateAndFixStreak } = require("../services/streakService");
+
 // ✅ Persist login on refresh
 router.get("/me", protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user).select("-password");
+    let user = await User.findById(req.user).select("-password");
+    if (user) {
+      user = await validateAndFixStreak(user);
+    }
     res.json(user);
   } catch (err) {
+    console.error("Auth route /me error:", err);
     res.status(500).json({ message: "Failed to load user" });
   }
 });

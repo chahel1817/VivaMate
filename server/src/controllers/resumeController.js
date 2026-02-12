@@ -42,6 +42,14 @@ exports.parseResume = async (req, res) => {
         const aiResponse = await aiController.generateResumeData(prompt);
         console.log("AI extraction successful:", aiResponse);
 
+        if (aiResponse.isResume === false) {
+            console.error("Uploaded file is not a resume according to AI");
+            return res.status(400).json({
+                success: false,
+                message: "No other type of Pdf are allowed!!!!!!!"
+            });
+        }
+
         return res.status(200).json({
             success: true,
             data: aiResponse,
