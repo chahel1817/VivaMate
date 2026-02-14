@@ -22,5 +22,6 @@ const memoryUpload = multer({ storage: memoryStorage });
 const resumeController = require("../controllers/resumeController");
 
 router.post("/resume", protect, memoryUpload.single("resume"), resumeController.parseResume);
+router.post("/resume/analyze", protect, memoryUpload.single("resume"), resumeController.analyzeResume);
 
 module.exports = router;

@@ -58,4 +58,7 @@ router.post('/evaluate', async (req, res, next) => {
 	}
 });
 
+// GET /api/ai/insight?type=tip|fact
+router.get('/insight', aiController.getDailyInsight);
+
 module.exports = router;

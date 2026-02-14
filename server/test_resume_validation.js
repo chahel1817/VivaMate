@@ -1,6 +1,6 @@
 const { resumeParserPrompt } = require('./src/utils/aiPrompt');
 
-const resumeText = "Chahel Singh\nSoftware Engineer\nSkills: React, Node.js, MongoDB\nExperience: Worked at XYZ...";
+const resumeText = "Chahel \nSoftware Engineer\nSkills: React, Node.js, MongoDB\nExperience: Worked at XYZ...";
 const nonResumeText = "This is a recipe for chocolate cake. Ingredients: 2 cups flour, 1 cup sugar...";
 
 console.log("Testing Resume Prompt with Resume Text:");

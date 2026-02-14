@@ -6,7 +6,8 @@ import {
   Flame,
   Info,
   Award,
-  BookOpen
+  BookOpen,
+  Sparkles
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +17,7 @@ import SearchAndFilter from "../components/SearchAndFilter";
 import Navbar from "../components/Navbar";
 import api from "../services/api";
 import { NoActivityEmpty } from "../components/EmptyState";
+import DailyInsights from "../components/DailyInsights";
 
 
 export default function Dashboard() {
@@ -33,6 +35,96 @@ export default function Dashboard() {
   const [filteredActivity, setFilteredActivity] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({});
+  const [activeActionTab, setActiveActionTab] = useState("practice");
+
+  const actionTabs = [
+    { id: "practice", label: "Practice", icon: PlayCircle },
+    { id: "insights", label: "Insights", icon: BarChart3 },
+    { id: "community", label: "Community", icon: Trophy },
+  ];
+
+  const actionCards = {
+    practice: [
+      {
+        icon: PlayCircle,
+        title: "Start a Mock Interview",
+        desc: "Answer real interview-style questions and get structured AI feedback.",
+        action: "Start interview →",
+        path: "/interview/type",
+        tourId: "start-interview",
+        featured: true,
+        color: "text-green-500",
+        bgColor: "bg-green-500/10",
+        borderColor: "border-green-500"
+      },
+      {
+        icon: Trophy,
+        title: "Daily Challenge",
+        desc: "Keep your streak alive! Solve today's technical puzzle.",
+        action: "Play now →",
+        path: "/daily-challenge",
+        tourId: "daily-challenge",
+        color: "text-orange-500",
+        bgColor: "bg-orange-500/10",
+        borderColor: "border-orange-500"
+      },
+      {
+        icon: BookOpen,
+        title: "Question Bank",
+        desc: "Browse and practice interview questions for specific subjects.",
+        action: "Select subjects →",
+        path: "/questions-subject",
+        color: "text-blue-500",
+        bgColor: "bg-blue-500/10",
+        borderColor: "border-blue-500"
+      },
+    ],
+    insights: [
+      {
+        icon: BarChart3,
+        title: "View Analytics",
+        desc: "Track your scores over time and measure your improvement.",
+        action: "View analytics →",
+        path: "/analytics",
+        tourId: "analytics",
+        color: "text-purple-500",
+        bgColor: "bg-purple-500/10",
+        borderColor: "border-purple-500"
+      },
+      {
+        icon: MessageSquare,
+        title: "Review Feedback",
+        desc: "Go through detailed feedback from your past interviews.",
+        action: "View feedback →",
+        path: "/feedback",
+        color: "text-indigo-500",
+        bgColor: "bg-indigo-500/10",
+        borderColor: "border-indigo-500"
+      },
+    ],
+    community: [
+      {
+        icon: Trophy,
+        title: "Leaderboard",
+        desc: "Compete with others and see where you rank globally!",
+        action: "View leaderboard →",
+        path: "/leaderboard",
+        color: "text-yellow-500",
+        bgColor: "bg-yellow-500/10",
+        borderColor: "border-yellow-500"
+      },
+      {
+        icon: Award,
+        title: "Achievements",
+        desc: "Unlock achievements and earn exclusive badges.",
+        action: "View achievements →",
+        path: "/achievements",
+        color: "text-pink-500",
+        bgColor: "bg-pink-500/10",
+        borderColor: "border-pink-500"
+      },
+    ]
+  };
 
   console.log("Dashboard component rendering", { user, loading, authLoading });
 
@@ -218,176 +310,168 @@ export default function Dashboard() {
           </div>
 
           {/* Intro */}
-          <section>
-            <h2 className={`text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-              Your Dashboard
-            </h2>
-            <p className={`text-slate-500 mt-2 max-w-2xl ${isDarkMode ? 'text-slate-400' : ''}`}>
-              This is your personal interview preparation space.
-              Start mock interviews, review feedback, and track growth.
-            </p>
+          <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <h2 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'} tracking-tight`}>
+                Welcome back, {user?.name?.split(' ')[0] || 'User'}! 👋
+              </h2>
+              <p className={`text-slate-500 mt-2 max-w-2xl ${isDarkMode ? 'text-slate-400' : ''} text-lg font-medium`}>
+                Ready to ace your next interview? Here's your progress so far.
+              </p>
+            </div>
+            <div className={`text-xs px-3 py-1 rounded-full ${isDarkMode ? 'bg-slate-800 text-slate-400 border border-slate-700' : 'bg-white text-slate-500 border border-slate-200 shadow-sm'}`}>
+              Last synced: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </div>
           </section>
 
           {/* Stats */}
-          <section className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <section className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { label: "Interviews Taken", value: stats.interviewsTaken, icon: MessageSquare, color: "text-blue-500" },
-              { label: "Average Score", value: `${(stats.averageScore ?? 0)}%`, icon: Award, color: "text-purple-500" },
-              { label: "Current Streak", value: user?.streak || 0, icon: Flame, color: "text-orange-500" },
-              { label: "Last Interview", value: stats.lastInterview ? new Date(stats.lastInterview).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : "None", icon: PlayCircle, color: "text-green-500" },
+              { label: "Interviews Taken", value: stats.interviewsTaken, icon: MessageSquare, color: "text-blue-500", bgColor: "bg-blue-500/10" },
+              { label: "Average Score", value: stats.averageScore !== null ? `${stats.averageScore}%` : "0%", icon: Award, color: "text-purple-500", bgColor: "bg-purple-500/10" },
+              { label: "Current Streak", value: user?.streak || 0, icon: Flame, color: "text-orange-500", bgColor: "bg-orange-500/10" },
+              { label: "Last Interview", value: stats.lastInterview ? new Date(stats.lastInterview).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : "None", icon: PlayCircle, color: "text-green-500", bgColor: "bg-green-500/10" },
             ].map((item, i) => (
               <div
                 key={i}
-                className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} border rounded-xl p-6 relative overflow-hidden`}
+                className={`${isDarkMode ? 'bg-slate-800 border-slate-700 shadow-slate-950/50' : 'bg-white border-slate-200 shadow-slate-200/50'} border rounded-2xl p-6 relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 shadow-lg group`}
               >
-                <div className="relative z-10">
-                  <h3 className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{item.label}</h3>
-                  <div className="flex items-center gap-2 mt-2">
-                    {item.icon && <item.icon className={`${item.color} animate-pulse`} size={24} />}
-                    <p className={`text-3xl font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-                      {loading ? "..." : item.value}
-                    </p>
-                    {item.label === "Current Streak" && <span className="text-xs font-bold text-slate-400 self-end mb-1">DAYS</span>}
+                {/* Decorative background icon */}
+                <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+                  <item.icon size={100} className={item.color} />
+                </div>
+
+                <div className="relative z-10 flex flex-col h-full">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${item.bgColor} ${item.color}`}>
+                    <item.icon size={20} className={item.label === "Current Streak" ? "animate-pulse" : ""} />
                   </div>
-                  {item.label === "Current Streak" && (
-                    <p className={`text-[10px] mt-2 leading-tight ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
-                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse mr-1"></span>
-                      Includes 48-hour grace period to safe-guard streaks across different timezones.
+
+                  <h3 className={`text-sm font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{item.label}</h3>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <p className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+                      {loading && !stats.interviewsTaken ? "..." : item.value}
                     </p>
+                    {item.label === "Current Streak" && <span className="text-xs font-bold text-slate-400">DAYS</span>}
+                  </div>
+
+                  {item.label === "Current Streak" && (
+                    <div className="mt-4 pt-4 border-t border-slate-700/50">
+                      <p className={`text-[10px] leading-tight ${isDarkMode ? 'text-green-400/80' : 'text-green-600'}`}>
+                        <span className="inline-block w-1 h-1 rounded-full bg-green-500 animate-ping mr-1"></span>
+                        Includes 48h timezone grace.
+                      </p>
+                    </div>
                   )}
                 </div>
-                {(
-                  <div className="absolute -right-4 -bottom-4 opacity-10">
-                    <item.icon size={100} className={item.color} />
-                  </div>
-                )}
               </div>
             ))}
           </section>
 
           {/* Actions */}
-          <section>
-            <h3 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-              What would you like to do?
-            </h3>
+          <section className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <h3 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+                What would you like to do?
+              </h3>
 
-            <div className="grid md:grid-cols-3 gap-6">
-              {/* CARD */}
-              {[
-                {
-                  icon: PlayCircle,
-                  title: "Start a Mock Interview",
-                  desc:
-                    "Answer real interview-style questions and get structured feedback.",
-                  action: "Start interview →",
-                  path: "/interview/type",
-                  tourId: "start-interview",
-                },
-                {
-                  icon: Trophy,
-                  title: "Daily Challenge",
-                  desc:
-                    "Keep your streak alive! Solve today's technical puzzle.",
-                  action: "Play now →",
-                  path: "/daily-challenge",
-                  tourId: "daily-challenge",
-                },
-                {
-                  icon: BarChart3,
-                  title: "View Analytics",
-                  desc:
-                    "Track your scores over time and measure your improvement.",
-                  action: "View analytics →",
-                  path: "/analytics",
-                  tourId: "analytics",
-                },
-                {
-                  icon: Trophy,
-                  title: "Leaderboard",
-                  desc:
-                    "Compete with others and see where you rank globally!",
-                  action: "View leaderboard →",
-                  path: "/leaderboard",
-                  color: "text-yellow-500",
-                  bgColor: "bg-yellow-50 dark:bg-yellow-900/20",
-                },
-                {
-                  icon: Award,
-                  title: "Achievements",
-                  desc:
-                    "Unlock achievements and earn exclusive badges.",
-                  action: "View achievements →",
-                  path: "/achievements",
-                  color: "text-purple-500",
-                  bgColor: "bg-purple-50 dark:bg-purple-900/20",
-                },
-                {
-                  icon: MessageSquare,
-                  title: "Review Feedback",
-                  desc:
-                    "Go through detailed feedback from your past interviews.",
-                  action: "View feedback →",
-                  path: "/feedback",
-                },
-                {
-                  icon: BookOpen,
-                  title: "Question Bank",
-                  desc:
-                    "Browse and practice interview questions for specific subjects.",
-                  action: "Select subjects →",
-                  path: "/questions-subject",
-                  color: "text-blue-500",
-                  bgColor: "bg-blue-50 dark:bg-blue-900/20",
-                },
-              ].map((card, i) => {
+              {/* Tab Navigation */}
+              <div className={`inline-flex p-1 rounded-xl ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}>
+                {actionTabs.map((tab) => {
+                  const TabIcon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveActionTab(tab.id)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${activeActionTab === tab.id
+                        ? (isDarkMode ? 'bg-slate-700 text-white shadow-lg' : 'bg-white text-slate-800 shadow-md')
+                        : (isDarkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-600 hover:text-slate-800')
+                        }`}
+                    >
+                      <TabIcon size={16} />
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {actionCards[activeActionTab].map((card, i) => {
                 const Icon = card.icon;
+                const isFeatured = card.featured;
                 return (
                   <div
                     key={i}
                     onClick={() => navigate(card.path)}
                     data-tour={card.tourId}
                     className={`
-                    group cursor-pointer
-                    ${isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white hover:bg-green-50'} rounded-2xl border p-6
-                    transition-all duration-300
-                    hover:border-green-500
-                    hover:shadow-lg
-                    hover:-translate-y-1
-                  `}
+                      group cursor-pointer relative overflow-hidden
+                      ${isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700/50' : 'bg-white border-slate-200 hover:bg-slate-50'} 
+                      rounded-2xl border p-6
+                      transition-all duration-300
+                      ${isDarkMode ? `hover:${card.borderColor}/30` : `hover:${card.borderColor}/50`}
+                      hover:shadow-xl hover:-translate-y-1
+                      ${isFeatured ? 'md:col-span-2 lg:col-span-1 border-2 ' + card.borderColor : ''}
+                    `}
                   >
-                    <Icon
-                      size={28}
-                      className="
-                      text-green-600 mb-4
-                      transition
-                      group-hover:text-green-700
-                    "
-                    />
+                    {/* Background Decorative Element */}
+                    <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full ${card.bgColor} blur-3xl group-hover:blur-2xl transition-all duration-500 opacity-20`}></div>
 
-                    <h4 className={`
-                    text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}
-                    group-hover:text-green-700 transition
-                  `}>
-                      {card.title}
-                    </h4>
+                    <div className="relative z-10">
+                      <div className={`p-3 rounded-xl inline-block mb-4 ${card.bgColor} ${card.color} transition-transform duration-300 group-hover:scale-110 shadow-sm`}>
+                        <Icon size={24} />
+                      </div>
 
-                    <p className={`
-                    ${isDarkMode ? 'text-slate-400' : 'text-slate-500'} text-sm mt-1
-                    ${isDarkMode ? 'group-hover:text-slate-300' : 'group-hover:text-slate-700'} transition
-                  `}>
-                      {card.desc}
-                    </p>
+                      <div className="flex items-center gap-2">
+                        <h4 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'} transition`}>
+                          {card.title}
+                        </h4>
+                        {isFeatured && (
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-700'}`}>
+                            Popular
+                          </span>
+                        )}
+                      </div>
 
-                    <span className="
-                    inline-block mt-4 text-green-600 text-sm
-                    group-hover:underline
-                  ">
-                      {card.action}
-                    </span>
+                      <p className={`${isDarkMode ? 'text-slate-400' : 'text-slate-500'} text-sm mt-2 leading-relaxed`}>
+                        {card.desc}
+                      </p>
+
+                      <div className="mt-6 flex items-center justify-between">
+                        <span className={`
+                          text-sm font-semibold ${card.color}
+                          group-hover:translate-x-1 transition-transform
+                        `}>
+                          {card.action}
+                        </span>
+
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-400'} group-hover:bg-slate-800 group-hover:text-white transition-colors`}>
+                          <Icon size={14} />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 );
               })}
             </div>
+          </section>
+
+          {/* Daily Insights */}
+          <section>
+            <div className="flex items-center gap-3 mb-6">
+              <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600'}`}>
+                <Sparkles size={20} />
+              </div>
+              <div>
+                <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+                  Growth & Learning
+                </h3>
+                <p className={`text-sm ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                  Bite-sized knowledge to keep you sharp every day.
+                </p>
+              </div>
+            </div>
+            <DailyInsights />
           </section>
 
           {/* Recent Activity */}
@@ -435,6 +519,50 @@ export default function Dashboard() {
                     }`}>
                     {typeof item.score === 'string' && item.score.includes('/10') ? item.score : item.score ? `${item.score}/10` : "In Progress"}
                   </span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Preparation Checklist */}
+          <section className={`${isDarkMode ? 'bg-slate-800/30 border-slate-700' : 'bg-green-50/30 border-green-100'} border rounded-3xl p-8`}>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+              <div className="max-w-xl">
+                <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'} mb-2`}>
+                  Your Prep Checklist ✅
+                </h3>
+                <p className={`${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                  Stay on track with these essential steps to ensure you're fully prepared for your next big opportunity.
+                </p>
+              </div>
+              <button
+                onClick={() => navigate('/resume-clinic')}
+                className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-all shadow-lg hover:shadow-green-500/20 active:scale-95"
+              >
+                Scan Resume
+              </button>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+              {[
+                { label: "Upload Resume", done: user?.hasResume || false, id: 1 },
+                { label: "First Mock Interview", done: stats.interviewsTaken > 0, id: 2 },
+                { label: "Set Career Goals", done: true, id: 3 },
+                { label: "Complete Daily Challenge", done: false, id: 4 }
+              ].map(item => (
+                <div
+                  key={item.id}
+                  onClick={() => item.label === "Upload Resume" && navigate('/resume-clinic')}
+                  className={`flex items-center gap-3 p-4 rounded-xl border ${item.label === "Upload Resume" ? "cursor-pointer hover:border-green-500 transition-colors" : ""
+                    } ${item.done
+                      ? (isDarkMode ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-green-50 border-green-200 text-green-700')
+                      : (isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-white border-slate-200 text-slate-500')
+                    }`}>
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${item.done ? 'bg-green-500 border-green-500 text-white' : 'border-slate-400'
+                    }`}>
+                    {item.done && <Info size={12} className="rotate-0" />}
+                  </div>
+                  <span className="text-sm font-semibold">{item.label}</span>
                 </div>
               ))}
             </div>

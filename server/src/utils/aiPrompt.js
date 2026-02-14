@@ -146,3 +146,143 @@ Give output ONLY in valid JSON:
   "experienceLevel": ""
 }
 `;
+
+exports.generateInsightPrompt = (type = 'fact') => {
+  if (type === 'tip') {
+    return `
+Generate a single, bite-sized, high-impact daily interview tip for a software engineer.
+Focus on either behavioral techniques (like STAR), technical communication, mindset, or preparation strategy.
+
+The response must be valid JSON:
+{
+  "title": "A catchy title (3-5 words)",
+  "content": "The tip content. Must be practical, actionable, and 2-3 sentences long."
+}
+`;
+  } else {
+    return `
+Generate a single, fascinating, and lesser-known historical or technical fact about programming languages, computers, or software engineering.
+Focus on the "Why" or "Who" behind famous tech (e.g., Javascript's 10-day creation, why it's called Python, etc.).
+
+The response must be valid JSON:
+{
+  "title": "A catchy title (3-5 words)",
+  "content": "The fact content. Must be engaging, surprising, and 2-3 sentences long."
+}
+`;
+  }
+};
+
+exports.resumeScoringPrompt = (text) => `
+You are a state-of-the-art ATS (Applicant Tracking System) Parser and Senior Technical Recruiter.
+Conduct a deep-scan analysis of the provided resume text.
+
+Resume Text:
+"""
+${text}
+"""
+
+---
+### ADVANCED ANALYSIS REQUIREMENTS:
+
+1. **Role & Industry Detection**: Identify the candidate's primary role and industry. Provide a confidence score.
+2. **Inferred JD Match**: Simulate a target Job Description match based on the detected role. Calculate a match % (Required vs Preferred).
+3. **Section-wise Keyword Density**: Analyze keyword distribution across Skills, Experience, Projects, and Summary sections.
+4. **Job Title Alignment**: Compare current and previous job titles against the industry standard for the target role. Suggest an optimized title.
+5. **Actionable Bullet Rewrites**: Identify 2-3 weak bullet points and provide "Before" vs "ATS-Optimized" (quantified) versions.
+6. **Missing Sections**: Detect if Summary, Projects, Certifications, or Contact info are missing.
+7. **Synonym & Semantic Intelligence**: Map technical terms to synonyms (e.g., SQL -> PostgreSQL).
+8. **Red Flags**: Identify recruiter auto-rejection risks (no metrics, length > 2 pages, gaps, etc.).
+9. **ATS Parser Simulation**: Provide a plain-text version of how an older ATS would extract the key sections.
+10. **Benchmark Comparison**: Compare the score against industry averages for that specific role.
+
+---
+### OUTPUT FORMAT (JSON ONLY):
+
+{
+  "overallScore": number,
+  "verdict": "string",
+  "detectedRole": { "role": "string", "industry": "string", "confidence": number },
+  "jdMatch": { 
+    "overall": number, 
+    "requiredMatched": number, 
+    "preferredMatched": number,
+    "text": "Your resume matches X% of the inferred JD for [Role]"
+  },
+  
+  "breakdown": {
+    "keywords": { "score": number, "max": 40 },
+    "experience": { "score": number, "max": 25 },
+    "formatting": { "score": number, "max": 15 },
+    "education": { "score": number, "max": 10 },
+    "completeness": { "score": number, "max": 10 }
+  },
+
+  "sectionDensity": [
+    { "section": "Skills", "coverage": number, "status": "Good/Warning/Critical" },
+    { "section": "Experience", "coverage": number, "status": "..." }
+  ],
+
+  "jobTitleAlignment": {
+    "score": number,
+    "suggestedTitle": "string",
+    "analysis": "string"
+  },
+
+  "bulletRewrites": [
+    { "before": "string", "after": "string", "impact": "description" }
+  ],
+
+  "missingSections": ["List", "of", "missing", "sections"],
+
+  "synonyms": [
+    { "original": "Term in resume", "inferred": "Official ATS keyword matched", "reason": "Why it was matched" }
+  ],
+
+  "redFlags": [
+    {
+      "type": "string",
+      "risk": "High/Medium",
+      "message": "The problem found",
+      "solution": "Actionable fix",
+      "example": "Bad version -> Good version"
+    }
+  ],
+
+  "atsSimulation": {
+     "rawExtraction": "first 500 chars of plain text extraction simulation",
+     "detectedSections": ["List of detected headings"]
+  },
+
+  "benchmarks": {
+    "roleAverage": number,
+    "topScore": number,
+    "yourPercentile": number
+  },
+
+  "keywords": {
+    "matched": ["string"],
+    "missing": [{ "term": "string", "priority": "High/Medium" }]
+  },
+
+  "formatting": {
+    "isOneColumn": boolean,
+    "hasTables": boolean,
+    "hasStandardHeadings": boolean,
+    "issues": ["string"]
+  },
+
+  "experience": {
+    "relevantYears": number,
+    "gaps": ["string"]
+  },
+
+  "quantification": {
+    "score": number
+  },
+
+  "improvements": [
+    { "priority": "High", "issue": "string", "solution": "string" }
+  ]
+}
+`;

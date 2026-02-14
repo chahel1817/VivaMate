@@ -179,4 +179,26 @@ app.get("/", (req, res) => {
   res.send("API running...");
 });
 
+// 404 Handler
+app.use((req, res, next) => {
+  res.status(404).json({ success: false, message: "Route not found" });
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error(`[Server Error] ${req.method} ${req.url}`);
+  console.error(err.stack);
+
+  // Check for multer errors
+  if (err instanceof require('multer').MulterError) {
+    return res.status(400).json({ success: false, message: `Upload error: ${err.message}` });
+  }
+
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+    error: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
+
 module.exports = app;

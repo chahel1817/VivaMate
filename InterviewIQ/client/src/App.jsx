@@ -35,6 +35,7 @@ const Achievements = lazy(() => import("./pages/Achievements"));
 const QuestionBank = lazy(() => import("./pages/QuestionBank"));
 const QuestionSubjectSelect = lazy(() => import("./pages/QuestionSubjectSelect"));
 const TypeSelection = lazy(() => import("./pages/TypeSelection"));
+const ResumeAnalyzer = lazy(() => import("./pages/ResumeAnalyzer"));
 
 // Loading Component
 const PageLoader = () => (
@@ -227,6 +228,15 @@ export default function App() {
                     element={
                       <ProtectedRoute>
                         <QuestionBank />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/resume-clinic"
+                    element={
+                      <ProtectedRoute>
+                        <ResumeAnalyzer />
                       </ProtectedRoute>
                     }
                   />
