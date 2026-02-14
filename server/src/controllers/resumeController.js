@@ -126,6 +126,12 @@ exports.analyzeResume = async (req, res) => {
         analysis.quantification = analysis.quantification || { score: 0 };
         analysis.improvements = analysis.improvements || [];
 
+        // Update user's hasResume flag
+        if (req.user && req.user.id) {
+            const User = require("../models/User");
+            await User.findByIdAndUpdate(req.user.id, { hasResume: true });
+        }
+
         return res.status(200).json({
             success: true,
             analysis

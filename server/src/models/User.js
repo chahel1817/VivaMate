@@ -90,6 +90,8 @@ const userSchema = new mongoose.Schema(
       default: null // Will store react-grid-layout positions
     },
     keyboardShortcutsEnabled: { type: Boolean, default: true },
+    notificationsEnabled: { type: Boolean, default: true },
+    hasResume: { type: Boolean, default: false },
     preferences: {
       type: Object,
       default: {

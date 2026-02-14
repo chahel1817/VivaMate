@@ -7,7 +7,15 @@ import {
   Info,
   Award,
   BookOpen,
-  Sparkles
+  Sparkles,
+  Zap,
+  ArrowRight,
+  Target,
+  Activity,
+  CheckCircle2,
+  Terminal,
+  MoveRight,
+  ChevronRight
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -367,6 +375,35 @@ export default function Dashboard() {
             ))}
           </section>
 
+          {/* Featured Resume Clinic Widget */}
+          <section className="relative overflow-hidden">
+            <div className={`absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-transparent pointer-events-none rounded-[32px]`} />
+            <div className={`${isDarkMode ? 'bg-slate-800/10 border-slate-800 shadow-none' : 'bg-white border-slate-200 shadow-xl shadow-slate-200/50'} border rounded-[32px] p-8 relative flex flex-col lg:flex-row items-center justify-between gap-8 group hover:border-emerald-500/30 transition-all duration-500`}>
+              <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
+                <div className={`w-20 h-20 rounded-3xl bg-emerald-500 flex items-center justify-center text-white shadow-xl shadow-emerald-500/30 group-hover:scale-110 transition-transform duration-500 group-hover:rotate-6`}>
+                  <Sparkles size={40} className="fill-current" />
+                </div>
+                <div className="max-w-md">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest mb-3">
+                    <Zap size={12} className="fill-current" /> High Impact
+                  </div>
+                  <h3 className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-slate-900'} mb-2`}>
+                    Deep Resume Diagnosis
+                  </h3>
+                  <p className={`${isDarkMode ? 'text-slate-400' : 'text-slate-600'} text-sm leading-relaxed font-medium`}>
+                    Is your resume blocking your shortlist? Run our machine-learning simulation to see exactly what recruiters see.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate('/resume-clinic')}
+                className="w-full lg:w-auto px-8 py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[20px] font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-900/40 active:scale-95 transition-all flex items-center justify-center gap-3"
+              >
+                Launch Clinic <MoveRight size={20} className="group-hover:translate-x-2 transition-transform duration-500" />
+              </button>
+            </div>
+          </section>
+
           {/* Actions */}
           <section className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -474,11 +511,58 @@ export default function Dashboard() {
             <DailyInsights />
           </section>
 
+          {/* Preparation Checklist */}
+          <section className={`${isDarkMode ? 'bg-slate-800/20 border-slate-800' : 'bg-white border-slate-200 shadow-sm'} border rounded-[32px] p-8`}>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+              <div className="max-w-xl">
+                <h3 className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-slate-900'} mb-2`}>
+                  Your Prep Checklist ✅
+                </h3>
+                <p className={`${isDarkMode ? 'text-slate-400' : 'text-slate-500'} text-sm font-medium`}>
+                  Stay on track with these essential steps to ensure you're fully prepared.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+              {[
+                { label: "Upload Resume", done: user?.hasResume || false, id: 1, path: '/resume-clinic' },
+                { label: "First Mock Interview", done: stats.interviewsTaken > 0, id: 2, path: '/interview/type' },
+                { label: "Set Career Goals", done: true, id: 3, path: '/profile' },
+                { label: "Complete Daily Challenge", done: user?.lastChallengeDate && new Date(user.lastChallengeDate).toDateString() === new Date().toDateString(), id: 4, path: '/daily-challenge' }
+              ].map(item => (
+                <div
+                  key={item.id}
+                  onClick={() => navigate(item.path)}
+                  className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all duration-300 hover:scale-[1.02] ${item.done
+                      ? (isDarkMode ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-green-50 border-green-200 text-green-700')
+                      : (isDarkMode ? 'bg-slate-800/40 border-slate-700 text-slate-500 hover:border-slate-500' : 'bg-slate-50 border-slate-100 text-slate-400 hover:border-slate-300')
+                    }`}>
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${item.done ? 'bg-green-500 border-green-500 text-white shadow-lg shadow-green-500/20' : 'border-current opacity-30 shadow-inner'
+                    }`}>
+                    {item.done ? <CheckCircle2 size={12} /> : <div className="w-1.5 h-1.5 rounded-full bg-current opacity-30" />}
+                  </div>
+                  <span className="text-xs font-black uppercase tracking-tight">{item.label}</span>
+                  <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ChevronRight size={14} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
           {/* Recent Activity */}
-          <section>
-            <h3 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-              Recent Activity
-            </h3>
+          <section className="space-y-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-xl ${isDarkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                  <Activity size={20} />
+                </div>
+                <h3 className={`text-xl font-black uppercase tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+                  Recent Activity
+                </h3>
+              </div>
+            </div>
 
             {/* Search and Filter Component */}
             <SearchAndFilter
@@ -487,12 +571,12 @@ export default function Dashboard() {
               interviews={stats.recentActivity || []}
             />
 
-            <div className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} rounded-xl divide-y border overflow-hidden`}>
+            <div className={`space-y-3`}>
               {filteredActivity.length === 0 && (
                 stats.recentActivity?.length === 0 ? (
                   <NoActivityEmpty />
                 ) : (
-                  <p className={`p-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  <p className={`p-4 text-center text-sm font-bold opacity-40`}>
                     No results match your filters
                   </p>
                 )
@@ -501,68 +585,42 @@ export default function Dashboard() {
               {filteredActivity.map((item, index) => (
                 <div
                   key={index}
-                  className={`p-4 flex justify-between items-center text-sm ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-50'
-                    } transition`}
+                  className={`group p-5 flex justify-between items-center rounded-2xl border transition-all duration-300 ${isDarkMode
+                    ? 'bg-slate-800/30 border-slate-700 hover:bg-slate-800/60 hover:border-slate-600 shadow-none'
+                    : 'bg-white border-slate-200 hover:bg-slate-50 hover:shadow-lg hover:shadow-slate-200/50'
+                    }`}
                 >
-                  <div>
-                    <p className={`font-medium ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
-                      {item.role || item.type || 'Interview'}
-                    </p>
-                    <p className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                      On {item.date}
-                    </p>
+                  <div className="flex items-center gap-5">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-500'
+                      }`}>
+                      {item.type === 'behavioral' ? <MessageSquare size={20} /> : <Terminal size={20} />}
+                    </div>
+                    <div>
+                      <p className={`font-black text-sm uppercase tracking-tight ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
+                        {item.role || item.type || 'Interview'}
+                      </p>
+                      <p className={`text-[10px] font-black uppercase opacity-40 mt-0.5`}>
+                        Attempted on {item.date}
+                      </p>
+                    </div>
                   </div>
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${parseFloat(item.score) >= 8 ? 'bg-green-50 text-green-700 border border-green-200' :
-                    parseFloat(item.score) >= 6 ? 'bg-blue-50 text-blue-700 border border-blue-200' :
-                      parseFloat(item.score) >= 4 ? 'bg-yellow-50 text-yellow-700 border border-yellow-200' :
-                        'bg-red-50 text-red-700 border border-red-200'
-                    }`}>
-                    {typeof item.score === 'string' && item.score.includes('/10') ? item.score : item.score ? `${item.score}/10` : "In Progress"}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Preparation Checklist */}
-          <section className={`${isDarkMode ? 'bg-slate-800/30 border-slate-700' : 'bg-green-50/30 border-green-100'} border rounded-3xl p-8`}>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-              <div className="max-w-xl">
-                <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'} mb-2`}>
-                  Your Prep Checklist ✅
-                </h3>
-                <p className={`${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                  Stay on track with these essential steps to ensure you're fully prepared for your next big opportunity.
-                </p>
-              </div>
-              <button
-                onClick={() => navigate('/resume-clinic')}
-                className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-all shadow-lg hover:shadow-green-500/20 active:scale-95"
-              >
-                Scan Resume
-              </button>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
-              {[
-                { label: "Upload Resume", done: user?.hasResume || false, id: 1 },
-                { label: "First Mock Interview", done: stats.interviewsTaken > 0, id: 2 },
-                { label: "Set Career Goals", done: true, id: 3 },
-                { label: "Complete Daily Challenge", done: false, id: 4 }
-              ].map(item => (
-                <div
-                  key={item.id}
-                  onClick={() => item.label === "Upload Resume" && navigate('/resume-clinic')}
-                  className={`flex items-center gap-3 p-4 rounded-xl border ${item.label === "Upload Resume" ? "cursor-pointer hover:border-green-500 transition-colors" : ""
-                    } ${item.done
-                      ? (isDarkMode ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-green-50 border-green-200 text-green-700')
-                      : (isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-white border-slate-200 text-slate-500')
-                    }`}>
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${item.done ? 'bg-green-500 border-green-500 text-white' : 'border-slate-400'
-                    }`}>
-                    {item.done && <Info size={12} className="rotate-0" />}
+                  <div className="flex items-center gap-6">
+                    <div className="hidden sm:block text-right">
+                      <p className="text-[9px] font-black uppercase opacity-30 mb-0.5">Rating</p>
+                      <div className="flex gap-0.5">
+                        {[...Array(5)].map((_, i) => (
+                          <div key={i} className={`w-1.5 h-1.5 rounded-full ${i < Math.round(parseFloat(item.score) / 2) ? 'bg-blue-500' : 'bg-slate-500/20'}`} />
+                        ))}
+                      </div>
+                    </div>
+                    <span className={`inline-flex items-center px-4 py-2 rounded-xl text-xs font-black tracking-widest uppercase shadow-sm ${parseFloat(item.score) >= 8 ? 'bg-green-500/10 text-green-500 border border-green-500/20' :
+                      parseFloat(item.score) >= 6 ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20' :
+                        parseFloat(item.score) >= 4 ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' :
+                          'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                      }`}>
+                      {typeof item.score === 'string' && item.score.includes('/10') ? item.score : item.score ? `${item.score}/10` : "In Progress"}
+                    </span>
                   </div>
-                  <span className="text-sm font-semibold">{item.label}</span>
                 </div>
               ))}
             </div>
