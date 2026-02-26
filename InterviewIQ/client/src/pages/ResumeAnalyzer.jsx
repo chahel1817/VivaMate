@@ -483,11 +483,11 @@ const ResumeAnalyzer = () => {
                                     </div>
                                 </div>
 
-                            </div>{/* end reportRef div */}
-                        </div>{/* end result space-y-8 */}
+                            </div>
+                        </div>
                     )}
-                </div>{/* end max-w-6xl */}
-            </div>{/* end outer */}
+                </div>
+            </div>
 
             <style dangerouslySetInnerHTML={{
                 __html: `
