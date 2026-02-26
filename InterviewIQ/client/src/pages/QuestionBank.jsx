@@ -323,27 +323,27 @@ export default function QuestionBank() {
                                     className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} rounded-xl border transition-all duration-300 hover:shadow-lg`}
                                 >
                                     <div className="p-6">
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-3 mb-2">
+                                        <div className="flex flex-col md:flex-row items-start justify-between gap-4">
+                                            <div className="flex-1 w-full">
+                                                <div className="flex flex-wrap items-center gap-3 mb-2">
                                                     <span className={`px-2 py-1 rounded text-xs font-semibold ${isDarkMode ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700'
                                                         }`}>
                                                         {question.category}
                                                     </span>
                                                     {isPracticed && (
-                                                        <div className="flex items-center gap-1 text-xs text-green-600 font-medium">
+                                                        <div className="flex items-center gap-1 text-xs text-green-600 font-medium tracking-tight">
                                                             <CheckCircle size={14} />
                                                             Practiced
                                                         </div>
                                                     )}
                                                 </div>
 
-                                                <h3 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                                                <h3 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'} pr-2`}>
                                                     {question.title}
                                                 </h3>
                                             </div>
 
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end md:mt-0 mt-2">
                                                 <button
                                                     onClick={() => toggleBookmark(question.id)}
                                                     className={`p-2 rounded-lg transition-colors ${isBookmarked

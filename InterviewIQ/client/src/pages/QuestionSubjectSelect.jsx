@@ -136,30 +136,6 @@ export default function QuestionSubjectSelect() {
                     </p>
                 </div>
 
-                {/* Selection Summary */}
-                {selectedSubjects.size > 0 && (
-                    <div className={`mb-6 p-4 rounded-xl border ${isDarkMode ? 'bg-green-900/20 border-green-700/50' : 'bg-green-50 border-green-200'
-                        }`}>
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className={`font-semibold ${isDarkMode ? 'text-green-300' : 'text-green-900'}`}>
-                                    {selectedSubjects.size} subject{selectedSubjects.size !== 1 ? 's' : ''} selected
-                                </p>
-                                <p className={`text-sm ${isDarkMode ? 'text-green-200' : 'text-green-800'}`}>
-                                    {selectedSubjects.size * 20} questions will be generated
-                                </p>
-                            </div>
-                            <button
-                                onClick={handleContinue}
-                                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 font-semibold"
-                            >
-                                Continue
-                                <ChevronRight size={20} />
-                            </button>
-                        </div>
-                    </div>
-                )}
-
                 {/* Search Bar */}
                 <div className="relative mb-6">
                     <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`} size={20} />
@@ -169,8 +145,8 @@ export default function QuestionSubjectSelect() {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className={`w-full pl-10 pr-4 py-3 rounded-lg border ${isDarkMode
-                                ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-400'
-                                : 'bg-white border-slate-300 text-slate-900 placeholder-slate-500'
+                            ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-400'
+                            : 'bg-white border-slate-300 text-slate-900 placeholder-slate-500'
                             } focus:ring-2 focus:ring-green-500 focus:border-transparent`}
                     />
                 </div>
@@ -206,10 +182,10 @@ export default function QuestionSubjectSelect() {
                                             key={idx}
                                             onClick={() => toggleSubject(subject.subject)}
                                             className={`p-4 rounded-xl border text-left transition-all duration-200 ${isSelected
-                                                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20 shadow-md'
-                                                    : isDarkMode
-                                                        ? 'bg-slate-800 border-slate-700 hover:bg-slate-700 hover:border-slate-600'
-                                                        : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300'
+                                                ? 'border-green-500 bg-green-50 dark:bg-green-900/20 shadow-md'
+                                                : isDarkMode
+                                                    ? 'bg-slate-800 border-slate-700 hover:bg-slate-700 hover:border-slate-600'
+                                                    : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300'
                                                 }`}
                                         >
                                             <div className="flex items-start justify-between mb-2">
@@ -221,14 +197,14 @@ export default function QuestionSubjectSelect() {
                                                 )}
                                             </div>
                                             <p className={`font-semibold mb-1 ${isSelected
-                                                    ? 'text-green-700 dark:text-green-400'
-                                                    : isDarkMode ? 'text-white' : 'text-slate-800'
+                                                ? 'text-green-700 dark:text-green-400'
+                                                : isDarkMode ? 'text-white' : 'text-slate-800'
                                                 }`}>
                                                 {subject.subject}
                                             </p>
                                             <p className={`text-sm ${isSelected
-                                                    ? 'text-green-600 dark:text-green-500'
-                                                    : isDarkMode ? 'text-slate-400' : 'text-slate-500'
+                                                ? 'text-green-600 dark:text-green-500'
+                                                : isDarkMode ? 'text-slate-400' : 'text-slate-500'
                                                 }`}>
                                                 {domain}
                                             </p>
@@ -247,7 +223,7 @@ export default function QuestionSubjectSelect() {
 
                 {/* Bottom CTA */}
                 {selectedSubjects.size > 0 && (
-                    <div className="mt-8 text-center">
+                    <div className="mt-8 text-center pb-24">
                         <button
                             onClick={handleContinue}
                             className="px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 font-semibold mx-auto text-lg shadow-lg hover:shadow-xl"
@@ -258,6 +234,30 @@ export default function QuestionSubjectSelect() {
                     </div>
                 )}
             </div>
+
+            {/* Sticky Bottom Bar */}
+            {selectedSubjects.size > 0 && (
+                <div className={`fixed bottom-0 left-0 right-0 p-4 border-t shadow-[0_-8px_20px_-1px_rgba(0,0,0,0.1)] z-50 transition-all duration-300 animate-in slide-in-from-bottom-5 ${isDarkMode ? 'bg-slate-900/95 border-slate-800' : 'bg-white/95 border-slate-200'} backdrop-blur-sm`}>
+                    <div className="max-w-6xl mx-auto flex justify-between items-center sm:px-6">
+                        <div className="flex flex-col">
+                            <span className={`font-semibold text-base sm:text-lg ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
+                                {selectedSubjects.size} subject{selectedSubjects.size !== 1 ? 's' : ''} selected
+                            </span>
+                            <span className={`text-xs sm:text-sm font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                                {selectedSubjects.size * 20} questions ready
+                            </span>
+                        </div>
+                        <button
+                            onClick={handleContinue}
+                            className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2 font-semibold active:scale-95"
+                        >
+                            <span className="hidden sm:inline">Generate Questions</span>
+                            <span className="sm:hidden">Generate</span>
+                            <ChevronRight size={20} />
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
