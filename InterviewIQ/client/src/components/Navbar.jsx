@@ -1,7 +1,7 @@
 import { useAuth } from "../context/authContext";
 import { useTheme } from "../context/themeContext";
 import { useNavigate } from "react-router-dom";
-import { Sun, Moon, User, LogOut, Settings, BarChart3, LayoutDashboard, ChevronDown, History, Bookmark, Trophy, Award } from "lucide-react";
+import { Search, Sun, Moon, User, LogOut, Settings, BarChart3, LayoutDashboard, ChevronDown, History, Bookmark, Trophy, Award } from "lucide-react";
 import { useState } from "react";
 import Tooltip from "./Tooltip";
 
@@ -13,9 +13,9 @@ export default function Navbar() {
 
   return (
     <header className="bg-white dark:bg-slate-900 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800 transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+      <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center gap-8">
         <div
-          className="flex items-center gap-2 cursor-pointer group"
+          className="flex items-center gap-2 cursor-pointer group shrink-0"
           onClick={() => navigate("/dashboard")}
         >
           <div className="bg-green-600 p-1.5 rounded-lg group-hover:rotate-12 transition-transform duration-300">
@@ -26,10 +26,28 @@ export default function Navbar() {
           </h1>
         </div>
 
-        <div className="flex items-center gap-6">
+        {/* Improved Search Bar / Command Center */}
+        <div className="hidden lg:flex flex-1 max-w-md justify-center">
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+            className="w-full flex items-center justify-between gap-3 px-5 py-2.5 rounded-2xl bg-slate-100/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 transition-all duration-300 border border-slate-200/50 dark:border-slate-700/50 hover:border-yellow-500/50 group backdrop-blur-sm shadow-sm"
+          >
+            <div className="flex items-center gap-3">
+              <Search size={18} className="group-hover:text-yellow-500 transition-colors" />
+              <span className="text-sm font-bold tracking-tight">Access Command Center</span>
+            </div>
+            <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-800 shadow-inner">
+              <span className="text-[10px] font-black opacity-40">CTRL</span>
+              <span className="text-[10px] font-black opacity-40">+</span>
+              <span className="text-[10px] font-black opacity-40">K</span>
+            </div>
+          </button>
+        </div>
+
+        <div className="flex items-center gap-4 shrink-0">
           <Tooltip content={isDarkMode ? "Switch to light mode" : "Switch to dark mode"} shortcut="T">
             <button
-              onClick={toggleTheme}
+              onClick={(e) => toggleTheme(e)}
               className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200"
             >
               {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}

@@ -501,10 +501,10 @@ export default function Dashboard() {
               </div>
               <div>
                 <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-                  Growth & Learning
+                  Daily Knowledge Awareness
                 </h3>
                 <p className={`text-sm ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                  Bite-sized knowledge to keep you sharp every day.
+                  One insight a day. Real impact. Always relevant.
                 </p>
               </div>
             </div>
@@ -535,8 +535,8 @@ export default function Dashboard() {
                   key={item.id}
                   onClick={() => navigate(item.path)}
                   className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all duration-300 hover:scale-[1.02] ${item.done
-                      ? (isDarkMode ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-green-50 border-green-200 text-green-700')
-                      : (isDarkMode ? 'bg-slate-800/40 border-slate-700 text-slate-500 hover:border-slate-500' : 'bg-slate-50 border-slate-100 text-slate-400 hover:border-slate-300')
+                    ? (isDarkMode ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-green-50 border-green-200 text-green-700')
+                    : (isDarkMode ? 'bg-slate-800/40 border-slate-700 text-slate-500 hover:border-slate-500' : 'bg-slate-50 border-slate-100 text-slate-400 hover:border-slate-300')
                     }`}>
                   <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${item.done ? 'bg-green-500 border-green-500 text-white shadow-lg shadow-green-500/20' : 'border-current opacity-30 shadow-inner'
                     }`}>

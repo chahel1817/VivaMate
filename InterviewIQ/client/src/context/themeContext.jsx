@@ -24,11 +24,50 @@ export const ThemeProvider = ({ children }) => {
     }
   }, []);
 
-  const toggleTheme = () => {
-    const newTheme = !isDarkMode;
-    setIsDarkMode(newTheme);
+  const toggleTheme = (event) => {
+    const isAppearanceTransition = document.startViewTransition &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    if (newTheme) {
+    if (!isAppearanceTransition) {
+      const newTheme = !isDarkMode;
+      setIsDarkMode(newTheme);
+      updateDocumentTheme(newTheme);
+      return;
+    }
+
+    const x = event?.clientX ?? window.innerWidth / 2;
+    const y = event?.clientY ?? window.innerHeight / 2;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    const transition = document.startViewTransition(async () => {
+      const newTheme = !isDarkMode;
+      setIsDarkMode(newTheme);
+      updateDocumentTheme(newTheme);
+    });
+
+    transition.ready.then(() => {
+      const clipPath = [
+        `circle(0px at ${x}px ${y}px)`,
+        `circle(${endRadius}px at ${x}px ${y}px)`,
+      ];
+      document.documentElement.animate(
+        {
+          clipPath: isDarkMode ? [...clipPath].reverse() : clipPath,
+        },
+        {
+          duration: 500,
+          easing: 'ease-in-out',
+          pseudoElement: isDarkMode ? '::view-transition-old(root)' : '::view-transition-new(root)',
+        }
+      );
+    });
+  };
+
+  const updateDocumentTheme = (darkMode) => {
+    if (darkMode) {
       document.documentElement.classList.add('dark');
       localStorage.setItem('theme', 'dark');
     } else {

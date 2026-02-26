@@ -35,6 +35,7 @@ html {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -45,6 +46,7 @@ html {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -56,6 +58,7 @@ html {
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -67,6 +70,7 @@ html {
     opacity: 0;
     transform: translateX(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -78,6 +82,7 @@ html {
     opacity: 0;
     transform: translateX(20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -88,24 +93,31 @@ html {
   0% {
     background-position: -1000px 0;
   }
+
   100% {
     background-position: 1000px 0;
   }
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.5;
   }
 }
 
 @keyframes bounce {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-10px);
   }
@@ -116,6 +128,7 @@ html {
     opacity: 0;
     transform: scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -145,24 +158,20 @@ html {
 
 .animate-shimmer {
   animation: shimmer 2s infinite linear;
-  background: linear-gradient(
-    to right,
-    #f0f0f0 0%,
-    #e0e0e0 20%,
-    #f0f0f0 40%,
-    #f0f0f0 100%
-  );
+  background: linear-gradient(to right,
+      #f0f0f0 0%,
+      #e0e0e0 20%,
+      #f0f0f0 40%,
+      #f0f0f0 100%);
   background-size: 1000px 100%;
 }
 
 .dark .animate-shimmer {
-  background: linear-gradient(
-    to right,
-    #1e293b 0%,
-    #334155 20%,
-    #1e293b 40%,
-    #1e293b 100%
-  );
+  background: linear-gradient(to right,
+      #1e293b 0%,
+      #334155 20%,
+      #1e293b 40%,
+      #1e293b 100%);
   background-size: 1000px 100%;
 }
 
@@ -220,4 +229,27 @@ html {
 
 .stagger-5 {
   animation-delay: 0.5s;
+}
+
+/* View Transitions API for theme switching */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 999;
+}
+
+.dark::view-transition-old(root) {
+  z-index: 999;
+}
+
+.dark::view-transition-new(root) {
+  z-index: 1;
 }

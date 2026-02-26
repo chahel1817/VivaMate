@@ -78,17 +78,20 @@ Give output ONLY in valid JSON format:
 
 Ensure all questions are practical and suitable for an interview context.`;
 };
-exports.generateDailyChallengePrompt = (count = 5) => {
+exports.generateDailyChallengePrompt = (count = 5, topicOverride = null) => {
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const today = days[new Date().getDay()];
 
-  let topic = "Full-Stack Web Development (Mix)";
-  if (today === "Monday") topic = "Frontend Development (React, CSS, HTML)";
-  if (today === "Tuesday") topic = "Backend Development (Node.js, Express, APIs)";
-  if (today === "Wednesday") topic = "Databases (MongoDB, SQL, Schema Design)";
-  if (today === "Thursday") topic = "JavaScript Core (ES6+, Async/Await, Closures)";
-  if (today === "Friday") topic = "System Design & Architecture (Scalability, Security, Patterns)";
-  if (today === "Saturday") topic = "Algorithms, Data Structures & Logic";
+  // Allow caller to pass the exact subject (from WEEKLY_SCHEDULE), or fall back to day-based default
+  let topic = topicOverride || "Full-Stack Web Development (Mix)";
+  if (!topicOverride) {
+    if (today === "Monday") topic = "JavaScript Core (ES6+, Closures, Async)";
+    if (today === "Tuesday") topic = "Frontend Development (React, CSS, HTML)";
+    if (today === "Wednesday") topic = "Backend Development (Node.js, Express, APIs)";
+    if (today === "Thursday") topic = "Databases (MongoDB, SQL, Schema Design)";
+    if (today === "Friday") topic = "System Design & Architecture (Scalability, Patterns)";
+    if (today === "Saturday") topic = "Algorithms, Data Structures & Logic";
+  }
 
   return `
 You are a senior technical interviewer creating a daily coding challenge quiz.
@@ -101,6 +104,7 @@ Requirements:
 - Strictly adhere to the theme: ${topic}.
 - Provide 4 distinct options for each question.
 - Clearly identify the correct answer.
+- Do NOT add any attribution or metadata — just the questions.
 
 Give output ONLY in valid JSON format:
 {
@@ -147,11 +151,15 @@ Give output ONLY in valid JSON:
 }
 `;
 
-exports.generateInsightPrompt = (type = 'fact') => {
+exports.generateInsightPrompt = (type = 'fact', recentInsights = []) => {
+  const avoidNote = Array.isArray(recentInsights) && recentInsights.length > 0
+    ? `\nIMPORTANT: Avoid repeating or paraphrasing any of these recent insights:\n${recentInsights.map((i, idx) => `${idx + 1}. ${i.title || 'Untitled'} — ${i.content || ''}`).join('\n')}\nGenerate something clearly different in topic, framing, and examples.`
+    : '';
   if (type === 'tip') {
     return `
 Generate a single, bite-sized, high-impact daily interview tip for a software engineer.
 Focus on either behavioral techniques (like STAR), technical communication, mindset, or preparation strategy.
+${avoidNote}
 
 The response must be valid JSON:
 {
@@ -163,6 +171,7 @@ The response must be valid JSON:
     return `
 Generate a single, fascinating, and lesser-known historical or technical fact about programming languages, computers, or software engineering.
 Focus on the "Why" or "Who" behind famous tech (e.g., Javascript's 10-day creation, why it's called Python, etc.).
+${avoidNote}
 
 The response must be valid JSON:
 {

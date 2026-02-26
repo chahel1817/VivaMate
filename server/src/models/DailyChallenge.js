@@ -4,6 +4,7 @@ const challengeSchema = new mongoose.Schema({
     date: { type: String, required: true, unique: true }, // Format: YYYY-MM-DD
     title: { type: String, required: true },
     description: { type: String, required: true },
+    topic: { type: String, default: "Mixed" }, // NEW: which subject today's challenge covers
     questions: [{
         question: { type: String, required: true },
         options: [{ type: String }],
@@ -15,3 +16,4 @@ const challengeSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 module.exports = mongoose.model("DailyChallenge", challengeSchema);
+

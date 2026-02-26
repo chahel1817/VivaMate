@@ -2,6 +2,7 @@ const axios = require('axios');
 const aiPrompt = require('../utils/aiPrompt');
 const mongoose = require('mongoose');
 const InterviewSession = require('../models/InterviewSession');
+const DailyInsight = require('../models/DailyInsight');
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const OPENROUTER_API_URL = process.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1/chat/completions';
@@ -246,26 +247,82 @@ exports.generateQuestions = async (req, res) => {
 exports.getDailyInsight = async (req, res) => {
 	try {
 		const { type = 'fact' } = req.query;
-		const prompt = aiPrompt.generateInsightPrompt(type);
-		let content = null;
-		try {
-			content = await callOpenRouter(prompt);
-		} catch (err) {
-			if (OPENAI_API_KEY) content = await callOpenAI(prompt);
-			else throw err;
-		}
-		const parsed = extractFirstJson(content);
-		if (!parsed) {
+		const normalizedType = String(type).toUpperCase() === 'TIP' ? 'TIP' : 'FACT';
+		const todayKey = new Date().toISOString().split('T')[0];
+
+		const existing = await DailyInsight.findOne({ date: todayKey, type: normalizedType }).lean();
+		if (existing) {
 			return res.status(200).json({
 				success: true,
 				insight: {
-					title: type === 'tip' ? "Daily Tip" : "Did You Know?",
-					content: content.replace(/```json|```/g, '').trim(),
-					type: type.toUpperCase()
+					title: existing.title,
+					content: existing.content,
+					type: existing.type
 				}
 			});
 		}
-		return res.status(200).json({ success: true, insight: { ...parsed, type: type.toUpperCase() } });
+
+		const recent = await DailyInsight.find({ type: normalizedType })
+			.sort({ date: -1 })
+			.limit(30)
+			.select('title content hash')
+			.lean();
+		const recentHashes = new Set(recent.map(r => r.hash));
+
+		let attempts = 0;
+		let parsed = null;
+		let content = null;
+
+		while (attempts < 3 && !parsed) {
+			attempts++;
+			const prompt = aiPrompt.generateInsightPrompt(normalizedType.toLowerCase(), recent);
+			try {
+				content = await callOpenRouter(prompt);
+			} catch (err) {
+				if (OPENAI_API_KEY) content = await callOpenAI(prompt);
+				else throw err;
+			}
+			const candidate = extractFirstJson(content);
+			if (candidate && candidate.title && candidate.content) {
+				const hash = hashText(normalizeText(`${candidate.title} ${candidate.content}`));
+				if (!recentHashes.has(hash)) {
+					parsed = { ...candidate, hash };
+				}
+			}
+		}
+
+		if (!parsed) {
+			const fallbackTitle = normalizedType === 'TIP' ? 'Daily Tip' : 'Did You Know?';
+			const fallbackContent = content ? content.replace(/```json|```/g, '').trim() : 'Come back tomorrow for a fresh insight.';
+			const hash = hashText(normalizeText(`${fallbackTitle} ${fallbackContent}`));
+			parsed = { title: fallbackTitle, content: fallbackContent, hash };
+		}
+
+		try {
+			await DailyInsight.create({
+				date: todayKey,
+				type: normalizedType,
+				title: parsed.title,
+				content: parsed.content,
+				hash: parsed.hash
+			});
+		} catch (createErr) {
+			if (createErr.code === 11000) {
+				const latest = await DailyInsight.findOne({ date: todayKey, type: normalizedType }).lean();
+				if (latest) {
+					return res.status(200).json({
+						success: true,
+						insight: { title: latest.title, content: latest.content, type: latest.type }
+					});
+				}
+			}
+			throw createErr;
+		}
+
+		return res.status(200).json({
+			success: true,
+			insight: { title: parsed.title, content: parsed.content, type: normalizedType }
+		});
 	} catch (err) {
 		return res.status(500).json({ success: false, error: err.message });
 	}

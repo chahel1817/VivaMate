@@ -8,9 +8,25 @@ const axios = require('axios');
 const OPENROUTER_API_URL = process.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1/chat/completions';
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
+// ── Weekly Subject Schedule ─────────────────────────────────────────────────
+// Index 0 = Sunday … 6 = Saturday
+const WEEKLY_SCHEDULE = [
+    { day: "Sunday", topic: "Full-Stack Mixed", subject: "Full-Stack Web Development", icon: "🌐", color: "#8b5cf6" },
+    { day: "Monday", topic: "JavaScript Core", subject: "JavaScript Core (ES6+, Closures, Async)", icon: "⚡", color: "#f59e0b" },
+    { day: "Tuesday", topic: "Frontend Dev", subject: "Frontend Development (React, CSS, HTML)", icon: "🎨", color: "#06b6d4" },
+    { day: "Wednesday", topic: "Backend Dev", subject: "Backend Development (Node.js, Express, APIs)", icon: "🔧", color: "#10b981" },
+    { day: "Thursday", topic: "Databases", subject: "Databases (MongoDB, SQL, Schema Design)", icon: "🗄️", color: "#3b82f6" },
+    { day: "Friday", topic: "System Design", subject: "System Design & Architecture (Scalability, Patterns)", icon: "🏗️", color: "#ec4899" },
+    { day: "Saturday", topic: "Algorithms & DSA", subject: "Algorithms, Data Structures & Logic", icon: "🧠", color: "#f97316" },
+];
+
+function getTodaySchedule() {
+    return WEEKLY_SCHEDULE[new Date().getDay()];
+}
+
 // Helper to call AI
-async function fetchAIChallenge() {
-    const prompt = aiPrompt.generateDailyChallengePrompt(5);
+async function fetchAIChallenge(topicOverride) {
+    const prompt = aiPrompt.generateDailyChallengePrompt(5, topicOverride);
 
     try {
         const res = await axios.post(OPENROUTER_API_URL, {
@@ -59,30 +75,32 @@ const getDailyChallenge = async (req, res) => {
         // Current date label (YYYY-MM-DD) - ONE challenge per day
         const now = new Date();
         const challengeKey = now.toISOString().split("T")[0]; // Just YYYY-MM-DD
+        const todaySchedule = getTodaySchedule();
 
         let challenge = await DailyChallenge.findOne({ date: challengeKey });
 
         // If no challenge exists for today, generate strictly via AI
         if (!challenge) {
-            console.log(`Generating new daily challenge for ${challengeKey}...`);
-            let questions = await fetchAIChallenge();
+            console.log(`Generating new daily challenge for ${challengeKey} — topic: ${todaySchedule.topic}...`);
+            let questions = await fetchAIChallenge(todaySchedule.subject);
 
             // Fallback if AI fails
             if (!questions || questions.length === 0) {
                 questions = [
-                    { question: "Fallback: What is React?", options: ["Lib", "Framework", "DB", "OS"], correctAnswer: "Lib", type: "multiple-choice" },
-                    { question: "Fallback: 2+2?", options: ["3", "4", "5", "6"], correctAnswer: "4", type: "multiple-choice" },
-                    { question: "Fallback: HTTP Success Code?", options: ["200", "400", "500", "300"], correctAnswer: "200", type: "multiple-choice" },
-                    { question: "Fallback: SQL Command?", options: ["SELECT", "GET", "FETCH", "PULL"], correctAnswer: "SELECT", type: "multiple-choice" },
-                    { question: "Fallback: JS specific?", options: ["Java", "Python", "ECMAScript", "C++"], correctAnswer: "ECMAScript", type: "multiple-choice" }
+                    { question: "What is the primary function of Redux?", options: ["Routing", "State Management", "Styling", "API Calls"], correctAnswer: "State Management", type: "multiple-choice" },
+                    { question: "Which method joins two arrays in JS?", options: ["push()", "pop()", "concat()", "join()"], correctAnswer: "concat()", type: "multiple-choice" },
+                    { question: "What does SQL stand for?", options: ["Structured Query Language", "Simple Query List", "Strong Question Language", "Safe Queue Link"], correctAnswer: "Structured Query Language", type: "multiple-choice" },
+                    { question: "In CSS, 'flex: 1' is shorthand for?", options: ["flex-grow", "flex-shrink", "flex-basis", "All three"], correctAnswer: "All three", type: "multiple-choice" },
+                    { question: "Which status code means 'Not Found'?", options: ["200", "500", "404", "401"], correctAnswer: "404", type: "multiple-choice" }
                 ];
             }
 
             try {
                 challenge = await DailyChallenge.create({
                     date: challengeKey,
-                    title: "Daily Challenge",
-                    description: "Fresh interview questions generated daily by AI",
+                    title: `${todaySchedule.topic} Challenge`,
+                    description: `${todaySchedule.subject} — AI-generated daily challenge`,
+                    topic: todaySchedule.topic,
                     xpReward: 300,
                     difficulty: "Varies",
                     questions: questions
@@ -137,7 +155,23 @@ const getDailyChallenge = async (req, res) => {
             type: q.type
         }));
 
-        res.json({ ...safeChallenge, completed });
+        // Always ensure topic is set (for existing challenges generated before this field existed)
+        if (!safeChallenge.topic) {
+            safeChallenge.topic = todaySchedule.topic;
+        }
+
+        // Send weekly schedule to front-end for the planner UI
+        res.json({
+            ...safeChallenge,
+            completed,
+            weeklySchedule: WEEKLY_SCHEDULE.map(s => ({
+                day: s.day,
+                topic: s.topic,
+                icon: s.icon,
+                color: s.color,
+                isToday: s.day === todaySchedule.day
+            }))
+        });
     } catch (err) {
         console.error("getDailyChallenge Error:", err);
         res.status(500).json({ message: "Failed to fetch challenge", error: err.message });
