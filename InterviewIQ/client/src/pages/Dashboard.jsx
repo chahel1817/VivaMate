@@ -15,7 +15,9 @@ import {
   CheckCircle2,
   Terminal,
   MoveRight,
-  ChevronRight
+  ChevronRight,
+  Users,
+  X
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -44,6 +46,8 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({});
   const [activeActionTab, setActiveActionTab] = useState("practice");
+  const [incomingRequests, setIncomingRequests] = useState([]);
+  const [friendsBannerDismissed, setFriendsBannerDismissed] = useState(false);
 
   const actionTabs = [
     { id: "practice", label: "Practice", icon: PlayCircle },
@@ -142,7 +146,6 @@ export default function Dashboard() {
     try {
       setLoading(true);
       console.log("Fetching dashboard stats");
-      // Use axios instance so auth token & baseURL are consistent
       const res = await api.get("/dashboard/stats");
       console.log("Dashboard stats response", res.data);
       const data = res.data;
@@ -152,6 +155,16 @@ export default function Dashboard() {
       console.error('refreshStats error', e);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchIncomingRequests() {
+    try {
+      const res = await api.get('/leaderboard/friends');
+      const incoming = (res.data.friends || []).filter(f => f.status === 'incoming');
+      setIncomingRequests(incoming);
+    } catch (e) {
+      // silent fail — not critical
     }
   }
 
@@ -249,7 +262,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     refreshStats();
-    // Refresh user data immediately to ensure streak is up to date
+    fetchIncomingRequests();
     refreshUser().catch(err => console.debug("Silent refresh failed on mount"));
 
     let socket;
@@ -303,6 +316,43 @@ export default function Dashboard() {
       <Navbar />
       <div className={`min-h-screen ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-slate-100'} px-6 py-10`}>
         <div className="max-w-6xl mx-auto space-y-12">
+
+          {/* Friend Request Notification Banner */}
+          {!friendsBannerDismissed && incomingRequests.length > 0 && (
+            <div className={`flex items-start gap-3 p-4 rounded-xl border ${isDarkMode
+                ? 'bg-purple-900/30 border-purple-700/50 text-purple-200'
+                : 'bg-purple-50 border-purple-200 text-purple-800'
+              }`}>
+              <div className={`p-2 rounded-lg flex-shrink-0 ${isDarkMode ? 'bg-purple-800/50' : 'bg-purple-100'
+                }`}>
+                <Users size={18} className="text-purple-500" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold">
+                  🙋 You have {incomingRequests.length} pending friend request{incomingRequests.length > 1 ? 's' : ''}!
+                </p>
+                <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-purple-400' : 'text-purple-600'
+                  }`}>
+                  {incomingRequests.map(r => r.name).join(', ')} sent you a friend request.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={() => navigate('/leaderboard')}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+                >
+                  View →
+                </button>
+                <button
+                  onClick={() => setFriendsBannerDismissed(true)}
+                  className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-purple-800/50 text-purple-400' : 'hover:bg-purple-100 text-purple-500'
+                    }`}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Auto-refresh Info Banner */}
           <div className={`${isDarkMode ? 'bg-blue-900/20 border-blue-700/50 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-700'} border rounded-lg p-4 flex items-start gap-3`}>

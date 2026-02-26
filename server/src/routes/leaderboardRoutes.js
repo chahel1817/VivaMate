@@ -232,8 +232,57 @@ router.post('/achievements/check', protect, async (req, res) => {
 // ==================== FRIENDS ROUTES ====================
 
 /**
+ * GET /api/leaderboard/friends/leaderboard
+ * Get leaderboard of friends only
+ * NOTE: Must be defined BEFORE /friends to avoid Express matching 'leaderboard' as :param
+ */
+router.get('/friends/leaderboard', protect, async (req, res) => {
+    try {
+        const type = req.query.type || 'xp';
+
+        const user = await User.findById(req.user).populate('friends.userId', 'name email profilePic xp streak level badges');
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Get accepted friends only (filter null populated refs)
+        const acceptedFriends = user.friends
+            .filter(f => f.status === 'accepted' && f.userId)
+            .map(f => f.userId);
+
+        // Add current user
+        const currentUser = await User.findById(req.user).select('name email profilePic xp streak level badges');
+        const allUsers = [currentUser, ...acceptedFriends];
+
+        // Sort by type
+        const sortField = type === 'xp' ? 'xp' : 'streak';
+        allUsers.sort((a, b) => (b[sortField] || 0) - (a[sortField] || 0));
+
+        const leaderboard = allUsers.map((u, index) => ({
+            rank: index + 1,
+            userId: u._id,
+            name: u.name,
+            email: u.email,
+            profilePic: u.profilePic,
+            xp: u.xp,
+            streak: u.streak,
+            level: u.level,
+            badges: u.badges,
+            score: type === 'xp' ? u.xp : u.streak,
+            isCurrentUser: u._id.toString() === req.user.toString()
+        }));
+
+        res.json({ leaderboard, type });
+    } catch (err) {
+        console.error('Error getting friends leaderboard:', err);
+        res.status(500).json({ message: 'Failed to get friends leaderboard' });
+    }
+});
+
+/**
  * GET /api/leaderboard/friends
- * Get user's friends list
+ * Get user's friends list with status info
  */
 router.get('/friends', protect, async (req, res) => {
     try {
@@ -243,18 +292,21 @@ router.get('/friends', protect, async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const friends = user.friends.map(f => ({
-            userId: f.userId._id,
-            name: f.userId.name,
-            email: f.userId.email,
-            profilePic: f.userId.profilePic,
-            xp: f.userId.xp,
-            streak: f.userId.streak,
-            level: f.userId.level,
-            badges: f.userId.badges,
-            status: f.status,
-            addedAt: f.addedAt
-        }));
+        // Filter out any entries where populate returned null (deleted users)
+        const friends = user.friends
+            .filter(f => f.userId != null)
+            .map(f => ({
+                userId: f.userId._id,
+                name: f.userId.name,
+                email: f.userId.email,
+                profilePic: f.userId.profilePic,
+                xp: f.userId.xp,
+                streak: f.userId.streak,
+                level: f.userId.level,
+                badges: f.userId.badges,
+                status: f.status,
+                addedAt: f.addedAt
+            }));
 
         res.json({ friends });
     } catch (err) {
@@ -275,36 +327,38 @@ router.post('/friends/add', protect, async (req, res) => {
             return res.status(400).json({ message: 'Email is required' });
         }
 
-        // Find friend by email
         const friend = await User.findOne({ email });
 
         if (!friend) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ message: 'User not found with that email' });
         }
 
         if (friend._id.toString() === req.user.toString()) {
-            return res.status(400).json({ message: 'Cannot add yourself as friend' });
+            return res.status(400).json({ message: 'Cannot add yourself as a friend' });
         }
 
-        // Check if already friends
         const user = await User.findById(req.user);
-        const alreadyFriends = user.friends.some(f => f.userId.toString() === friend._id.toString());
 
-        if (alreadyFriends) {
-            return res.status(400).json({ message: 'Already friends or request pending' });
+        // Check sender side
+        const alreadySent = user.friends.some(f => f.userId.toString() === friend._id.toString());
+        if (alreadySent) {
+            return res.status(400).json({ message: 'Friend request already sent or already friends' });
         }
 
-        // Add friend request
-        user.friends.push({
-            userId: friend._id,
-            status: 'pending'
-        });
-
+        // Add pending entry on sender's side
+        user.friends.push({ userId: friend._id, status: 'pending' });
         await user.save();
+
+        // Add incoming entry on recipient's side (if not already there)
+        const alreadyInRecipient = friend.friends.some(f => f.userId.toString() === user._id.toString());
+        if (!alreadyInRecipient) {
+            friend.friends.push({ userId: user._id, status: 'incoming' });
+            await friend.save();
+        }
 
         res.json({
             success: true,
-            message: 'Friend request sent',
+            message: 'Friend request sent!',
             friend: {
                 userId: friend._id,
                 name: friend.name,
@@ -326,23 +380,66 @@ router.post('/friends/accept/:friendId', protect, async (req, res) => {
     try {
         const { friendId } = req.params;
 
+        // Update recipient's incoming -> accepted
         const user = await User.findById(req.user);
-        const friend = user.friends.find(f => f.userId.toString() === friendId && f.status === 'pending');
+        const incomingEntry = user.friends.find(
+            f => f.userId.toString() === friendId && f.status === 'incoming'
+        );
 
-        if (!friend) {
+        if (!incomingEntry) {
             return res.status(404).json({ message: 'Friend request not found' });
         }
 
-        friend.status = 'accepted';
+        incomingEntry.status = 'accepted';
         await user.save();
 
-        res.json({
-            success: true,
-            message: 'Friend request accepted'
-        });
+        // Update sender's pending -> accepted
+        const sender = await User.findById(friendId);
+        if (sender) {
+            const senderEntry = sender.friends.find(
+                f => f.userId.toString() === req.user.toString() && f.status === 'pending'
+            );
+            if (senderEntry) {
+                senderEntry.status = 'accepted';
+                await sender.save();
+            }
+        }
+
+        res.json({ success: true, message: 'Friend request accepted!' });
     } catch (err) {
         console.error('Error accepting friend:', err);
-        res.status(500).json({ message: 'Failed to accept friend' });
+        res.status(500).json({ message: 'Failed to accept friend request' });
+    }
+});
+
+/**
+ * POST /api/leaderboard/friends/decline/:friendId
+ * Decline an incoming friend request
+ */
+router.post('/friends/decline/:friendId', protect, async (req, res) => {
+    try {
+        const { friendId } = req.params;
+
+        // Remove from recipient's list
+        const user = await User.findById(req.user);
+        user.friends = user.friends.filter(
+            f => !(f.userId.toString() === friendId && f.status === 'incoming')
+        );
+        await user.save();
+
+        // Remove pending from sender's list too
+        const sender = await User.findById(friendId);
+        if (sender) {
+            sender.friends = sender.friends.filter(
+                f => !(f.userId.toString() === req.user.toString() && f.status === 'pending')
+            );
+            await sender.save();
+        }
+
+        res.json({ success: true, message: 'Friend request declined' });
+    } catch (err) {
+        console.error('Error declining friend:', err);
+        res.status(500).json({ message: 'Failed to decline friend request' });
     }
 });
 
@@ -369,53 +466,7 @@ router.delete('/friends/remove/:friendId', protect, async (req, res) => {
     }
 });
 
-/**
- * GET /api/leaderboard/friends/leaderboard
- * Get leaderboard of friends only
- */
-router.get('/friends/leaderboard', protect, async (req, res) => {
-    try {
-        const type = req.query.type || 'xp';
-
-        const user = await User.findById(req.user).populate('friends.userId', 'name email profilePic xp streak level badges');
-
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        // Get accepted friends only
-        const acceptedFriends = user.friends
-            .filter(f => f.status === 'accepted')
-            .map(f => f.userId);
-
-        // Add current user
-        const currentUser = await User.findById(req.user).select('name email profilePic xp streak level badges');
-        const allUsers = [currentUser, ...acceptedFriends];
-
-        // Sort by type
-        const sortField = type === 'xp' ? 'xp' : 'streak';
-        allUsers.sort((a, b) => b[sortField] - a[sortField]);
-
-        const leaderboard = allUsers.map((u, index) => ({
-            rank: index + 1,
-            userId: u._id,
-            name: u.name,
-            email: u.email,
-            profilePic: u.profilePic,
-            xp: u.xp,
-            streak: u.streak,
-            level: u.level,
-            badges: u.badges,
-            score: type === 'xp' ? u.xp : u.streak,
-            isCurrentUser: u._id.toString() === req.user.toString()
-        }));
-
-        res.json({ leaderboard, type });
-    } catch (err) {
-        console.error('Error getting friends leaderboard:', err);
-        res.status(500).json({ message: 'Failed to get friends leaderboard' });
-    }
-});
+// (friends/leaderboard route moved above /friends to fix Express routing order)
 
 // ==================== ADMIN/UTILITY ROUTES ====================
 

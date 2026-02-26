@@ -80,7 +80,7 @@ const userSchema = new mongoose.Schema(
     friends: [{
       userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
       addedAt: { type: Date, default: Date.now },
-      status: { type: String, enum: ['pending', 'accepted'], default: 'pending' }
+      status: { type: String, enum: ['pending', 'accepted', 'incoming'], default: 'pending' }
     }],
 
     // UI/UX Preferences
