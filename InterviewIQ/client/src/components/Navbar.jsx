@@ -59,6 +59,7 @@ export default function Navbar() {
             className="relative"
             onMouseEnter={() => setShowDropdown(true)}
             onMouseLeave={() => setShowDropdown(false)}
+            onClick={() => setShowDropdown(!showDropdown)}
           >
             <div className={`flex items-center gap-3 pl-2 pr-1 py-1 rounded-2xl cursor-pointer transition-all duration-300 ${showDropdown ? 'bg-slate-100 dark:bg-slate-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}>
               <div className="w-9 h-9 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 overflow-hidden border border-green-200 dark:border-green-800">
