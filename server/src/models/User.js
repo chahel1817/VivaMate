@@ -92,6 +92,21 @@ const userSchema = new mongoose.Schema(
     keyboardShortcutsEnabled: { type: Boolean, default: true },
     notificationsEnabled: { type: Boolean, default: true },
     hasResume: { type: Boolean, default: false },
+
+    // In-app notifications
+    notifications: [{
+      type: {
+        type: String,
+        enum: ['friend_request', 'friend_accepted', 'achievement', 'streak_warning', 'system'],
+        required: true
+      },
+      title: { type: String, required: true },
+      message: { type: String, required: true },
+      read: { type: Boolean, default: false },
+      link: { type: String, default: '' },       // optional in-app route to navigate to
+      meta: { type: Object, default: {} },        // extra data (avatar, senderId, etc.)
+      createdAt: { type: Date, default: Date.now }
+    }],
     preferences: {
       type: Object,
       default: {

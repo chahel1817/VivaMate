@@ -1,163 +1,239 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, User, Check, X } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, Check, X, Loader2, Zap, ArrowRight, Brain, BarChart3, Trophy, Sparkles, UserPlus } from "lucide-react";
 import { useState, useMemo } from "react";
 import AuthBranding from "../components/AuthBranding";
 import { useAuth } from "../context/authContext";
+
+const FEATURES = [
+  { icon: Brain, label: "AI Feedback", color: "text-green-400", bg: "bg-green-500/10" },
+  { icon: BarChart3, label: "Analytics", color: "text-purple-400", bg: "bg-purple-500/10" },
+  { icon: Trophy, label: "Leaderboard", color: "text-amber-400", bg: "bg-amber-500/10" },
+];
 
 export default function Register() {
   const navigate = useNavigate();
   const { register } = useAuth();
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
-
+  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const passwordRequirements = useMemo(() => {
     const { password } = formData;
     return [
-      { id: "length", label: "At least 8 characters", met: password.length >= 8 },
-      { id: "uppercase", label: "One uppercase letter", met: /[A-Z]/.test(password) },
+      { id: "length", label: "8+ characters", met: password.length >= 8 },
+      { id: "uppercase", label: "Uppercase letter", met: /[A-Z]/.test(password) },
       { id: "number", label: "One number", met: /[0-9]/.test(password) },
-      { id: "special", label: "One special character", met: /[^A-Za-z0-9]/.test(password) },
+      { id: "special", label: "Special character", met: /[^A-Za-z0-9]/.test(password) },
     ];
   }, [formData.password]);
 
-  const isPasswordValid = passwordRequirements.every((req) => req.met);
+  const isPasswordValid = passwordRequirements.every(r => r.met);
+  const passwordStrength = passwordRequirements.filter(r => r.met).length;
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const strengthMeta = [
+    null,
+    { label: "Weak", color: "bg-red-500", text: "text-red-400" },
+    { label: "Fair", color: "bg-orange-500", text: "text-orange-400" },
+    { label: "Good", color: "bg-yellow-500", text: "text-yellow-400" },
+    { label: "Strong", color: "bg-green-500", text: "text-green-400" },
+  ][passwordStrength];
+
+  const handleChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleRegister = async () => {
-    if (!formData.name || !formData.email || !formData.password) {
-      setError("All fields are required");
-      return;
-    }
-
-    if (!isPasswordValid) {
-      setError("Please meet all password requirements");
-      return;
-    }
-
-    if (!formData.email.includes('@')) {
-      setError("Email must contain an '@' symbol");
-      return;
-    }
-
+    if (!formData.name || !formData.email || !formData.password) { setError("All fields are required"); return; }
+    if (!formData.email.includes("@")) { setError("Enter a valid email address"); return; }
+    if (!isPasswordValid) { setError("Please meet all password requirements"); return; }
+    setLoading(true); setError("");
     try {
-      setError("");
       await register(formData.name, formData.email, formData.password);
-
-      // Redirect to login with success state
-      navigate("/", { state: { message: "You're registered, login to access." } });
+      navigate("/", { state: { message: "Account created! Sign in to get started." } });
     } catch (err) {
-      console.error(err);
-      setError(err.message || "Registration failed. Please try again later.");
+      setError(err.message || "Registration failed. Please try again.");
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen grid md:grid-cols-2">
+    <div className="min-h-screen flex flex-col md:grid md:grid-cols-2 bg-[#080d18]">
 
+      {/* Desktop left panel */}
       <AuthBranding />
 
-      {/* RIGHT FORM */}
-      <div className="flex items-center justify-center bg-slate-100 px-6">
-        <div className="w-full max-w-md bg-white rounded-xl shadow-md p-8">
+      {/* ── Right / full-page panel ── */}
+      <div className="flex-1 flex flex-col bg-[#0d1117]">
 
-          <h2 className="text-2xl font-semibold text-slate-800">
-            Create account
-          </h2>
-          <p className="text-slate-500 text-sm mt-1">
-            Start your interview preparation journey
-          </p>
+        {/* ══ MOBILE HERO (hidden md+) ══ */}
+        <div className="md:hidden relative overflow-hidden px-6 pt-10 pb-8 bg-[#080d18]">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-40 bg-green-500/10 rounded-full blur-[80px] pointer-events-none" />
 
-          <form
-            onSubmit={(e) => { e.preventDefault(); handleRegister(); }}
-            className="mt-6 space-y-4"
-          >
-
-            {/* Name */}
-            <div className="relative">
-              <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                name="name"
-                placeholder="Full name"
-                onChange={handleChange}
-                className="w-full border border-slate-300 rounded-lg pl-10 pr-4 py-2
-                focus:outline-none focus:ring-2 focus:ring-green-500"
-                required
-              />
+          <div className="relative flex items-center gap-2.5 mb-6">
+            <div className="w-9 h-9 rounded-xl bg-green-600 flex items-center justify-center shadow-lg shadow-green-900/60">
+              <Zap size={17} className="text-white fill-white" />
             </div>
+            <span className="text-xl font-black text-white tracking-tight">VivaMate</span>
+          </div>
 
-            {/* Email */}
-            <div className="relative">
-              <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                name="email"
-                type="email"
-                placeholder="Email"
-                onChange={handleChange}
-                className="w-full border border-slate-300 rounded-lg pl-10 pr-4 py-2
-                focus:outline-none focus:ring-2 focus:ring-green-500"
-                required
-              />
-            </div>
+          <h1 className="text-2xl font-black text-white leading-snug mb-2">
+            Start your interview<br />preparation today
+          </h1>
+          <p className="text-slate-400 text-sm mb-5">Free account. No credit card required.</p>
 
-            {/* Password */}
-            <div className="space-y-2">
-              <div className="relative">
-                <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  onChange={handleChange}
-                  className="w-full border border-slate-300 rounded-lg pl-10 pr-4 py-2
-                  focus:outline-none focus:ring-2 focus:ring-green-500"
-                  required
-                />
+          <div className="flex gap-2 flex-wrap">
+            {FEATURES.map(f => (
+              <div key={f.label} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${f.bg} border border-white/5`}>
+                <f.icon size={13} className={f.color} />
+                <span className={`text-xs font-bold ${f.color}`}>{f.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ══ FORM AREA ══ */}
+        <div className="flex-1 flex items-center justify-center px-5 py-10 sm:px-8 sm:py-12">
+          <div className="w-full max-w-sm sm:max-w-md">
+
+            {/* Card */}
+            <div className="bg-[#161b27] border border-white/5 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/60">
+
+              <div className="mb-6">
+                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
+                  Create account
+                  <UserPlus size={20} className="text-green-400 flex-shrink-0" />
+                </h2>
+                <p className="text-slate-400 text-sm mt-1">Join and start practicing today — it's free</p>
               </div>
 
-              {/* Password Requirements UI */}
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                {passwordRequirements.map((req) => (
-                  <div key={req.id} className="flex items-center space-x-2 text-xs">
-                    {req.met ? (
-                      <Check size={14} className="text-green-500" />
-                    ) : (
-                      <X size={14} className="text-red-500" />
-                    )}
-                    <span className={req.met ? "text-green-600" : "text-red-600"}>
-                      {req.label}
-                    </span>
+              {error && (
+                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+                  {error}
+                </div>
+              )}
+
+              <form onSubmit={e => { e.preventDefault(); handleRegister(); }} className="space-y-4">
+
+                {/* Name */}
+                <div>
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Full Name</label>
+                  <div className="relative">
+                    <User size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                    <input
+                      name="name"
+                      type="text"
+                      onChange={handleChange}
+                      placeholder="John Doe"
+                      className="w-full bg-[#0d1117] border border-white/8 text-white placeholder-slate-600 rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:border-green-500/60 focus:ring-1 focus:ring-green-500/25 transition-all"
+                      autoComplete="name"
+                    />
                   </div>
-                ))}
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Email</label>
+                  <div className="relative">
+                    <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                    <input
+                      name="email"
+                      type="email"
+                      onChange={handleChange}
+                      placeholder="you@example.com"
+                      className="w-full bg-[#0d1117] border border-white/8 text-white placeholder-slate-600 rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:border-green-500/60 focus:ring-1 focus:ring-green-500/25 transition-all"
+                      autoComplete="email"
+                    />
+                  </div>
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Password</label>
+                  <div className="relative">
+                    <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                    <input
+                      name="password"
+                      type={showPass ? "text" : "password"}
+                      onChange={handleChange}
+                      placeholder="Create a strong password"
+                      className="w-full bg-[#0d1117] border border-white/8 text-white placeholder-slate-600 rounded-xl pl-10 pr-11 py-3 text-sm outline-none focus:border-green-500/60 focus:ring-1 focus:ring-green-500/25 transition-all"
+                      autoComplete="new-password"
+                    />
+                    <button type="button" onClick={() => setShowPass(v => !v)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors p-0.5">
+                      {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+
+                  {/* Strength bar + checklist — only shown while typing */}
+                  {formData.password.length > 0 && (
+                    <div className="mt-3 space-y-2.5">
+                      {/* Segments */}
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4].map(i => (
+                          <div key={i}
+                            className={`h-1 flex-1 rounded-full transition-all duration-300 ${i <= passwordStrength ? (strengthMeta?.color || 'bg-white/10') : 'bg-white/8'}`}
+                          />
+                        ))}
+                      </div>
+
+                      {/* Label */}
+                      {strengthMeta && (
+                        <p className={`text-[11px] font-bold ${strengthMeta.text}`}>{strengthMeta.label} password</p>
+                      )}
+
+                      {/* Checklist — 2-col grid */}
+                      <div className="grid grid-cols-2 gap-y-1.5 gap-x-2">
+                        {passwordRequirements.map(req => (
+                          <div key={req.id} className="flex items-center gap-1.5">
+                            <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${req.met ? 'bg-green-500/20' : 'bg-white/5'}`}>
+                              {req.met
+                                ? <Check size={9} className="text-green-400" />
+                                : <X size={9} className="text-slate-600" />
+                              }
+                            </div>
+                            <span className={`text-[11px] ${req.met ? 'text-green-400' : 'text-slate-500'}`}>{req.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* CTA */}
+                <button
+                  type="submit"
+                  disabled={loading || !isPasswordValid}
+                  className="w-full mt-1 flex items-center justify-center gap-2 py-3.5 bg-green-600 hover:bg-green-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-200 shadow-lg shadow-green-900/40 active:scale-[0.98] group text-sm"
+                >
+                  {loading
+                    ? <><Loader2 size={17} className="animate-spin" />Creating account…</>
+                    : <>Create Account <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" /></>
+                  }
+                </button>
+              </form>
+
+              <div className="flex items-center gap-3 my-5">
+                <div className="flex-1 h-px bg-white/5" />
+                <span className="text-[10px] text-slate-600 font-bold tracking-wider">HAVE AN ACCOUNT?</span>
+                <div className="flex-1 h-px bg-white/5" />
               </div>
+
+              <Link
+                to="/"
+                className="w-full flex items-center justify-center py-3 border border-white/8 hover:border-white/15 hover:bg-white/[0.02] text-slate-300 hover:text-white font-semibold text-sm rounded-xl transition-all duration-200 active:scale-[0.98]"
+              >
+                Sign in instead
+              </Link>
             </div>
 
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-
-            <button
-              type="submit"
-              className={`w-full py-2 rounded-lg transition text-white ${isPasswordValid ? "bg-green-600 hover:bg-green-700" : "bg-slate-400 cursor-not-allowed"
-                }`}
-              disabled={!isPasswordValid}
-            >
-              Register
-            </button>
-          </form>
-
-          <p className="text-sm text-slate-500 mt-6 text-center">
-            Already have an account?{" "}
-            <Link to="/" className="text-green-600 hover:underline">
-              Login
-            </Link>
-          </p>
+            <p className="text-center text-[11px] text-slate-600 mt-5 leading-relaxed">
+              By creating an account, you agree to our{" "}
+              <span className="text-slate-500 hover:text-slate-400 cursor-pointer">Terms</span>
+              {" & "}
+              <span className="text-slate-500 hover:text-slate-400 cursor-pointer">Privacy Policy</span>
+            </p>
+          </div>
         </div>
       </div>
     </div>

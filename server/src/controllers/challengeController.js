@@ -3,6 +3,7 @@ const User = require("../models/User");
 
 const { generateUniqueQuestions } = require("./aiController");
 const aiPrompt = require("../utils/aiPrompt");
+const { pushNotification } = require("../utils/notificationHelper");
 // Import the raw AI caller to use custom prompt
 const axios = require('axios');
 const OPENROUTER_API_URL = process.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1/chat/completions';
@@ -287,12 +288,17 @@ const submitChallenge = async (req, res) => {
             xpEarned: totalXpEarned
         });
 
+        // Track which badges are NEW before saving
+        const badgesBefore = [...user.badges];
+
         // Badge Logic
         if (user.xp >= 100 && !user.badges.includes("Novice")) user.badges.push("Novice");
         if (user.xp >= 500 && !user.badges.includes("Warrior")) user.badges.push("Warrior");
         if (user.xp >= 1000 && !user.badges.includes("Legend")) user.badges.push("Legend");
         if (correctCount === challenge.questions.length && !user.badges.includes("Perfectionist")) user.badges.push("Perfectionist");
         if (user.streak >= 7 && !user.badges.includes("Streak Master")) user.badges.push("Streak Master");
+
+        const newBadges = user.badges.filter(b => !badgesBefore.includes(b));
 
         user.level = Math.floor(1 + user.xp / 500);
 
@@ -310,6 +316,29 @@ const submitChallenge = async (req, res) => {
         }
 
         await user.save();
+
+        // ── Push notifications for new badges ──
+        for (const badge of newBadges) {
+            pushNotification(user._id, {
+                type: 'achievement',
+                title: `🏆 Badge Unlocked: ${badge}`,
+                message: `You earned the "${badge}" badge! Keep it up!`,
+                link: '/achievements',
+                meta: { badge }
+            });
+        }
+
+        // ── Streak milestone notifications ──
+        const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100];
+        if (STREAK_MILESTONES.includes(user.streak)) {
+            pushNotification(user._id, {
+                type: 'streak_warning',
+                title: `🔥 ${user.streak}-Day Streak!`,
+                message: `Incredible! You've kept a ${user.streak}-day challenge streak. Don't break it!`,
+                link: '/daily-challenge',
+                meta: { streak: user.streak }
+            });
+        }
 
         // Update Redis leaderboards (async, don't wait)
         const leaderboardService = require('../services/leaderboardService');

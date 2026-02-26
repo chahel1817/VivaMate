@@ -16,6 +16,7 @@ const messageRoutes = require("../routes/message");
 const challengeRoutes = require("./routes/challengeRoutes");
 const preferencesRoutes = require("./routes/preferencesRoutes");
 const leaderboardRoutes = require("./routes/leaderboardRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 // CORS Configuration: Allow local development and all Vercel deployments
 const app = express();
@@ -71,6 +72,7 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/challenge", challengeRoutes);
 app.use("/api/preferences", preferencesRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.get("/api/dashboard", protect, async (req, res) => {
   try {

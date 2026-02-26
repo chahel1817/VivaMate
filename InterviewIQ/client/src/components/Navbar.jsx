@@ -1,9 +1,10 @@
 import { useAuth } from "../context/authContext";
 import { useTheme } from "../context/themeContext";
 import { useNavigate } from "react-router-dom";
-import { Search, Sun, Moon, User, LogOut, Settings, BarChart3, LayoutDashboard, ChevronDown, History, Bookmark, Trophy, Award } from "lucide-react";
+import { Search, Sun, Moon, User, LogOut, Settings, BarChart3, LayoutDashboard, ChevronDown, History, Bookmark, Trophy, Award, MessageSquare } from "lucide-react";
 import { useState } from "react";
 import Tooltip from "./Tooltip";
+import NotificationBell from "./NotificationBell";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -44,7 +45,18 @@ export default function Navbar() {
           </button>
         </div>
 
-        <div className="flex items-center gap-4 shrink-0">
+        <div className="flex items-center gap-3 shrink-0">
+          {/* Forum quick-link — visible on md+ */}
+          <button
+            onClick={() => navigate("/forum")}
+            className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-500 font-semibold text-sm transition-all duration-200 border border-purple-500/20 hover:border-purple-500/40"
+          >
+            <MessageSquare size={16} />
+            <span>Forum</span>
+          </button>
+
+          <NotificationBell />
+
           <Tooltip content={isDarkMode ? "Switch to light mode" : "Switch to dark mode"} shortcut="T">
             <button
               onClick={(e) => toggleTheme(e)}
@@ -112,6 +124,13 @@ export default function Navbar() {
                   >
                     <Trophy size={18} />
                     Leaderboard
+                  </button>
+                  <button
+                    onClick={() => navigate("/forum")}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-600 dark:hover:text-purple-400 rounded-xl transition-colors"
+                  >
+                    <MessageSquare size={18} />
+                    Community Forum
                   </button>
                   <button
                     onClick={() => navigate("/achievements")}

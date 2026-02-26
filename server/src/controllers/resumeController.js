@@ -1,53 +1,51 @@
 const pdf = require("pdf-parse");
+const mammoth = require("mammoth");
 const aiPrompt = require("../utils/aiPrompt");
 const aiController = require("./aiController");
 
+/**
+ * Extracts plain text from a PDF or DOCX buffer.
+ * @param {Buffer} buffer
+ * @param {string} mimetype
+ * @returns {Promise<string>}
+ */
+async function extractText(buffer, mimetype) {
+    const isDocx = mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        || mimetype === 'application/msword';
+
+    if (isDocx) {
+        const result = await mammoth.extractRawText({ buffer });
+        return result.value;
+    }
+
+    // Default: treat as PDF
+    const data = await pdf(buffer);
+    return data.text;
+}
+
 exports.parseResume = async (req, res) => {
     try {
-        console.log("Resume parse request received");
-        console.log("Type of pdf:", typeof pdf);
         if (!req.file) {
-            console.error("No file in request");
             return res.status(400).json({ success: false, message: "No file uploaded" });
         }
 
-        console.log("Parsing PDF buffer, size:", req.file.buffer.length);
-        // Parse PDF
-        const dataBuffer = req.file.buffer;
-        let pdfData;
+        let resumeText;
         try {
-            pdfData = await pdf(dataBuffer);
-        } catch (pdfErr) {
-            console.error("PDF Parsing error:", pdfErr);
-            throw new Error("Failed to parse PDF file content.");
+            resumeText = await extractText(req.file.buffer, req.file.mimetype);
+        } catch (parseErr) {
+            console.error("File parsing error:", parseErr);
+            throw new Error("Could not extract text from the uploaded file.");
         }
-
-        const resumeText = pdfData.text;
-        console.log("Extracted text length:", resumeText?.length);
 
         if (!resumeText || resumeText.trim().length === 0) {
-            console.error("Empty text extracted from PDF");
-            return res.status(400).json({ success: false, message: "Could not extract text from PDF" });
+            return res.status(400).json({ success: false, message: "Could not extract text from the file" });
         }
 
-        // Use AI to extract skills
-        console.log("Calling AI for resume data extraction...");
         const prompt = aiPrompt.resumeParserPrompt(resumeText);
-
-        // We can reuse the AI controller's logic to call OpenRouter/OpenAI
-        // Since we want JSON, we use the internal extractFirstJson or similar
-        // For now, let's assume aiController has a method or we can call OpenRouter directly
-        // Actually, let's use the logic from aiController to be safe
-
         const aiResponse = await aiController.generateResumeData(prompt);
-        console.log("AI extraction successful:", aiResponse);
 
         if (aiResponse.isResume === false) {
-            console.error("Uploaded file is not a resume according to AI");
-            return res.status(400).json({
-                success: false,
-                message: "No other type of Pdf are allowed!!!!!!!"
-            });
+            return res.status(400).json({ success: false, message: "Only resume files are allowed." });
         }
 
         return res.status(200).json({
@@ -57,7 +55,7 @@ exports.parseResume = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Detailed Resume parsing error:", error);
+        console.error("Resume parsing error:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 };
@@ -68,18 +66,16 @@ exports.analyzeResume = async (req, res) => {
             return res.status(400).json({ success: false, message: "No file uploaded" });
         }
 
-        const dataBuffer = req.file.buffer;
-        let pdfData;
+        let resumeText;
         try {
-            pdfData = await pdf(dataBuffer);
-        } catch (pdfErr) {
-            console.error("PDF Parsing error:", pdfErr);
-            throw new Error("Failed to parse PDF file content.");
+            resumeText = await extractText(req.file.buffer, req.file.mimetype);
+        } catch (parseErr) {
+            console.error("File parsing error:", parseErr);
+            return res.status(400).json({ success: false, message: "Could not read the uploaded file. Please upload a valid PDF or Word document." });
         }
 
-        const resumeText = pdfData.text;
         if (!resumeText || resumeText.trim().length === 0) {
-            return res.status(400).json({ success: false, message: "Could not extract text from PDF" });
+            return res.status(400).json({ success: false, message: "Could not extract text from the file" });
         }
 
         // Use AI to score and analyze

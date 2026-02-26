@@ -353,6 +353,17 @@ router.post('/friends/add', protect, async (req, res) => {
         const alreadyInRecipient = friend.friends.some(f => f.userId.toString() === user._id.toString());
         if (!alreadyInRecipient) {
             friend.friends.push({ userId: user._id, status: 'incoming' });
+
+            // Push a notification to the recipient
+            friend.notifications = friend.notifications || [];
+            friend.notifications.push({
+                type: 'friend_request',
+                title: 'New Friend Request',
+                message: `${user.name} sent you a friend request.`,
+                link: '/leaderboard',
+                meta: { senderId: user._id, senderName: user.name, senderPic: user.profilePic }
+            });
+
             await friend.save();
         }
 
@@ -393,7 +404,7 @@ router.post('/friends/accept/:friendId', protect, async (req, res) => {
         incomingEntry.status = 'accepted';
         await user.save();
 
-        // Update sender's pending -> accepted
+        // Update sender's pending -> accepted + push notification to sender
         const sender = await User.findById(friendId);
         if (sender) {
             const senderEntry = sender.friends.find(
@@ -401,8 +412,19 @@ router.post('/friends/accept/:friendId', protect, async (req, res) => {
             );
             if (senderEntry) {
                 senderEntry.status = 'accepted';
-                await sender.save();
             }
+
+            // Notify the original sender that their request was accepted
+            sender.notifications = sender.notifications || [];
+            sender.notifications.push({
+                type: 'friend_accepted',
+                title: 'Friend Request Accepted! 🎉',
+                message: `${user.name} accepted your friend request.`,
+                link: '/leaderboard',
+                meta: { acceptorId: user._id, acceptorName: user.name, acceptorPic: user.profilePic }
+            });
+
+            await sender.save();
         }
 
         res.json({ success: true, message: 'Friend request accepted!' });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
     Upload,
     ChevronDown,
@@ -38,13 +38,24 @@ const ResumeAnalyzer = () => {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [downloading, setDownloading] = useState(false);
+    const reportRef = useRef(null);
+
+    const isValidFile = (f) => {
+        const allowed = [
+            'application/pdf',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/msword'
+        ];
+        return f && allowed.includes(f.type);
+    };
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
-        if (selectedFile && selectedFile.type === 'application/pdf') {
+        if (isValidFile(selectedFile)) {
             setFile(selectedFile);
         } else {
-            toast.error('Please upload a valid PDF file');
+            toast.error('Please upload a PDF or Word (.docx) file');
         }
     };
 
@@ -61,10 +72,10 @@ const ResumeAnalyzer = () => {
         e.preventDefault();
         setIsDragging(false);
         const selectedFile = e.dataTransfer.files[0];
-        if (selectedFile && selectedFile.type === 'application/pdf') {
+        if (isValidFile(selectedFile)) {
             setFile(selectedFile);
         } else {
-            toast.error('Please upload a valid PDF file');
+            toast.error('Please upload a PDF or Word (.docx) file');
         }
     };
 
@@ -92,6 +103,27 @@ const ResumeAnalyzer = () => {
             toast.error(err.response?.data?.message || 'Analysis failed');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const downloadReport = async () => {
+        if (!reportRef.current) return;
+        setDownloading(true);
+        try {
+            const { default: jsPDF } = await import('jspdf');
+            const { default: html2canvas } = await import('html2canvas');
+            const canvas = await html2canvas(reportRef.current, { scale: 1.5, useCORS: true });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const width = pdf.internal.pageSize.getWidth();
+            const height = (canvas.height * width) / canvas.width;
+            pdf.addImage(imgData, 'PNG', 0, 0, width, height);
+            pdf.save(`Resume_Analysis_${file?.name?.replace(/\.[^.]+$/, '') || 'Report'}.pdf`);
+            toast.success('Report downloaded!');
+        } catch (err) {
+            toast.error('Failed to download report');
+        } finally {
+            setDownloading(false);
         }
     };
 
@@ -194,8 +226,8 @@ const ResumeAnalyzer = () => {
                                             <div className="flex flex-col sm:flex-row gap-4 items-center w-full max-w-sm">
                                                 <label className="flex-1 w-full py-5 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest cursor-pointer transition-all active:scale-95 shadow-xl shadow-green-900/40 flex items-center justify-center gap-2">
                                                     <FileText size={18} />
-                                                    {file ? 'Change PDF' : 'Select PDF'}
-                                                    <input type="file" className="hidden" accept=".pdf" onChange={handleFileChange} />
+                                                    {file ? 'Change File' : 'Select PDF / DOCX'}
+                                                    <input type="file" className="hidden" accept=".pdf,.doc,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword" onChange={handleFileChange} />
                                                 </label>
                                                 {file && (
                                                     <button
@@ -210,9 +242,9 @@ const ResumeAnalyzer = () => {
                                             </div>
 
                                             <div className="mt-12 flex items-center gap-6 opacity-30 grayscale">
-                                                <div className="flex items-center gap-2 text-[10px] font-black uppercase"><ShieldCheck size={14} /> PDF SECURE</div>
+                                                <div className="flex items-center gap-2 text-[10px] font-black uppercase"><ShieldCheck size={14} /> SECURE</div>
                                                 <div className="flex items-center gap-2 text-[10px] font-black uppercase"><Target size={14} /> ATS OPTIMIZED</div>
-                                                <div className="flex items-center gap-2 text-[10px] font-black uppercase"><Award size={14} /> RECRUITER APPROVED</div>
+                                                <div className="flex items-center gap-2 text-[10px] font-black uppercase"><Award size={14} /> PDF & DOCX</div>
                                             </div>
                                         </>
                                     )}
@@ -223,221 +255,239 @@ const ResumeAnalyzer = () => {
                         /* Unified Dashboard */
                         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
 
-                            {/* 1. SCORE & SUMMARY */}
-                            <div className="grid lg:grid-cols-12 gap-6">
-                                <div className={`lg:col-span-4 p-10 rounded-[48px] border relative overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-xl shadow-slate-200/30'} flex flex-col items-center justify-center text-center`}>
-                                    <div className="absolute top-0 right-0 p-6 opacity-5">
-                                        <Award size={120} />
-                                    </div>
-                                    <div className="relative mb-6">
-                                        <svg className="w-48 h-48 transform -rotate-90">
-                                            <circle cx="96" cy="96" r="86" className="stroke-slate-100 dark:stroke-slate-700 fill-none" strokeWidth="14" />
-                                            <circle cx="96" cy="96" r="86" stroke="currentColor" strokeWidth="14" strokeDasharray={2 * Math.PI * 86} strokeDashoffset={2 * Math.PI * 86 * (1 - result.overallScore / 100)} className={`fill-none ${result.overallScore >= 80 ? 'text-green-500' : result.overallScore >= 60 ? 'text-amber-500' : 'text-rose-500'} transition-all duration-1500`} strokeLinecap="round" />
-                                        </svg>
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                            <span className="text-7xl font-black tracking-tighter leading-none">{result.overallScore}</span>
-                                            <span className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40 mt-1">Global Score</span>
-                                        </div>
-                                    </div>
-                                    <div className={`px-6 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white shadow-lg ${result.overallScore >= 80 ? 'bg-green-500 shadow-green-500/20' : result.overallScore >= 60 ? 'bg-amber-500 shadow-amber-500/20' : 'bg-rose-500 shadow-rose-500/20'}`}>
-                                        Verdict: {result.verdict}
-                                    </div>
-                                </div>
-
-                                <div className={`lg:col-span-8 p-10 rounded-[48px] border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-xl shadow-slate-200/30'} flex flex-col justify-center relative overflow-hidden`}>
-                                    <div className="flex items-center gap-3 text-green-500 mb-4">
-                                        <UserCircle size={24} />
-                                        <h2 className="text-2xl font-black uppercase tracking-tight">{result.detectedRole?.role}</h2>
-                                    </div>
-                                    <p className="text-lg font-medium opacity-60 mb-10 leading-relaxed italic">"{result.summary}"</p>
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 pt-8 border-t border-slate-500/10">
-                                        <ProgressBar percent={result.jdMatch?.overall} label="JD Match" colorClass="bg-green-500" />
-                                        <ProgressBar percent={result.jobTitleAlignment?.score} label="Title Fit" colorClass="bg-indigo-500" />
-                                        <ProgressBar percent={result.quantification?.score} label="Impact Score" colorClass="bg-amber-500" />
-                                        <ProgressBar percent={result.benchmarks?.yourPercentile} label="Market Percentile" colorClass="bg-emerald-500" />
-                                    </div>
-                                </div>
+                            {/* Download button */}
+                            <div className="flex justify-end">
+                                <button
+                                    onClick={downloadReport}
+                                    disabled={downloading}
+                                    className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-green-900/30"
+                                >
+                                    {downloading
+                                        ? <RefreshCcw size={16} className="animate-spin" />
+                                        : <ArrowDown size={16} />
+                                    }
+                                    {downloading ? 'Generating…' : 'Download Report'}
+                                </button>
                             </div>
 
-                            {/* 2. REJECTION BLOCKERS (VITAL) */}
-                            <div className="space-y-6">
-                                <SectionHeader title="Critical Rejection Blocks" icon={AlertTriangle} color="text-rose-500" />
-                                <div className="grid md:grid-cols-2 gap-6">
-                                    {/* Red Flags combined with Missing Sections */}
-                                    <div className={`p-8 rounded-[40px] border border-rose-500/20 bg-rose-500/5 backdrop-blur-sm relative overflow-hidden`}>
-                                        <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-rose-500">
-                                            <Flag size={120} />
+                            <div ref={reportRef}>
+
+                                {/* 1. SCORE & SUMMARY */}
+                                <div className="grid lg:grid-cols-12 gap-6">
+                                    <div className={`lg:col-span-4 p-10 rounded-[48px] border relative overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-xl shadow-slate-200/30'} flex flex-col items-center justify-center text-center`}>
+                                        <div className="absolute top-0 right-0 p-6 opacity-5">
+                                            <Award size={120} />
                                         </div>
-                                        <h4 className="text-[10px] font-black uppercase text-rose-500 mb-6 tracking-widest flex items-center gap-2">
-                                            <Flag size={16} /> Content Traps
-                                        </h4>
-                                        <div className="space-y-6 relative z-10">
-                                            {result.redFlags?.map((flag, i) => (
-                                                <div key={i} className="flex gap-4 group">
-                                                    <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-lg bg-rose-500/10 flex items-center justify-center">
-                                                        <XCircle size={16} className="text-rose-500" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm font-black mb-1">{flag.message}</p>
-                                                        <p className="text-xs opacity-60 leading-relaxed font-medium">{flag.solution}</p>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                            {result.missingSections?.map((section, i) => (
-                                                <div key={i} className="flex gap-4">
-                                                    <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-lg bg-rose-500/10 flex items-center justify-center">
-                                                        <AlertCircle size={16} className="text-rose-500" />
-                                                    </div>
-                                                    <p className="text-sm font-black">Missing Required Section: <span className="underline decoration-rose-500/30">{section}</span></p>
-                                                </div>
-                                            ))}
-                                            {(!result.redFlags?.length && !result.missingSections?.length) && (
-                                                <div className="flex items-center gap-3 text-green-500 bg-green-500/5 p-4 rounded-2xl border border-green-500/10">
-                                                    <CheckCircle2 size={18} />
-                                                    <p className="text-sm font-black uppercase tracking-tight">No content rejection triggers found.</p>
-                                                </div>
-                                            )}
+                                        <div className="relative mb-6">
+                                            <svg className="w-48 h-48 transform -rotate-90">
+                                                <circle cx="96" cy="96" r="86" className="stroke-slate-100 dark:stroke-slate-700 fill-none" strokeWidth="14" />
+                                                <circle cx="96" cy="96" r="86" stroke="currentColor" strokeWidth="14" strokeDasharray={2 * Math.PI * 86} strokeDashoffset={2 * Math.PI * 86 * (1 - result.overallScore / 100)} className={`fill-none ${result.overallScore >= 80 ? 'text-green-500' : result.overallScore >= 60 ? 'text-amber-500' : 'text-rose-500'} transition-all duration-1500`} strokeLinecap="round" />
+                                            </svg>
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                                <span className="text-7xl font-black tracking-tighter leading-none">{result.overallScore}</span>
+                                                <span className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40 mt-1">Global Score</span>
+                                            </div>
+                                        </div>
+                                        <div className={`px-6 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white shadow-lg ${result.overallScore >= 80 ? 'bg-green-500 shadow-green-500/20' : result.overallScore >= 60 ? 'bg-amber-500 shadow-amber-500/20' : 'bg-rose-500 shadow-rose-500/20'}`}>
+                                            Verdict: {result.verdict}
                                         </div>
                                     </div>
 
-                                    {/* Formatting Blocks */}
-                                    <div className={`p-8 rounded-[40px] border border-amber-500/20 bg-amber-500/5 backdrop-blur-sm relative overflow-hidden`}>
-                                        <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-amber-500">
-                                            <Layout size={120} />
+                                    <div className={`lg:col-span-8 p-10 rounded-[48px] border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-xl shadow-slate-200/30'} flex flex-col justify-center relative overflow-hidden`}>
+                                        <div className="flex items-center gap-3 text-green-500 mb-4">
+                                            <UserCircle size={24} />
+                                            <h2 className="text-2xl font-black uppercase tracking-tight">{result.detectedRole?.role}</h2>
                                         </div>
-                                        <h4 className="text-[10px] font-black uppercase text-amber-500 mb-6 tracking-widest flex items-center gap-2">
-                                            <Layout size={16} /> Machine Readability
-                                        </h4>
-                                        <div className="space-y-6 relative z-10">
-                                            {result.formatting?.issues?.map((issue, i) => (
-                                                <div key={i} className="flex gap-4">
-                                                    <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                                                        <ShieldCheck size={16} className="text-amber-500" />
+                                        <p className="text-lg font-medium opacity-60 mb-10 leading-relaxed italic">"{result.summary}"</p>
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 pt-8 border-t border-slate-500/10">
+                                            <ProgressBar percent={result.jdMatch?.overall} label="JD Match" colorClass="bg-green-500" />
+                                            <ProgressBar percent={result.jobTitleAlignment?.score} label="Title Fit" colorClass="bg-indigo-500" />
+                                            <ProgressBar percent={result.quantification?.score} label="Impact Score" colorClass="bg-amber-500" />
+                                            <ProgressBar percent={result.benchmarks?.yourPercentile} label="Market Percentile" colorClass="bg-emerald-500" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 2. REJECTION BLOCKERS (VITAL) */}
+                                <div className="space-y-6">
+                                    <SectionHeader title="Critical Rejection Blocks" icon={AlertTriangle} color="text-rose-500" />
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        {/* Red Flags combined with Missing Sections */}
+                                        <div className={`p-8 rounded-[40px] border border-rose-500/20 bg-rose-500/5 backdrop-blur-sm relative overflow-hidden`}>
+                                            <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-rose-500">
+                                                <Flag size={120} />
+                                            </div>
+                                            <h4 className="text-[10px] font-black uppercase text-rose-500 mb-6 tracking-widest flex items-center gap-2">
+                                                <Flag size={16} /> Content Traps
+                                            </h4>
+                                            <div className="space-y-6 relative z-10">
+                                                {result.redFlags?.map((flag, i) => (
+                                                    <div key={i} className="flex gap-4 group">
+                                                        <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-lg bg-rose-500/10 flex items-center justify-center">
+                                                            <XCircle size={16} className="text-rose-500" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-black mb-1">{flag.message}</p>
+                                                            <p className="text-xs opacity-60 leading-relaxed font-medium">{flag.solution}</p>
+                                                        </div>
                                                     </div>
-                                                    <p className="text-sm font-black leading-relaxed">{issue}</p>
-                                                </div>
-                                            ))}
-                                            {(!result.formatting?.issues?.length) && (
-                                                <div className="flex items-center gap-3 text-green-500 bg-green-500/5 p-4 rounded-2xl border border-green-500/10">
-                                                    <CheckCircle2 size={18} />
-                                                    <p className="text-sm font-black uppercase tracking-tight">Formatting is optimized for neural parsing.</p>
-                                                </div>
-                                            )}
-                                            <div className="pt-6 mt-6 border-t border-amber-500/10 grid grid-cols-2 gap-4">
-                                                <div className="bg-white/5 p-3 rounded-xl border border-white/5">
-                                                    <div className="text-[9px] font-black opacity-30 uppercase tracking-widest mb-1">Parser Type</div>
-                                                    <div className="text-xs font-black uppercase">{result.formatting?.fileType || 'PDF Engine'}</div>
-                                                </div>
-                                                <div className="bg-white/5 p-3 rounded-xl border border-white/5">
-                                                    <div className="text-[9px] font-black opacity-30 uppercase tracking-widest mb-1">Grid Flow</div>
-                                                    <div className="text-xs font-black uppercase">{result.formatting?.isOneColumn ? 'Single Column' : 'Hybrid Layout'}</div>
+                                                ))}
+                                                {result.missingSections?.map((section, i) => (
+                                                    <div key={i} className="flex gap-4">
+                                                        <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-lg bg-rose-500/10 flex items-center justify-center">
+                                                            <AlertCircle size={16} className="text-rose-500" />
+                                                        </div>
+                                                        <p className="text-sm font-black">Missing Required Section: <span className="underline decoration-rose-500/30">{section}</span></p>
+                                                    </div>
+                                                ))}
+                                                {(!result.redFlags?.length && !result.missingSections?.length) && (
+                                                    <div className="flex items-center gap-3 text-green-500 bg-green-500/5 p-4 rounded-2xl border border-green-500/10">
+                                                        <CheckCircle2 size={18} />
+                                                        <p className="text-sm font-black uppercase tracking-tight">No content rejection triggers found.</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Formatting Blocks */}
+                                        <div className={`p-8 rounded-[40px] border border-amber-500/20 bg-amber-500/5 backdrop-blur-sm relative overflow-hidden`}>
+                                            <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-amber-500">
+                                                <Layout size={120} />
+                                            </div>
+                                            <h4 className="text-[10px] font-black uppercase text-amber-500 mb-6 tracking-widest flex items-center gap-2">
+                                                <Layout size={16} /> Machine Readability
+                                            </h4>
+                                            <div className="space-y-6 relative z-10">
+                                                {result.formatting?.issues?.map((issue, i) => (
+                                                    <div key={i} className="flex gap-4">
+                                                        <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                                                            <ShieldCheck size={16} className="text-amber-500" />
+                                                        </div>
+                                                        <p className="text-sm font-black leading-relaxed">{issue}</p>
+                                                    </div>
+                                                ))}
+                                                {(!result.formatting?.issues?.length) && (
+                                                    <div className="flex items-center gap-3 text-green-500 bg-green-500/5 p-4 rounded-2xl border border-green-500/10">
+                                                        <CheckCircle2 size={18} />
+                                                        <p className="text-sm font-black uppercase tracking-tight">Formatting is optimized for neural parsing.</p>
+                                                    </div>
+                                                )}
+                                                <div className="pt-6 mt-6 border-t border-amber-500/10 grid grid-cols-2 gap-4">
+                                                    <div className="bg-white/5 p-3 rounded-xl border border-white/5">
+                                                        <div className="text-[9px] font-black opacity-30 uppercase tracking-widest mb-1">Parser Type</div>
+                                                        <div className="text-xs font-black uppercase">{result.formatting?.fileType || 'PDF Engine'}</div>
+                                                    </div>
+                                                    <div className="bg-white/5 p-3 rounded-xl border border-white/5">
+                                                        <div className="text-[9px] font-black opacity-30 uppercase tracking-widest mb-1">Grid Flow</div>
+                                                        <div className="text-xs font-black uppercase">{result.formatting?.isOneColumn ? 'Single Column' : 'Hybrid Layout'}</div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* 3. ACTIONABLE FIXES */}
-                            <div className="space-y-6">
-                                <SectionHeader title="Priority Correction Roadmap" icon={Edit3} color="text-indigo-500" />
-                                <div className="grid lg:grid-cols-2 gap-8">
-                                    {/* Structural Fixes */}
-                                    <div className={`p-10 rounded-[48px] border relative overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-700 shadow-2xl' : 'bg-white border-slate-200 shadow-xl'}`}>
-                                        <div className="absolute top-0 right-0 p-8 opacity-[0.02]">
-                                            <ListChecks size={120} />
-                                        </div>
-                                        <h4 className="text-[10px] font-black uppercase opacity-40 mb-8 tracking-[0.3em] flex items-center gap-2">
-                                            <ListChecks size={16} className="text-indigo-500" /> Roadmap to Shortlist
-                                        </h4>
-                                        <div className="space-y-8 relative z-10">
-                                            {result.improvements?.map((imp, i) => (
-                                                <div key={i} className="group relative pl-6 border-l-2 border-slate-500/10 hover:border-indigo-500 transition-colors">
-                                                    <div className="flex items-center justify-between mb-2">
-                                                        <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-lg ${imp.priority === 'High' ? 'bg-rose-500/10 text-rose-500' : 'bg-amber-500/10 text-amber-500'}`}>
-                                                            {imp.priority} Priority
-                                                        </span>
-                                                        <ArrowRight size={14} className="opacity-0 group-hover:opacity-100 -translate-x-4 group-hover:translate-x-0 transition-all text-indigo-500" />
+                                {/* 3. ACTIONABLE FIXES */}
+                                <div className="space-y-6">
+                                    <SectionHeader title="Priority Correction Roadmap" icon={Edit3} color="text-indigo-500" />
+                                    <div className="grid lg:grid-cols-2 gap-8">
+                                        {/* Structural Fixes */}
+                                        <div className={`p-10 rounded-[48px] border relative overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-700 shadow-2xl' : 'bg-white border-slate-200 shadow-xl'}`}>
+                                            <div className="absolute top-0 right-0 p-8 opacity-[0.02]">
+                                                <ListChecks size={120} />
+                                            </div>
+                                            <h4 className="text-[10px] font-black uppercase opacity-40 mb-8 tracking-[0.3em] flex items-center gap-2">
+                                                <ListChecks size={16} className="text-indigo-500" /> Roadmap to Shortlist
+                                            </h4>
+                                            <div className="space-y-8 relative z-10">
+                                                {result.improvements?.map((imp, i) => (
+                                                    <div key={i} className="group relative pl-6 border-l-2 border-slate-500/10 hover:border-indigo-500 transition-colors">
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-lg ${imp.priority === 'High' ? 'bg-rose-500/10 text-rose-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                                                                {imp.priority} Priority
+                                                            </span>
+                                                            <ArrowRight size={14} className="opacity-0 group-hover:opacity-100 -translate-x-4 group-hover:translate-x-0 transition-all text-indigo-500" />
+                                                        </div>
+                                                        <h5 className="font-black text-[15px] mb-1.5 leading-tight">{imp.issue}</h5>
+                                                        <p className="text-sm opacity-60 leading-relaxed font-medium">{imp.solution}</p>
                                                     </div>
-                                                    <h5 className="font-black text-[15px] mb-1.5 leading-tight">{imp.issue}</h5>
-                                                    <p className="text-sm opacity-60 leading-relaxed font-medium">{imp.solution}</p>
-                                                </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Bullet Optimization */}
+                                        <div className={`p-10 rounded-[48px] border relative overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-700 shadow-2xl' : 'bg-white border-slate-200 shadow-xl'}`}>
+                                            <div className="absolute top-0 right-0 p-8 opacity-[0.02]">
+                                                <Percent size={120} />
+                                            </div>
+                                            <h4 className="text-[10px] font-black uppercase opacity-40 mb-8 tracking-[0.3em] flex items-center gap-2">
+                                                <TrendingUp size={16} className="text-green-500" /> Neural Bullet Rewrites
+                                            </h4>
+                                            <div className="space-y-8 relative z-10">
+                                                {result.bulletRewrites?.slice(0, 3).map((rewrite, i) => (
+                                                    <div key={i} className="space-y-4">
+                                                        <div className="p-4 bg-slate-500/5 rounded-2xl text-xs opacity-50 border border-dashed border-slate-500/30 italic leading-relaxed">
+                                                            "{rewrite.before}"
+                                                        </div>
+                                                        <div className="flex justify-center -my-4 relative z-20">
+                                                            <div className="bg-green-600 text-white p-1.5 rounded-full shadow-xl ring-4 ring-white dark:ring-slate-800"><TrendingUp size={14} /></div>
+                                                        </div>
+                                                        <div className="p-5 bg-green-500/5 border border-green-500/20 rounded-2xl text-sm font-black text-green-500 leading-relaxed shadow-inner shadow-green-500/5">
+                                                            {rewrite.after}
+                                                        </div>
+                                                        <div className="text-[10px] font-black uppercase text-indigo-500 tracking-widest px-1 flex items-center gap-2">
+                                                            <Sparkles size={12} /> {rewrite.impact}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 4. TECHNICAL ALIGNMENT (SUPPORTING DATA) */}
+                                <div className="grid lg:grid-cols-3 gap-8">
+                                    <div className={`p-8 rounded-[40px] border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+                                        <h4 className="text-[10px] font-black uppercase opacity-40 mb-6 flex items-center gap-2 tracking-widest">
+                                            <Briefcase size={16} className="text-green-500" /> Matched Intelligence
+                                        </h4>
+                                        <div className="flex flex-wrap gap-2">
+                                            {result.keywords?.matched?.slice(0, 10).map((kw, i) => (
+                                                <span key={i} className="px-3 py-1.5 rounded-xl text-[10px] font-black bg-green-500/10 text-green-500 border border-green-500/10 uppercase tracking-tighter">
+                                                    {kw}
+                                                </span>
+                                            ))}
+                                            {result.keywords?.missing?.slice(0, 5).map((kw, i) => (
+                                                <span key={i} className="px-3 py-1.5 rounded-xl text-[10px] font-black bg-rose-500/10 text-rose-500 border border-rose-500/10 uppercase tracking-tighter">
+                                                    +{kw.term}
+                                                </span>
                                             ))}
                                         </div>
                                     </div>
 
-                                    {/* Bullet Optimization */}
-                                    <div className={`p-10 rounded-[48px] border relative overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-700 shadow-2xl' : 'bg-white border-slate-200 shadow-xl'}`}>
-                                        <div className="absolute top-0 right-0 p-8 opacity-[0.02]">
-                                            <Percent size={120} />
-                                        </div>
-                                        <h4 className="text-[10px] font-black uppercase opacity-40 mb-8 tracking-[0.3em] flex items-center gap-2">
-                                            <TrendingUp size={16} className="text-green-500" /> Neural Bullet Rewrites
+                                    <div className={`p-8 rounded-[40px] border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+                                        <h4 className="text-[10px] font-black uppercase opacity-40 mb-6 flex items-center gap-2 tracking-widest">
+                                            <Terminal size={16} className="text-slate-500" /> Neural Extraction
                                         </h4>
-                                        <div className="space-y-8 relative z-10">
-                                            {result.bulletRewrites?.slice(0, 3).map((rewrite, i) => (
-                                                <div key={i} className="space-y-4">
-                                                    <div className="p-4 bg-slate-500/5 rounded-2xl text-xs opacity-50 border border-dashed border-slate-500/30 italic leading-relaxed">
-                                                        "{rewrite.before}"
-                                                    </div>
-                                                    <div className="flex justify-center -my-4 relative z-20">
-                                                        <div className="bg-green-600 text-white p-1.5 rounded-full shadow-xl ring-4 ring-white dark:ring-slate-800"><TrendingUp size={14} /></div>
-                                                    </div>
-                                                    <div className="p-5 bg-green-500/5 border border-green-500/20 rounded-2xl text-sm font-black text-green-500 leading-relaxed shadow-inner shadow-green-500/5">
-                                                        {rewrite.after}
-                                                    </div>
-                                                    <div className="text-[10px] font-black uppercase text-indigo-500 tracking-widest px-1 flex items-center gap-2">
-                                                        <Sparkles size={12} /> {rewrite.impact}
-                                                    </div>
-                                                </div>
-                                            ))}
+                                        <div className={`p-5 rounded-2xl font-mono text-[9px] h-32 overflow-auto ${isDarkMode ? 'bg-black/40' : 'bg-slate-900'} text-green-500/60 scrollbar-hide border border-white/5`}>
+                                            <div className="opacity-20 mb-2">// RAW SCAN BUFFER v2.0</div>
+                                            {result.atsSimulation?.rawExtraction}
                                         </div>
                                     </div>
-                                </div>
-                            </div>
 
-                            {/* 4. TECHNICAL ALIGNMENT (SUPPORTING DATA) */}
-                            <div className="grid lg:grid-cols-3 gap-8">
-                                <div className={`p-8 rounded-[40px] border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
-                                    <h4 className="text-[10px] font-black uppercase opacity-40 mb-6 flex items-center gap-2 tracking-widest">
-                                        <Briefcase size={16} className="text-green-500" /> Matched Intelligence
-                                    </h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {result.keywords?.matched?.slice(0, 10).map((kw, i) => (
-                                            <span key={i} className="px-3 py-1.5 rounded-xl text-[10px] font-black bg-green-500/10 text-green-500 border border-green-500/10 uppercase tracking-tighter">
-                                                {kw}
-                                            </span>
-                                        ))}
-                                        {result.keywords?.missing?.slice(0, 5).map((kw, i) => (
-                                            <span key={i} className="px-3 py-1.5 rounded-xl text-[10px] font-black bg-rose-500/10 text-rose-500 border border-rose-500/10 uppercase tracking-tighter">
-                                                +{kw.term}
-                                            </span>
-                                        ))}
+                                    <div className={`p-8 rounded-[40px] border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} flex flex-col justify-center`}>
+                                        <button onClick={() => setResult(null)} className="group w-full py-6 bg-green-600 hover:bg-green-700 text-white rounded-[24px] font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all active:scale-95 shadow-2xl shadow-green-900/40">
+                                            <RefreshCcw size={20} className="group-hover:rotate-180 transition-transform duration-700" />
+                                            New Diagnostic
+                                        </button>
                                     </div>
                                 </div>
 
-                                <div className={`p-8 rounded-[40px] border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
-                                    <h4 className="text-[10px] font-black uppercase opacity-40 mb-6 flex items-center gap-2 tracking-widest">
-                                        <Terminal size={16} className="text-slate-500" /> Neural Extraction
-                                    </h4>
-                                    <div className={`p-5 rounded-2xl font-mono text-[9px] h-32 overflow-auto ${isDarkMode ? 'bg-black/40' : 'bg-slate-900'} text-green-500/60 scrollbar-hide border border-white/5`}>
-                                        <div className="opacity-20 mb-2">// RAW SCAN BUFFER v2.0</div>
-                                        {result.atsSimulation?.rawExtraction}
-                                    </div>
-                                </div>
-
-                                <div className={`p-8 rounded-[40px] border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} flex flex-col justify-center`}>
-                                    <button onClick={() => setResult(null)} className="group w-full py-6 bg-green-600 hover:bg-green-700 text-white rounded-[24px] font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all active:scale-95 shadow-2xl shadow-green-900/40">
-                                        <RefreshCcw size={20} className="group-hover:rotate-180 transition-transform duration-700" />
-                                        New Diagnostic
-                                    </button>
-                                </div>
-                            </div>
-
-                        </div>
+                            </div>{/* end reportRef div */}
+                        </div>{/* end result space-y-8 */}
                     )}
-                </div>
-            </div>
+                </div>{/* end max-w-6xl */}
+            </div>{/* end outer */}
 
             <style dangerouslySetInnerHTML={{
                 __html: `

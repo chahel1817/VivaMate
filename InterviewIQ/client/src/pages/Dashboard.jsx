@@ -126,6 +126,16 @@ export default function Dashboard() {
         borderColor: "border-yellow-500"
       },
       {
+        icon: MessageSquare,
+        title: "Community Forum",
+        desc: "Discuss interview tips, share experiences and get advice.",
+        action: "Open forum →",
+        path: "/forum",
+        color: "text-purple-500",
+        bgColor: "bg-purple-500/10",
+        borderColor: "border-purple-500"
+      },
+      {
         icon: Award,
         title: "Achievements",
         desc: "Unlock achievements and earn exclusive badges.",
@@ -320,8 +330,8 @@ export default function Dashboard() {
           {/* Friend Request Notification Banner */}
           {!friendsBannerDismissed && incomingRequests.length > 0 && (
             <div className={`flex items-start gap-3 p-4 rounded-xl border ${isDarkMode
-                ? 'bg-purple-900/30 border-purple-700/50 text-purple-200'
-                : 'bg-purple-50 border-purple-200 text-purple-800'
+              ? 'bg-purple-900/30 border-purple-700/50 text-purple-200'
+              : 'bg-purple-50 border-purple-200 text-purple-800'
               }`}>
               <div className={`p-2 rounded-lg flex-shrink-0 ${isDarkMode ? 'bg-purple-800/50' : 'bg-purple-100'
                 }`}>
@@ -354,18 +364,8 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Auto-refresh Info Banner */}
-          <div className={`${isDarkMode ? 'bg-blue-900/20 border-blue-700/50 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-700'} border rounded-lg p-4 flex items-start gap-3`}>
-            <Info size={20} className="flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium">
-                📊 Live Dashboard Updates
-              </p>
-              <p className={`text-xs mt-1 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                This page automatically refreshes every 10 seconds to show your latest progress and activities. No need to worry if you see updates—it's working perfectly!
-              </p>
-            </div>
-          </div>
+
+
 
           {/* Intro */}
           <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">

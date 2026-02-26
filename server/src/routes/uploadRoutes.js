@@ -18,7 +18,22 @@ router.post("/image", protect, upload.single("image"), (req, res) => {
 
 const multer = require("multer");
 const memoryStorage = multer.memoryStorage();
-const memoryUpload = multer({ storage: memoryStorage });
+const memoryUpload = multer({
+  storage: memoryStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    const allowed = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword'
+    ];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF and Word (.docx/.doc) files are allowed'), false);
+    }
+  }
+});
 const resumeController = require("../controllers/resumeController");
 
 router.post("/resume", protect, memoryUpload.single("resume"), resumeController.parseResume);
