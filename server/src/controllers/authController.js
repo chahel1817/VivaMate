@@ -124,10 +124,11 @@ const login = async (req, res) => {
 
     // Sync user to Redis leaderboards (async, non-blocking)
     const leaderboardService = require('../services/leaderboardService');
-    const { validateAndFixStreak } = require('../services/streakService');
+
 
     // Validate streak before syncing and returning data
-    await validateAndFixStreak(user);
+    const { validateAndFixStreakIST } = require('../services/streakService');
+    await validateAndFixStreakIST(user);
 
     leaderboardService.syncUserToRedis(user._id).catch(err => {
       console.error('Redis sync error on login:', err);
@@ -229,10 +230,11 @@ const verifyOtp = async (req, res) => {
 
     // Sync user to Redis leaderboards (async, non-blocking)
     const leaderboardService = require('../services/leaderboardService');
-    const { validateAndFixStreak } = require('../services/streakService');
+
 
     // Validate streak before syncing and returning data
-    await validateAndFixStreak(user);
+    const { validateAndFixStreakIST } = require('../services/streakService');
+    await validateAndFixStreakIST(user);
 
     leaderboardService.syncUserToRedis(user._id).catch(err => {
       console.error('Redis sync error on OTP login:', err);

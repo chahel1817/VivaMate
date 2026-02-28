@@ -16,14 +16,14 @@ router.post("/forgot-password", validate(requestOtpSchema), requestOtp);
 router.post("/verify-otp", validate(verifyOtpSchema), verifyOtp);
 router.put("/profile", protect, validate(updateProfileSchema), updateProfile);
 
-const { validateAndFixStreak } = require("../services/streakService");
+const { validateAndFixStreakIST } = require("../services/streakService");
 
 // ✅ Persist login on refresh
 router.get("/me", protect, async (req, res) => {
   try {
     let user = await User.findById(req.user).select("-password");
     if (user) {
-      user = await validateAndFixStreak(user);
+      user = await validateAndFixStreakIST(user);
     }
     res.json(user);
   } catch (err) {

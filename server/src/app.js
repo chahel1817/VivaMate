@@ -85,7 +85,7 @@ app.get("/api/dashboard", protect, async (req, res) => {
       .lean();
 
     // Calculate average score from completed sessions
-    const completedSessions = sessions.filter(s => s.overallScore !== null && s.overallScore !== undefined);
+    const completedSessions = sessions.filter(s => s.overallScore !== null && s.overallScore !== undefined && !isNaN(s.overallScore));
     const avgScore = completedSessions.length > 0
       ? Math.round((completedSessions.reduce((sum, s) => sum + (s.overallScore || 0), 0) / completedSessions.length) * 10)
       : 0;
@@ -126,7 +126,7 @@ app.get("/api/dashboard/stats", protect, async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
-    const completedSessions = sessions.filter(s => s.overallScore !== null && s.overallScore !== undefined);
+    const completedSessions = sessions.filter(s => s.overallScore !== null && s.overallScore !== undefined && !isNaN(s.overallScore));
 
     let avgScore = 0;
     let skillBreakdown = {
@@ -159,11 +159,12 @@ app.get("/api/dashboard/stats", protect, async (req, res) => {
       averageScore: avgScore,
       lastInterview: completedSessions.length > 0 ? new Date(completedSessions[0].createdAt).toISOString() : null,
       recentActivity: completedSessions.slice(0, 5).map((s) => ({ // Only show completed interviews
+        id: s._id,
         role: s.topic ? `${s.topic.domain || ''} ${s.topic.tech || ''}`.trim() || "Mock Interview" : "Mock Interview",
-        date: new Date(s.createdAt).toLocaleDateString(), // Keep simple for list, or assume frontend formats it? Frontend logic currently uses it as string "On {item.date}". 
-        score: `${s.overallScore}/10`, // Always show score for completed sessions
+        date: new Date(s.createdAt).toLocaleDateString(),
+        score: `${Number(s.overallScore).toFixed(1)}/10`,
         type: s.topic ? s.topic.domain : "Interview",
-        duration: 45 // Placeholder as duration might not be stored directly
+        duration: 45
       })),
       skillBreakdown,
       performanceTrend

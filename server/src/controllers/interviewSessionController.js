@@ -208,6 +208,53 @@ exports.createSummary = async (req, res) => {
 
     if (!updatedSession) return res.status(404).json({ message: "Failed to update session summary" });
 
+    // ── Streak and XP Update ──
+    try {
+      if (updatedSession.overallScore !== null && !isNaN(updatedSession.overallScore)) {
+        const User = require("../models/User");
+        const user = await User.findById(req.user);
+        if (user) {
+          const { updateStreakFromActivity } = require("../services/streakService");
+          const activityDate = req.body?.clientDate ? new Date(req.body.clientDate) : new Date();
+          const { currentStreak, streakBonus } = await updateStreakFromActivity(user, {
+            activityDate,
+            type: "interview",
+            metadata: {
+              interviewId: updatedSession._id,
+              score: updatedSession.overallScore || 0,
+              total: 10,
+              xpEarned: 100
+            }
+          });
+
+          // Reward 100 XP for completing an interview (plus streak bonus)
+          const interviewXpBase = 100;
+          const totalXp = interviewXpBase + streakBonus;
+          user.xp += totalXp;
+
+          // Update level
+          user.level = Math.floor(1 + user.xp / 500);
+
+          await user.save();
+          console.log(`[InterviewController] Updated streak to ${currentStreak} and XP (+${totalXp}) for user ${user._id}`);
+
+          // ── Leaderboard Sync ──
+          const leaderboardService = require('../services/leaderboardService');
+          leaderboardService.updateUserScore(
+            user._id,
+            user.xp,
+            user.streak,
+            user.weeklyStats?.weeklyXP || 0
+          ).catch(err => console.error('[InterviewController] Leaderboard update failed:', err));
+        }
+      } else {
+        console.log(`[InterviewController] Skipped streak/XP update for session ${sessionId} due to invalid score: ${updatedSession.overallScore}`);
+      }
+    } catch (streakErr) {
+      console.error("[InterviewController] Streak update failed:", streakErr);
+      // Don't fail the whole request if streak update fails
+    }
+
     return res.status(200).json(updatedSession);
   } catch (err) {
     console.error("createSummary error", err);
@@ -216,8 +263,23 @@ exports.createSummary = async (req, res) => {
 };
 
 exports.getMySummary = async (req, res) => {
-  const session = await InterviewSession.findOne({ user: req.user }).sort({
-    createdAt: -1,
-  });
-  res.json(session);
+  try {
+    const { id } = req.params;
+    let session;
+    if (id) {
+      session = await InterviewSession.findOne({ _id: id, user: req.user });
+    } else {
+      session = await InterviewSession.findOne({ user: req.user }).sort({
+        createdAt: -1,
+      });
+    }
+
+    if (!session) {
+      return res.status(404).json({ message: "Interview summary not found" });
+    }
+
+    res.json(session);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };

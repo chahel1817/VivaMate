@@ -66,9 +66,11 @@ export default function DailyChallenge() {
     const handleSubmit = async (finalAnswers) => {
         try {
             setSubmitting(true);
+            const clientDate = new Date().toISOString();
             const res = await api.post("/challenge/submit", {
                 challengeId: challenge._id,
-                answers: finalAnswers
+                answers: finalAnswers,
+                clientDate
             });
             setResult(res.data);
             // Refresh user data to update streak and XP in the UI

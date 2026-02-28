@@ -130,8 +130,8 @@ const getDailyChallenge = async (req, res) => {
         }
 
         // Validate streak whenever they fetch today's challenge (usually on dashboard load)
-        const { validateAndFixStreak } = require("../services/streakService");
-        await validateAndFixStreak(user);
+        const { validateAndFixStreakIST } = require("../services/streakService");
+        await validateAndFixStreakIST(user);
 
         // Check if user has completed THIS challenge OR ANY challenge today
         let completed = user.completedChallenges.some(c => c.challengeId && c.challengeId.toString() === challenge._id.toString());
@@ -209,74 +209,21 @@ const submitChallenge = async (req, res) => {
         const xpPerQuestion = challenge.xpReward / challenge.questions.length;
         const xpGained = Math.round(xpPerQuestion * correctCount);
 
-        // STREAK LOGIC - Fixed to properly handle consecutive days and prevent same-day duplicates
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Reset to start of day for accurate comparison
+        // STREAK LOGIC - Use unified streak service
+        const { updateStreakFromActivity } = require("../services/streakService");
+        const activityDate = req.body?.clientDate ? new Date(req.body.clientDate) : new Date();
 
-        // Check if user already completed a challenge TODAY
-        const lastChallengeDate = user.lastChallengeDate ? new Date(user.lastChallengeDate) : null;
-
-        // If already completed today, reject submission
-        if (lastChallengeDate && lastChallengeDate.toDateString() === today.toDateString()) {
-            return res.status(400).json({
-                message: "You've already completed today's challenge! Come back tomorrow.",
-                nextChallengeAt: new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString()
-            });
-        }
-
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-
-        let streakBonus = 0;
-
-        if (lastChallengeDate) {
-            const diffMs = today.getTime() - lastChallengeDate.getTime();
-            const diffHours = diffMs / (1000 * 60 * 60);
-
-            console.log('Streak Debug:', {
-                today: today.toISOString(),
-                lastDate: lastChallengeDate.toISOString(),
-                diffHours: diffHours.toFixed(2),
-                currentStreak: user.streak
-            });
-
-            // Logic: If the last challenge was within 48 hours (but not "today" which we already checked), it keeps the streak.
-            // We already blocked "today" above, so this basically checks "yesterday" or "late yesterday".
-            // Since we normalized "today" to midnight...
-
-            // Actually, let's use the Raw Dates for accurate "24h cycle" logic if we want strictly "daily".
-            // But User said "1st, 2nd, 3rd... I did 1st and 2nd".
-
-            // Standard "Daily" Logic:
-            // Must be "Yesterday" (calendar day).
-            const isConsecutiveDay = (
-                yesterday.getDate() === lastChallengeDate.getDate() &&
-                yesterday.getMonth() === lastChallengeDate.getMonth() &&
-                yesterday.getFullYear() === lastChallengeDate.getFullYear()
-            );
-
-            // RELAXED LOGIC for User Happiness:
-            // If it was "yesterday" OR if it was within the last 48 hours (to account for slightly >24h gaps or weird timezone midnights).
-            // Example: Done at 10 PM on Day 1. Done at 8 AM on Day 3? That's > 24h gap (34h).
-            // If they skipped Day 2 entirely...
-
-            if (isConsecutiveDay || diffHours < 48) {
-                user.streak += 1;
-                streakBonus = user.streak * 10; // 10 XP per streak day
-                console.log('✅ Streak incremented:', user.streak);
-            } else {
-                user.streak = 1;
-                streakBonus = 10;
-                console.log('🔄 Streak reset to 1 (gap detected > 48h or skipped day)');
+        const { streakBonus } = await updateStreakFromActivity(user, {
+            activityDate,
+            type: "challenge",
+            metadata: {
+                challengeId: challenge._id,
+                score: correctCount,
+                total: challenge.questions.length,
+                xpEarned: 0 // Will be updated below
             }
-        } else {
-            // First time completing a challenge
-            user.streak = 1;
-            streakBonus = 10;
-            console.log('🎉 First challenge completed, streak set to 1');
-        }
-
-        user.lastChallengeDate = today;
+        });
+        const today = activityDate;
         const totalXpEarned = xpGained + streakBonus;
         user.xp += totalXpEarned;
 
@@ -316,6 +263,16 @@ const submitChallenge = async (req, res) => {
         }
 
         await user.save();
+
+        // Update completion XP now that totalXpEarned is known
+        const { getDayKey } = require("../services/streakService");
+        const ChallengeCompletion = require("../models/ChallengeCompletion");
+        const dayKey = getDayKey(today);
+        await ChallengeCompletion.updateOne(
+            { user: user._id, dayKey, type: "challenge", challengeId: challenge._id },
+            { $set: { xpEarned: totalXpEarned, score: correctCount, total: challenge.questions.length, date: today } },
+            { upsert: true }
+        );
 
         // ── Push notifications for new badges ──
         for (const badge of newBadges) {
@@ -450,10 +407,83 @@ const toggleBookmark = async (req, res) => {
     }
 };
 
+const getUnifiedHistory = async (req, res) => {
+    try {
+        const ChallengeCompletion = require("../models/ChallengeCompletion");
+        const history = await ChallengeCompletion.find({ user: req.user })
+            .populate({
+                path: 'challengeId',
+                select: 'title difficulty xpReward'
+            })
+            .populate({
+                path: 'interviewId',
+                select: 'topic difficulty overallScore sessionId'
+            })
+            .sort({ date: -1 })
+            .lean();
+
+        const formatted = history
+            .map(item => {
+                if (item.type === 'challenge' && item.challengeId) {
+                    return {
+                        id: item._id,
+                        type: 'challenge',
+                        title: item.challengeId.title || "Daily Challenge",
+                        difficulty: item.challengeId.difficulty,
+                        date: item.date,
+                        score: item.score,
+                        total: item.total,
+                        xpEarned: item.xpEarned,
+                        dayKey: item.dayKey
+                    };
+                } else if (item.type === 'interview' && item.interviewId) {
+                    // Filter out sessions that have no valid score (NaN handled by checking if it exists)
+                    const score = item.score || item.interviewId.overallScore;
+                    if (score === null || score === undefined || isNaN(score)) return null;
+
+                    return {
+                        id: item._id,
+                        type: 'interview',
+                        title: `${item.interviewId.topic?.tech || 'Mock'} Interview`,
+                        difficulty: item.interviewId.difficulty,
+                        date: item.date,
+                        score: Number(score).toFixed(1), // Force single decimal
+                        total: 10, // Normalized to 10 for interviews
+                        xpEarned: item.xpEarned,
+                        dayKey: item.dayKey,
+                        sessionId: item.interviewId._id
+                    };
+                } else if (item.type === 'interview' && !item.interviewId) {
+                    // Orphaned interview record
+                    return null;
+                } else {
+                    // Fallback for partial data
+                    if (item.score === null || item.score === undefined || isNaN(item.score)) return null;
+                    return {
+                        id: item._id,
+                        type: item.type || 'activity',
+                        title: item.type === 'interview' ? 'Interview session' : 'Challenge session',
+                        date: item.date,
+                        score: item.score,
+                        total: item.total || 10,
+                        xpEarned: item.xpEarned,
+                        dayKey: item.dayKey
+                    };
+                }
+            })
+            .filter(item => item !== null); // Remove filtered out items
+
+        res.json(formatted);
+    } catch (err) {
+        console.error("Unified History Error:", err);
+        res.status(500).json({ message: "Failed to fetch unified history" });
+    }
+};
+
 const getBookmarks = async (req, res) => {
     try {
         const user = await User.findById(req.user);
-        res.json(user.bookmarks);
+        res.json(user.bookmarks || []);
     } catch (err) {
         res.status(500).json({ message: "Failed to fetch bookmarks" });
     }
@@ -463,6 +493,7 @@ module.exports = {
     getDailyChallenge,
     submitChallenge,
     getChallengeHistory,
+    getUnifiedHistory,
     toggleBookmark,
     getBookmarks
 };

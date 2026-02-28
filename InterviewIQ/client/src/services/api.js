@@ -5,4 +5,11 @@ const api = axios.create({
   withCredentials: true, // Send cookies with requests
 });
 
+api.interceptors.request.use((config) => {
+  const offset = new Date().getTimezoneOffset();
+  config.headers = config.headers || {};
+  config.headers["x-timezone-offset"] = offset;
+  return config;
+});
+
 export default api;

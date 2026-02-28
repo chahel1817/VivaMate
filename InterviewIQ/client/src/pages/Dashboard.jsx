@@ -2,22 +2,32 @@ import {
   PlayCircle,
   BarChart3,
   MessageSquare,
-  Trophy,
-  Flame,
+  Medal,
+  Rocket,
   Info,
   Award,
   BookOpen,
   Sparkles,
-  Zap,
+  Orbit,
   ArrowRight,
   Target,
   Activity,
   CheckCircle2,
-  Terminal,
+  ChevronFirst,
   MoveRight,
   ChevronRight,
   Users,
-  X
+  X,
+  Zap,
+  Command,
+  TrendingUp,
+  MessageCircle,
+  Crown,
+  MessagesSquare,
+  Dna,
+  Atom,
+  Cpu,
+  ShieldCheck
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -52,16 +62,17 @@ export default function Dashboard() {
   const actionTabs = [
     { id: "practice", label: "Practice", icon: PlayCircle },
     { id: "insights", label: "Insights", icon: BarChart3 },
-    { id: "community", label: "Community", icon: Trophy },
+    { id: "community", label: "Community", icon: Medal },
   ];
 
   const actionCards = {
     practice: [
       {
-        icon: PlayCircle,
+        icon: Cpu,
         title: "Start a Mock Interview",
         desc: "Answer real interview-style questions and get structured AI feedback.",
-        action: "Start interview →",
+        action: "Launch Session",
+        btnIcon: Zap,
         path: "/interview/type",
         tourId: "start-interview",
         featured: true,
@@ -70,10 +81,11 @@ export default function Dashboard() {
         borderColor: "border-green-500"
       },
       {
-        icon: Trophy,
+        icon: Medal,
         title: "Daily Challenge",
         desc: "Keep your streak alive! Solve today's technical puzzle.",
-        action: "Play now →",
+        action: "Enter Arena",
+        btnIcon: Sparkles,
         path: "/daily-challenge",
         tourId: "daily-challenge",
         color: "text-orange-500",
@@ -84,7 +96,8 @@ export default function Dashboard() {
         icon: BookOpen,
         title: "Question Bank",
         desc: "Browse and practice interview questions for specific subjects.",
-        action: "Select subjects →",
+        action: "Select Subject",
+        btnIcon: Command,
         path: "/questions-subject",
         color: "text-blue-500",
         bgColor: "bg-blue-500/10",
@@ -96,7 +109,8 @@ export default function Dashboard() {
         icon: BarChart3,
         title: "View Analytics",
         desc: "Track your scores over time and measure your improvement.",
-        action: "View analytics →",
+        action: "View Growth",
+        btnIcon: TrendingUp,
         path: "/analytics",
         tourId: "analytics",
         color: "text-purple-500",
@@ -107,7 +121,8 @@ export default function Dashboard() {
         icon: MessageSquare,
         title: "Review Feedback",
         desc: "Go through detailed feedback from your past interviews.",
-        action: "View feedback →",
+        action: "Read Insights",
+        btnIcon: MessageCircle,
         path: "/feedback",
         color: "text-indigo-500",
         bgColor: "bg-indigo-500/10",
@@ -116,10 +131,11 @@ export default function Dashboard() {
     ],
     community: [
       {
-        icon: Trophy,
+        icon: Medal,
         title: "Leaderboard",
         desc: "Compete with others and see where you rank globally!",
-        action: "View leaderboard →",
+        action: "Climb Ranking",
+        btnIcon: Crown,
         path: "/leaderboard",
         color: "text-yellow-500",
         bgColor: "bg-yellow-500/10",
@@ -129,7 +145,8 @@ export default function Dashboard() {
         icon: MessageSquare,
         title: "Community Forum",
         desc: "Discuss interview tips, share experiences and get advice.",
-        action: "Open forum →",
+        action: "Join Talks",
+        btnIcon: MessagesSquare,
         path: "/forum",
         color: "text-purple-500",
         bgColor: "bg-purple-500/10",
@@ -138,14 +155,15 @@ export default function Dashboard() {
       {
         icon: Award,
         title: "Achievements",
-        desc: "Unlock achievements and earn exclusive badges.",
-        action: "View achievements →",
-        path: "/achievements",
+        desc: "View your earned badges and career milestones.",
+        action: "View Trophy",
+        btnIcon: ShieldCheck,
+        path: "/profile",
         color: "text-pink-500",
         bgColor: "bg-pink-500/10",
         borderColor: "border-pink-500"
-      },
-    ]
+      }
+    ],
   };
 
   console.log("Dashboard component rendering", { user, loading, authLoading });
@@ -351,7 +369,7 @@ export default function Dashboard() {
                   onClick={() => navigate('/leaderboard')}
                   className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors"
                 >
-                  View →
+                  View Requests <Rocket size={14} className="ml-1 inline-block group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button
                   onClick={() => setFriendsBannerDismissed(true)}
@@ -386,8 +404,8 @@ export default function Dashboard() {
           <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             {[
               { label: "Interviews Taken", value: stats.interviewsTaken, icon: MessageSquare, color: "text-blue-500", bgColor: "bg-blue-500/10" },
-              { label: "Average Score", value: stats.averageScore !== null ? `${stats.averageScore}%` : "0%", icon: Award, color: "text-purple-500", bgColor: "bg-purple-500/10" },
-              { label: "Current Streak", value: user?.streak || 0, icon: Flame, color: "text-orange-500", bgColor: "bg-orange-500/10" },
+              { label: "Average Score", value: stats.averageScore !== null ? `${stats.averageScore}%` : "0%", icon: Medal, color: "text-purple-500", bgColor: "bg-purple-500/10" },
+              { label: "Current Streak", value: user?.streak || 0, icon: Rocket, color: "text-orange-500", bgColor: "bg-orange-500/10" },
               { label: "Last Interview", value: stats.lastInterview ? new Date(stats.lastInterview).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : "None", icon: PlayCircle, color: "text-green-500", bgColor: "bg-green-500/10" },
             ].map((item, i) => (
               <div
@@ -435,7 +453,7 @@ export default function Dashboard() {
                 </div>
                 <div className="max-w-md">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest mb-3">
-                    <Zap size={12} className="fill-current" /> High Impact
+                    <Orbit size={12} className="fill-current" /> High Impact
                   </div>
                   <h3 className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-slate-900'} mb-2`}>
                     Deep Resume Diagnosis
@@ -449,7 +467,7 @@ export default function Dashboard() {
                 onClick={() => navigate('/resume-clinic')}
                 className="w-full lg:w-auto px-8 py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[20px] font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-900/40 active:scale-95 transition-all flex items-center justify-center gap-3"
               >
-                Launch Clinic <MoveRight size={20} className="group-hover:translate-x-2 transition-transform duration-500" />
+                Launch Clinic <Dna size={20} className="group-hover:rotate-12 transition-transform duration-500 text-emerald-300" />
               </button>
             </div>
           </section>
@@ -524,16 +542,22 @@ export default function Dashboard() {
                         {card.desc}
                       </p>
 
-                      <div className="mt-6 flex items-center justify-between">
-                        <span className={`
-                          text-sm font-semibold ${card.color}
-                          group-hover:translate-x-1 transition-transform
+                      <div className="mt-6 flex items-center justify-between border-t border-white/5 pt-5">
+                        <div className={`
+                          flex items-center gap-2 text-[13px] font-black uppercase tracking-wider ${card.color}
+                          transition-all duration-300
                         `}>
-                          {card.action}
-                        </span>
+                          <span>{card.action}</span>
+                          {card.btnIcon && (
+                            <card.btnIcon
+                              size={14}
+                              className="group-hover:translate-x-1.5 group-hover:-translate-y-0.5 transition-transform duration-500 ease-out"
+                            />
+                          )}
+                        </div>
 
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-400'} group-hover:bg-slate-800 group-hover:text-white transition-colors`}>
-                          <Icon size={14} />
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-slate-900/50 text-slate-500 border-white/5' : 'bg-slate-50 text-slate-400 border-slate-100'} border transition-all duration-500 group-hover:scale-110 group-hover:rotate-[15deg] group-hover:bg-slate-900 group-hover:text-white group-hover:border-transparent shadow-inner`}>
+                          <Icon size={16} />
                         </div>
                       </div>
                     </div>
@@ -594,7 +618,7 @@ export default function Dashboard() {
                   </div>
                   <span className="text-xs font-black uppercase tracking-tight">{item.label}</span>
                   <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                    <ChevronRight size={14} />
+                    <Zap size={14} className="text-amber-500" />
                   </div>
                 </div>
               ))}
@@ -605,13 +629,19 @@ export default function Dashboard() {
           <section className="space-y-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-xl ${isDarkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
-                  <Activity size={20} />
+                <div className={`p-2 rounded-xl scale-75 ${isDarkMode ? 'bg-amber-500/20 text-amber-400' : 'bg-amber-500 text-white'}`}>
+                  <Medal size={20} />
                 </div>
                 <h3 className={`text-xl font-black uppercase tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
                   Recent Activity
                 </h3>
               </div>
+              <button
+                onClick={() => navigate('/history')}
+                className={`flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all ${isDarkMode ? 'text-purple-400 hover:text-purple-300' : 'text-purple-600 hover:text-purple-700'}`}
+              >
+                View Full History <ChevronRight size={14} />
+              </button>
             </div>
 
             {/* Search and Filter Component */}
@@ -635,7 +665,8 @@ export default function Dashboard() {
               {filteredActivity.map((item, index) => (
                 <div
                   key={index}
-                  className={`group p-5 flex justify-between items-center rounded-2xl border transition-all duration-300 ${isDarkMode
+                  onClick={() => item.id && navigate(`/interview/summary/${item.id}`)}
+                  className={`group p-5 flex justify-between items-center rounded-2xl border transition-all duration-300 cursor-pointer ${isDarkMode
                     ? 'bg-slate-800/30 border-slate-700 hover:bg-slate-800/60 hover:border-slate-600 shadow-none'
                     : 'bg-white border-slate-200 hover:bg-slate-50 hover:shadow-lg hover:shadow-slate-200/50'
                     }`}
@@ -643,7 +674,7 @@ export default function Dashboard() {
                   <div className="flex items-center gap-5">
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-500'
                       }`}>
-                      {item.type === 'behavioral' ? <MessageSquare size={20} /> : <Terminal size={20} />}
+                      {item.type === 'behavioral' ? <MessageSquare size={20} /> : <ChevronFirst size={20} />}
                     </div>
                     <div>
                       <p className={`font-black text-sm uppercase tracking-tight ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>

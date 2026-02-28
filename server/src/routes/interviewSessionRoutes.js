@@ -11,5 +11,6 @@ const router = express.Router();
 router.post("/start-session", protect, startSession);
 router.post("/summary", protect, createSummary);
 router.get("/summary", protect, getMySummary);
+router.get("/summary/:id", protect, getMySummary);
 
 module.exports = router;

@@ -140,7 +140,8 @@ export default function Interview() {
       }
 
       // Generate summary
-      await api.post("/interview/summary", { sessionId });
+      const clientDate = new Date().toISOString();
+      await api.post("/interview/summary", { sessionId, clientDate });
       navigate("/interview-processing");
     } catch (err) {
       console.error("Force end error:", err);
@@ -318,7 +319,8 @@ export default function Interview() {
         }, 800);
       } else {
         setSubmitMessage("Generating Results...");
-        await api.post("/interview/summary", { sessionId });
+        const clientDate = new Date().toISOString();
+        await api.post("/interview/summary", { sessionId, clientDate });
         navigate("/interview-processing");
       }
     } catch (err) {

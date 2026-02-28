@@ -1,21 +1,21 @@
 import { useState, useEffect } from "react";
-import { Zap, Brain, BarChart3, Trophy, Target } from "lucide-react";
+import { Orbit, Lightbulb, LineChart, Medal, Target } from "lucide-react";
 
 const slides = [
     {
-        icon: Brain,
+        icon: Lightbulb,
         headline: "AI-Powered\nInterview Coach",
         sub: "Get instant feedback on every answer — technical depth, clarity, and confidence scored in seconds.",
         accent: "#22c55e",
     },
     {
-        icon: BarChart3,
+        icon: LineChart,
         headline: "Track Every\nImprovement",
         sub: "Detailed analytics reveal exactly where you're growing and which skills need the most attention.",
         accent: "#818cf8",
     },
     {
-        icon: Trophy,
+        icon: Medal,
         headline: "Compete &\nStay Motivated",
         sub: "Climb the leaderboard, keep your streak alive, and unlock badges as you master new skills.",
         accent: "#f59e0b",
@@ -66,7 +66,7 @@ export default function AuthBranding() {
             {/* Logo */}
             <div className="relative z-10 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-green-600 flex items-center justify-center shadow-lg shadow-green-900/60">
-                    <Zap size={20} className="text-white fill-white" />
+                    <Orbit size={20} className="text-white fill-white" />
                 </div>
                 <span className="text-2xl font-black tracking-tight">VivaMate</span>
             </div>

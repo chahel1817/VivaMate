@@ -1,14 +1,14 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Mail, Lock, Eye, EyeOff, CheckCircle, Loader2, Zap, ArrowRight, Brain, BarChart3, Trophy, Handshake } from "lucide-react";
+import { AtSign, KeyRound, Eye, EyeOff, CheckCircle, Loader2, Orbit, ArrowUpRight, Lightbulb, LineChart, Medal, Waves, UserPlus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/authContext";
 import AuthBranding from "../components/AuthBranding";
 
 /* Mobile-only hero strips */
 const FEATURES = [
-  { icon: Brain, label: "AI Feedback", color: "text-green-400", bg: "bg-green-500/10" },
-  { icon: BarChart3, label: "Analytics", color: "text-purple-400", bg: "bg-purple-500/10" },
-  { icon: Trophy, label: "Leaderboard", color: "text-amber-400", bg: "bg-amber-500/10" },
+  { icon: Lightbulb, label: "AI Feedback", color: "text-green-400", bg: "bg-green-500/10" },
+  { icon: LineChart, label: "Analytics", color: "text-purple-400", bg: "bg-purple-500/10" },
+  { icon: Medal, label: "Leaderboard", color: "text-amber-400", bg: "bg-amber-500/10" },
 ];
 
 export default function Login() {
@@ -61,7 +61,7 @@ export default function Login() {
           {/* Logo */}
           <div className="relative flex items-center gap-2.5 mb-6">
             <div className="w-9 h-9 rounded-xl bg-green-600 flex items-center justify-center shadow-lg shadow-green-900/60">
-              <Zap size={17} className="text-white fill-white" />
+              <Orbit size={17} className="text-white fill-white" />
             </div>
             <span className="text-xl font-black text-white tracking-tight">VivaMate</span>
           </div>
@@ -94,7 +94,7 @@ export default function Login() {
               <div className="mb-6">
                 <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
                   Welcome back
-                  <Handshake size={22} className="text-green-400 flex-shrink-0" />
+                  <Waves size={22} className="text-green-400 flex-shrink-0" />
                 </h2>
                 <p className="text-slate-400 text-sm mt-1">Sign in to continue your prep</p>
               </div>
@@ -120,7 +120,7 @@ export default function Login() {
                 <div>
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Email</label>
                   <div className="relative">
-                    <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                    <AtSign size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                     <input
                       type="email"
                       value={email}
@@ -141,7 +141,7 @@ export default function Login() {
                     </Link>
                   </div>
                   <div className="relative">
-                    <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                    <KeyRound size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                     <input
                       type={showPass ? "text" : "password"}
                       value={password}
@@ -165,7 +165,7 @@ export default function Login() {
                 >
                   {loading
                     ? <><Loader2 size={17} className="animate-spin" />Signing in…</>
-                    : <>Sign In <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" /></>
+                    : <>Sign In <ArrowUpRight size={15} className="group-hover:translate-x-0.5 transition-transform" /></>
                   }
                 </button>
               </form>
@@ -179,9 +179,9 @@ export default function Login() {
 
               <Link
                 to="/register"
-                className="w-full flex items-center justify-center py-3 border border-white/8 hover:border-white/15 hover:bg-white/[0.02] text-slate-300 hover:text-white font-semibold text-sm rounded-xl transition-all duration-200 active:scale-[0.98]"
+                className="w-full flex items-center justify-center gap-2 py-3 border border-white/8 hover:border-white/15 hover:bg-white/[0.02] text-slate-300 hover:text-white font-semibold text-sm rounded-xl transition-all duration-200 active:scale-[0.98] group"
               >
-                Create a free account
+                Create a free account <UserPlus size={14} className="opacity-50 group-hover:opacity-100 transition-opacity" />
               </Link>
             </div>
 

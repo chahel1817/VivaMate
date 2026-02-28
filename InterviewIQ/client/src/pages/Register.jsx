@@ -1,13 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, User, Eye, EyeOff, Check, X, Loader2, Zap, ArrowRight, Brain, BarChart3, Trophy, Sparkles, UserPlus } from "lucide-react";
+import { AtSign, KeyRound, ScanFace, Eye, EyeOff, Check, X, Loader2, Orbit, ArrowUpRight, Lightbulb, LineChart, Medal, Sparkles, UserRoundPlus, LogIn } from "lucide-react";
 import { useState, useMemo } from "react";
 import AuthBranding from "../components/AuthBranding";
 import { useAuth } from "../context/authContext";
 
 const FEATURES = [
-  { icon: Brain, label: "AI Feedback", color: "text-green-400", bg: "bg-green-500/10" },
-  { icon: BarChart3, label: "Analytics", color: "text-purple-400", bg: "bg-purple-500/10" },
-  { icon: Trophy, label: "Leaderboard", color: "text-amber-400", bg: "bg-amber-500/10" },
+  { icon: Lightbulb, label: "AI Feedback", color: "text-green-400", bg: "bg-green-500/10" },
+  { icon: LineChart, label: "Analytics", color: "text-purple-400", bg: "bg-purple-500/10" },
+  { icon: Medal, label: "Leaderboard", color: "text-amber-400", bg: "bg-amber-500/10" },
 ];
 
 export default function Register() {
@@ -71,7 +71,7 @@ export default function Register() {
 
           <div className="relative flex items-center gap-2.5 mb-6">
             <div className="w-9 h-9 rounded-xl bg-green-600 flex items-center justify-center shadow-lg shadow-green-900/60">
-              <Zap size={17} className="text-white fill-white" />
+              <Orbit size={17} className="text-white fill-white" />
             </div>
             <span className="text-xl font-black text-white tracking-tight">VivaMate</span>
           </div>
@@ -101,7 +101,7 @@ export default function Register() {
               <div className="mb-6">
                 <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
                   Create account
-                  <UserPlus size={20} className="text-green-400 flex-shrink-0" />
+                  <UserRoundPlus size={20} className="text-green-400 flex-shrink-0" />
                 </h2>
                 <p className="text-slate-400 text-sm mt-1">Join and start practicing today — it's free</p>
               </div>
@@ -118,7 +118,7 @@ export default function Register() {
                 <div>
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Full Name</label>
                   <div className="relative">
-                    <User size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                    <ScanFace size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                     <input
                       name="name"
                       type="text"
@@ -134,7 +134,7 @@ export default function Register() {
                 <div>
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Email</label>
                   <div className="relative">
-                    <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                    <AtSign size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                     <input
                       name="email"
                       type="email"
@@ -150,7 +150,7 @@ export default function Register() {
                 <div>
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Password</label>
                   <div className="relative">
-                    <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                    <KeyRound size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                     <input
                       name="password"
                       type={showPass ? "text" : "password"}
@@ -208,7 +208,7 @@ export default function Register() {
                 >
                   {loading
                     ? <><Loader2 size={17} className="animate-spin" />Creating account…</>
-                    : <>Create Account <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" /></>
+                    : <>Create Account <ArrowUpRight size={15} className="group-hover:translate-x-0.5 transition-transform" /></>
                   }
                 </button>
               </form>
@@ -221,9 +221,9 @@ export default function Register() {
 
               <Link
                 to="/"
-                className="w-full flex items-center justify-center py-3 border border-white/8 hover:border-white/15 hover:bg-white/[0.02] text-slate-300 hover:text-white font-semibold text-sm rounded-xl transition-all duration-200 active:scale-[0.98]"
+                className="w-full flex items-center justify-center gap-2 py-3 border border-white/8 hover:border-white/15 hover:bg-white/[0.02] text-slate-300 hover:text-white font-semibold text-sm rounded-xl transition-all duration-200 active:scale-[0.98] group"
               >
-                Sign in instead
+                Sign in instead <LogIn size={14} className="opacity-50 group-hover:opacity-100 transition-opacity" />
               </Link>
             </div>
 

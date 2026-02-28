@@ -95,6 +95,15 @@ export default function App() {
                   />
 
                   <Route
+                    path="/interview/summary/:id"
+                    element={
+                      <ProtectedRoute>
+                        <InterviewSummary />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
                     path="/interview-summary"
                     element={
                       <ProtectedRoute>
