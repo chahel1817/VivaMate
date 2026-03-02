@@ -261,20 +261,26 @@ const verifyOtp = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const { name, careerStage, geoPresence, profilePic, linkedin, github } = req.body;
-    const user = await User.findById(req.user);
+    const updates = {};
+    if (name !== undefined) updates.name = name;
+    if (careerStage !== undefined) updates.careerStage = careerStage;
+    if (geoPresence !== undefined) updates.geoPresence = geoPresence;
+    if (profilePic !== undefined) updates.profilePic = profilePic;
+    if (linkedin !== undefined) updates.linkedin = linkedin;
+    if (github !== undefined) updates.github = github;
+
+    const user = await User.findByIdAndUpdate(
+      req.user,
+      { $set: updates },
+      {
+        new: true,
+        runValidators: true
+      }
+    );
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
-    if (name) user.name = name;
-    if (careerStage !== undefined) user.careerStage = careerStage;
-    if (geoPresence !== undefined) user.geoPresence = geoPresence;
-    if (profilePic !== undefined) user.profilePic = profilePic;
-    if (linkedin !== undefined) user.linkedin = linkedin;
-    if (github !== undefined) user.github = github;
-
-    await user.save();
 
     res.json({
       message: "Profile updated successfully",
@@ -287,6 +293,12 @@ const updateProfile = async (req, res) => {
         profilePic: user.profilePic,
         linkedin: user.linkedin,
         github: user.github,
+        streak: user.streak,
+        xp: user.xp,
+        level: user.level,
+        badges: user.badges,
+        hasCompletedOnboarding: user.hasCompletedOnboarding,
+        keyboardShortcutsEnabled: user.keyboardShortcutsEnabled
       },
     });
   } catch (err) {

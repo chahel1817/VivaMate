@@ -266,20 +266,38 @@ exports.getMySummary = async (req, res) => {
   try {
     const { id } = req.params;
     let session;
-    if (id) {
-      session = await InterviewSession.findOne({ _id: id, user: req.user });
+
+    if (id && id !== "undefined") {
+      session = await InterviewSession.findOne({ _id: id, user: req.user }).lean();
     } else {
       session = await InterviewSession.findOne({ user: req.user }).sort({
         createdAt: -1,
-      });
+      }).lean();
     }
 
     if (!session) {
       return res.status(404).json({ message: "Interview summary not found" });
     }
 
-    res.json(session);
+    // Find the previous session to calculate growth
+    const prevSession = await InterviewSession.findOne({
+      user: req.user,
+      createdAt: { $lt: session.createdAt },
+      overallScore: { $exists: true, $ne: null }
+    }).sort({ createdAt: -1 }).lean();
+
+    const result = { ...session };
+    if (prevSession) {
+      result.previousScore = prevSession.overallScore;
+      result.growthDelta = Math.round((session.overallScore - prevSession.overallScore) * 10) / 10;
+    } else {
+      result.previousScore = null;
+      result.growthDelta = 0;
+    }
+
+    res.json(result);
   } catch (err) {
+    console.error("getMySummary error:", err);
     res.status(500).json({ message: err.message });
   }
 };

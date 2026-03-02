@@ -16,3 +16,17 @@ build/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Database cleanup
+server/wipe_db.js
+
+# IDE Settings
+.vscode/
+
+# User Uploads (Ignore content but keep folder)
+server/uploads/*
+!server/uploads/.gitkeep
+
+# Logs
+*.log
+npm-debug.log*

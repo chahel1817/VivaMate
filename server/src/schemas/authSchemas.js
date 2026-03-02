@@ -24,9 +24,9 @@ const updateProfileSchema = z.object({
     name: z.string().min(2).optional(),
     careerStage: z.string().optional(),
     geoPresence: z.string().optional(),
-    profilePic: z.string().url("Profile picture must be a valid URL").optional().or(z.literal('')),
-    linkedin: z.string().url("LinkedIn must be a valid URL").optional().or(z.literal('')),
-    github: z.string().url("GitHub must be a valid URL").optional().or(z.literal(''))
+    profilePic: z.string().optional().or(z.literal('')),
+    linkedin: z.string().optional().or(z.literal('')),
+    github: z.string().optional().or(z.literal(''))
 });
 
 module.exports = {

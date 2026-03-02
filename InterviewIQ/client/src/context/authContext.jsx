@@ -98,7 +98,7 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (profileData) => {
     try {
       const res = await api.put("/auth/profile", profileData);
-      setUser(res.data.user);
+      setUser((prevUser) => ({ ...(prevUser || {}), ...res.data.user }));
       return res.data;
     } catch (error) {
       throw error;
