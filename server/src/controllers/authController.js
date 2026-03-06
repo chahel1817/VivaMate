@@ -2,6 +2,8 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { sendOtpEmail, sendWelcomeEmail } = require("../utils/mailer");
+const leaderboardService = require("../services/leaderboardService");
+const { validateAndFixStreakIST } = require("../services/streakService");
 
 // Helper to set cookie
 const setTokenCookie = (res, token) => {
@@ -122,16 +124,12 @@ const login = async (req, res) => {
 
     setTokenCookie(res, token);
 
-    // Sync user to Redis leaderboards (async, non-blocking)
-    const leaderboardService = require('../services/leaderboardService');
-
-
-    // Validate streak before syncing and returning data
-    const { validateAndFixStreakIST } = require('../services/streakService');
-    await validateAndFixStreakIST(user);
-
-    leaderboardService.syncUserToRedis(user._id).catch(err => {
-      console.error('Redis sync error on login:', err);
+    // Keep login fast: run streak validation + Redis sync in background.
+    void validateAndFixStreakIST(user).catch((err) => {
+      console.error("Streak validation error on login:", err.message);
+    });
+    leaderboardService.syncUserToRedis(user._id).catch((err) => {
+      console.error("Redis sync error on login:", err.message);
     });
 
     res.json({
@@ -228,16 +226,12 @@ const verifyOtp = async (req, res) => {
 
     setTokenCookie(res, token);
 
-    // Sync user to Redis leaderboards (async, non-blocking)
-    const leaderboardService = require('../services/leaderboardService');
-
-
-    // Validate streak before syncing and returning data
-    const { validateAndFixStreakIST } = require('../services/streakService');
-    await validateAndFixStreakIST(user);
-
-    leaderboardService.syncUserToRedis(user._id).catch(err => {
-      console.error('Redis sync error on OTP login:', err);
+    // Keep OTP login fast: run streak validation + Redis sync in background.
+    void validateAndFixStreakIST(user).catch((err) => {
+      console.error("Streak validation error on OTP login:", err.message);
+    });
+    leaderboardService.syncUserToRedis(user._id).catch((err) => {
+      console.error("Redis sync error on OTP login:", err.message);
     });
 
     return res.json({

@@ -21,6 +21,14 @@ const memoryCache = {
     global_xp: { data: null, expiry: 0 },
     global_streak: { data: null, expiry: 0 }
 };
+let lastRedisUnavailableLogAt = 0;
+
+function logRedisUnavailableOnce() {
+    const now = Date.now();
+    if (now - lastRedisUnavailableLogAt < 60000) return;
+    lastRedisUnavailableLogAt = now;
+    console.log('Redis unavailable, using fallback path');
+}
 
 /**
  * Update user's score in all relevant leaderboards
@@ -29,7 +37,7 @@ async function updateUserScore(userId, xp, streak, weeklyXP = 0) {
     const useRedis = await isRedisAvailable();
 
     if (!useRedis) {
-        console.log('Redis unavailable, skipping leaderboard update');
+        logRedisUnavailableOnce();
         return;
     }
 

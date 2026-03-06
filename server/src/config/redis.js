@@ -1,83 +1,148 @@
 const Redis = require('ioredis');
 
-// Redis configuration
-const redisConfig = {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: process.env.REDIS_PORT || 6379,
-    password: process.env.REDIS_PASSWORD || undefined,
-    retryStrategy: (times) => {
-        // Stop retrying after 3 attempts in development to fail fast
-        const maxRetries = process.env.NODE_ENV === 'production' ? 10 : 3;
-        if (times > maxRetries) {
-            console.error('❌ Redis: Maximum reconnection attempts reached. giving up.');
-            return null; // Stop retrying
+const REDIS_URL = process.env.REDIS_URL || process.env.UPSTASH_REDIS_URL;
+const REDIS_HOST = process.env.REDIS_HOST;
+const REDIS_PORT = Number(process.env.REDIS_PORT || 6379);
+const REDIS_PASSWORD = process.env.REDIS_PASSWORD;
+
+const hasRedisConfig = Boolean(REDIS_URL || REDIS_HOST);
+const redisEnabledByEnv = process.env.REDIS_ENABLED !== 'false';
+const redisEnabled = redisEnabledByEnv && hasRedisConfig;
+
+const RECONNECT_COOLDOWN_MS = 30000;
+const ERROR_LOG_THROTTLE_MS = 30000;
+
+let redis = null;
+let lastConnectAttemptAt = 0;
+let lastErrorLogAt = 0;
+let lastLoggedStatus = '';
+
+function shouldUseTLS() {
+    if (process.env.REDIS_TLS === 'true') return true;
+    return typeof REDIS_URL === 'string' && REDIS_URL.startsWith('rediss://');
+}
+
+function maybeLogStatus(status, message) {
+    if (lastLoggedStatus === status) return;
+    lastLoggedStatus = status;
+    console.log(message);
+}
+
+function logErrorThrottled(message) {
+    const now = Date.now();
+    if (now - lastErrorLogAt < ERROR_LOG_THROTTLE_MS) return;
+    lastErrorLogAt = now;
+    console.error(message);
+}
+
+function createRedisClient() {
+    const common = {
+        lazyConnect: true,
+        enableReadyCheck: true,
+        connectTimeout: 4000,
+        maxRetriesPerRequest: 1,
+        retryStrategy: (times) => {
+            if (times > 3) return null;
+            return Math.min(times * 250, 1000);
         }
-        const delay = Math.min(times * 200, 2000);
-        return delay;
-    },
-    maxRetriesPerRequest: 1, // Fail fast on requests
-    connectTimeout: 5000, // 5 seconds timeout for connection
-    enableReadyCheck: true,
-    lazyConnect: true,
-    // TLS support for cloud Redis (Upstash, Redis Cloud, etc.)
-    tls: process.env.REDIS_TLS === 'true' ? {
-        rejectUnauthorized: false // Often needed for some cloud providers
-    } : undefined
-};
+    };
 
-// Create Redis client
-const redis = new Redis(redisConfig);
-
-// Connection event handlers
-redis.on('connect', () => {
-    console.log('✅ Redis: Connecting...');
-});
-
-redis.on('ready', () => {
-    console.log('✅ Redis: Connected and ready');
-});
-
-redis.on('error', (err) => {
-    // Only log error if not in reconnecting state, to avoid terminal spam
-    if (redis.status !== 'reconnecting' && redis.status !== 'wait') {
-        console.error('❌ Redis error:', err.message);
+    if (REDIS_URL) {
+        return new Redis(REDIS_URL, {
+            ...common,
+            tls: shouldUseTLS() ? { rejectUnauthorized: false } : undefined
+        });
     }
-});
 
-redis.on('close', () => {
-    if (redis.status === 'end') {
-        console.log('⚠️  Redis: Connection closed permanently');
-    } else {
-        console.log('⚠️  Redis: Connection closed');
+    return new Redis({
+        ...common,
+        host: REDIS_HOST,
+        port: REDIS_PORT,
+        password: REDIS_PASSWORD || undefined,
+        tls: shouldUseTLS() ? { rejectUnauthorized: false } : undefined
+    });
+}
+
+if (redisEnabled) {
+    redis = createRedisClient();
+
+    redis.on('connect', () => {
+        maybeLogStatus('connect', 'Redis socket connected');
+    });
+
+    redis.on('ready', () => {
+        maybeLogStatus('ready', 'Redis ready');
+    });
+
+    redis.on('close', () => {
+        maybeLogStatus('close', 'Redis connection closed');
+    });
+
+    redis.on('end', () => {
+        maybeLogStatus('end', 'Redis disconnected permanently');
+    });
+
+    redis.on('error', (err) => {
+        logErrorThrottled(`Redis error: ${err.message}`);
+    });
+} else {
+    console.log('Redis disabled (no REDIS_URL/REDIS_HOST or REDIS_ENABLED=false). Using MongoDB fallback.');
+}
+
+async function ensureRedisConnection() {
+    if (!redisEnabled || !redis) return;
+
+    const now = Date.now();
+    const status = redis.status;
+    if (status === 'ready' || status === 'connecting' || status === 'connect' || status === 'reconnecting') {
+        return;
     }
-});
+    if (now - lastConnectAttemptAt < RECONNECT_COOLDOWN_MS) {
+        return;
+    }
 
-redis.on('reconnecting', (ms) => {
-    console.log(`🔄 Redis: Reconnecting in ${ms}ms...`);
-});
-
-// Connect to Redis
-redis.connect().catch((err) => {
-    // This will error if the first connection fails, but retryStrategy will kick in
-    console.debug('Redis initial connection attempt finished');
-});
-
-// Graceful shutdown
-process.on('SIGINT', async () => {
+    lastConnectAttemptAt = now;
     try {
-        await redis.quit();
-    } catch (e) { }
+        await redis.connect();
+    } catch (err) {
+        logErrorThrottled(`Redis connect attempt failed: ${err.message}`);
+    }
+}
+
+// Non-blocking startup attempt. If it fails, app still runs on MongoDB fallback.
+void ensureRedisConnection();
+
+process.on('SIGINT', async () => {
+    if (redis) {
+        try {
+            await redis.quit();
+        } catch (err) {
+            // no-op
+        }
+    }
     process.exit(0);
 });
 
-/**
- * Fast check for Redis availability
- * Returns true only if the connection is ready to use
- */
 async function isRedisAvailable() {
-    return redis.status === 'ready';
+    if (!redisEnabled || !redis) {
+        return false;
+    }
+
+    if (redis.status === 'ready') {
+        return true;
+    }
+
+    // Try reconnecting in the background, but do not block request paths.
+    void ensureRedisConnection();
+    return false;
 }
 
-module.exports = { redis, isRedisAvailable };
+function getRedisHealth() {
+    return {
+        enabled: redisEnabled,
+        configured: hasRedisConfig,
+        status: redis ? redis.status : 'disabled'
+    };
+}
 
-
+module.exports = { redis, isRedisAvailable, getRedisHealth };

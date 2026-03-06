@@ -517,16 +517,19 @@ router.post('/sync', protect, async (req, res) => {
  */
 router.get('/health', async (req, res) => {
     try {
-        const { redis, isRedisAvailable } = require('../config/redis');
+        const { isRedisAvailable, getRedisHealth } = require('../config/redis');
+        const health = getRedisHealth();
         const redisConnected = await isRedisAvailable();
 
         res.json({
             redis: {
+                enabled: health.enabled,
+                configured: health.configured,
                 connected: redisConnected,
-                status: redisConnected ? 'Connected ✅' : 'Disconnected ❌',
+                status: health.status,
                 message: redisConnected
-                    ? 'Redis is working! Leaderboards will be fast 🚀'
-                    : 'Redis not available. Using MongoDB fallback (slower)'
+                    ? 'Redis is working. Leaderboards are fast.'
+                    : 'Redis not available. Using MongoDB fallback.'
             },
             timestamp: new Date().toISOString()
         });
@@ -534,7 +537,7 @@ router.get('/health', async (req, res) => {
         res.json({
             redis: {
                 connected: false,
-                status: 'Error ❌',
+                status: 'error',
                 message: err.message
             },
             timestamp: new Date().toISOString()
