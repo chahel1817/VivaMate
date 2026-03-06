@@ -213,7 +213,7 @@ export default function Register() {
                 </div>
 
                 <motion.button
-                  whileHover={{ y: -2, scale: 1.01, boxShadow: "0 12px 30px rgba(34,197,94,0.3)" }}
+                  whileHover={{ y: -4, scale: 1.02, boxShadow: "0 15px 35px rgba(34,197,94,0.35)" }}
                   whileTap={{ scale: 0.98 }}
                   type="submit"
                   disabled={loading || !isPasswordValid}
@@ -227,9 +227,9 @@ export default function Register() {
               </form>
 
               <div className="flex items-center gap-4 my-8">
-                <div className="flex-1 h-px bg-white/5" />
-                <span className="text-[10px] text-slate-600 font-black tracking-[0.2em] uppercase">OR CONTINUE</span>
-                <div className="flex-1 h-px bg-white/5" />
+                <div className="flex-1 h-px bg-white/10" />
+                <span className="text-[10px] text-slate-500 font-black tracking-[0.2em] uppercase">──────── OR ────────</span>
+                <div className="flex-1 h-px bg-white/10" />
               </div>
 
               <motion.div whileHover={{ y: -2 }}>

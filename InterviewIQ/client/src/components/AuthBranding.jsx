@@ -46,7 +46,7 @@ export default function AuthBranding() {
     const { icon: Icon, headline, sub, accent, features } = slides[index];
 
     return (
-        <div className="hidden md:flex flex-col bg-[#080d18] text-white px-12 lg:px-20 py-16 relative overflow-hidden select-none">
+        <div className="hidden md:flex flex-col bg-[#080d18] text-white px-12 lg:px-20 pt-6 pb-14 relative overflow-hidden select-none">
 
             {/* ── BACKGROUND LAYERS ── */}
             <div className="absolute inset-0 pointer-events-none">
@@ -75,7 +75,7 @@ export default function AuthBranding() {
             <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="relative z-10 flex items-center gap-3.5 mb-12"
+                className="relative z-10 flex items-center gap-3.5 mb-14"
             >
                 <div className="w-12 h-12 rounded-2xl bg-green-600 flex items-center justify-center shadow-2xl shadow-green-900/60 transition-transform hover:rotate-6">
                     <Orbit size={24} className="text-white fill-white" />
@@ -84,7 +84,7 @@ export default function AuthBranding() {
             </motion.div>
 
             {/* ── CONTENT AREA (Stable layout via justify-start) ── */}
-            <div className="relative z-10 flex-1 flex flex-col justify-start pt-10">
+            <div className="relative z-10 flex-1 flex flex-col justify-start pt-0 max-w-[600px] mx-auto w-full">
                 <div className="min-h-[520px] relative">
                     <AnimatePresence mode="wait">
                         <motion.div
@@ -97,20 +97,18 @@ export default function AuthBranding() {
                         >
                             {/* Featured Graphic/Badge */}
                             <div className="relative inline-block group mb-2">
-                                <motion.div
-                                    animate={{ scale: [1, 1.05, 1], rotate: [0, 2, 0] }}
-                                    transition={{ duration: 4, repeat: Infinity }}
-                                    className="w-24 h-24 rounded-[2.5rem] flex items-center justify-center border relative z-10 backdrop-blur-md"
+                                <div
+                                    className="w-20 h-20 rounded-[2rem] flex items-center justify-center border relative z-10 backdrop-blur-md"
                                     style={{
                                         background: `${accent}15`,
                                         borderColor: `${accent}40`,
                                         boxShadow: `0 0 60px ${accent}25`
                                     }}
                                 >
-                                    <Icon size={44} style={{ color: accent }} />
-                                </motion.div>
+                                    <Icon size={38} style={{ color: accent }} />
+                                </div>
                                 {/* Outer pulsing ring */}
-                                <div className="absolute inset-0 rounded-[2.5rem] border animate-ping opacity-20" style={{ borderColor: accent }} />
+                                <div className="absolute inset-0 rounded-[2rem] border animate-ping opacity-20" style={{ borderColor: accent }} />
                             </div>
 
                             {/* Text Content */}
@@ -118,7 +116,7 @@ export default function AuthBranding() {
                                 <h2 className="text-5xl lg:text-5xl xl:text-6xl font-black leading-[1.1] tracking-tight whitespace-pre-line drop-shadow-sm">
                                     {headline}
                                 </h2>
-                                <p className="text-slate-400 text-xl lg:text-2xl font-medium opacity-90 leading-relaxed max-w-lg">
+                                <p className="text-[#C7D2FE] text-xl lg:text-2xl font-medium opacity-90 leading-relaxed max-w-lg">
                                     {sub}
                                 </p>
                             </div>
@@ -154,6 +152,7 @@ export default function AuthBranding() {
                             style={{
                                 width: i === index ? '48px' : '10px',
                                 background: i === index ? accent : '#ffffff10',
+                                outline: 'none'
                             }}
                         >
                             {i === index && (
