@@ -316,20 +316,23 @@ export default function DailyChallenge() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-3 w-full lg:w-auto">
-                                <div className={`rounded-2xl p-4 border text-center ${isDarkMode ? "bg-slate-900/50 border-slate-700" : "bg-slate-50 border-slate-100"}`}>
-                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Questions</p>
-                                    <p className="text-2xl font-black mt-1">{challenge?.questions?.length || 0}</p>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4 w-full lg:w-auto">
+                                <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-5 border text-center ${isDarkMode ? "bg-slate-900/50 border-slate-700" : "bg-slate-50 border-slate-100"} flex flex-col justify-center`}>
+                                    <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] text-slate-400">Questions</p>
+                                    <p className="text-xl sm:text-2xl font-black mt-1 leading-none">{challenge?.questions?.length || 0}</p>
                                 </div>
-                                <div className={`rounded-2xl p-4 border text-center ${isDarkMode ? "bg-slate-900/50 border-slate-700" : "bg-slate-50 border-slate-100"}`}>
-                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Difficulty</p>
-                                    <p className="text-2xl font-black mt-1">{challenge?.difficulty || "Varies"}</p>
+                                <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-5 border text-center ${isDarkMode ? "bg-slate-900/50 border-slate-700" : "bg-slate-50 border-slate-100"} flex flex-col justify-center`}>
+                                    <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] text-slate-400">Difficulty</p>
+                                    <p className="text-xl sm:text-2xl font-black mt-1 leading-none truncate px-1" title={challenge?.difficulty || "Varies"}>
+                                        {challenge?.difficulty || "Varies"}
+                                    </p>
                                 </div>
-                                <div className={`rounded-2xl p-4 border text-center ${isDarkMode ? "bg-slate-900/50 border-slate-700" : "bg-slate-50 border-slate-100"}`}>
-                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Reward</p>
-                                    <p className="text-2xl font-black mt-1 text-yellow-500">+{challenge?.xpReward || 0}</p>
+                                <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-5 border text-center ${isDarkMode ? "bg-slate-900/50 border-slate-700" : "bg-slate-50 border-slate-100"} flex flex-col justify-center col-span-2 sm:col-span-1`}>
+                                    <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] text-slate-400">Reward</p>
+                                    <p className="text-xl sm:text-2xl font-black mt-1 text-yellow-500 leading-none">+{challenge?.xpReward || 0}</p>
                                 </div>
                             </div>
+
                         </div>
                     </div>
 

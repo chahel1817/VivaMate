@@ -1,7 +1,12 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Mail } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Loader2, ArrowRight, Mail, KeyRound } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "../context/authContext";
+import AuthBranding from "../components/AuthBranding";
+
+const inputClassName =
+  "auth-input w-full rounded-xl border border-white/10 bg-white/5 px-10 py-3.5 text-sm font-medium text-white outline-none transition-all placeholder:text-emerald-100/30 focus:border-emerald-400 focus:bg-white/10 focus:ring-4 focus:ring-emerald-400/10";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -11,13 +16,13 @@ export default function ForgotPassword() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError("");
     setLoading(true);
 
-    if (!email.includes('@')) {
-      setError("Email must contain an '@' symbol");
+    if (!email.includes("@")) {
+      setError("Enter a valid email address");
       setLoading(false);
       return;
     }
@@ -26,71 +31,111 @@ export default function ForgotPassword() {
       await requestOtp(email);
       navigate("/verify-otp", { state: { email } });
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Failed to send OTP");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen grid md:grid-cols-2">
-      {/* LEFT BRANDING */}
-      <div className="hidden md:flex flex-col justify-center bg-green-600 text-white px-16">
-        <h1 className="text-4xl font-semibold leading-tight">
-          Reset your password <br /> securely
-        </h1>
-        <p className="mt-4 text-green-100 max-w-sm">
-          Enter your email to receive an OTP for password reset.
-        </p>
-      </div>
+    <div className="min-h-screen bg-white text-white">
+      <div className="grid min-h-screen lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="relative overflow-hidden border-b border-slate-200 lg:border-b-0 lg:border-r">
+          <AuthBranding />
+        </div>
 
-      {/* RIGHT FORM */}
-      <div className="flex items-center justify-center bg-slate-100 px-6">
-        <div className="w-full max-w-md bg-white rounded-xl shadow-md p-8">
-          <h2 className="text-2xl font-semibold text-slate-800">Forgot Password</h2>
-          <p className="text-slate-500 text-sm mt-1">
-            Enter your email to receive a reset OTP
-          </p>
+        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#1f5b4d] px-6 py-12 sm:px-8">
+          {/* Subtle background patterns */}
+          <div className="absolute inset-0 z-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(30deg, #ffffff 12%, transparent 12.5%, transparent 87%, #ffffff 87.5%, #ffffff), linear-gradient(150deg, #ffffff 12%, transparent 12.5%, transparent 87%, #ffffff 87.5%, #ffffff), linear-gradient(30deg, #ffffff 12%, transparent 12.5%, transparent 87%, #ffffff 87.5%, #ffffff), linear-gradient(150deg, #ffffff 12%, transparent 12.5%, transparent 87%, #ffffff 87.5%, #ffffff), linear-gradient(60deg, #ffffff 25%, transparent 25.5%, transparent 75%, #ffffff 75.5%, #ffffff), linear-gradient(60deg, #ffffff 25%, transparent 25.5%, transparent 75%, #ffffff 75.5%, #ffffff)", backgroundSize: "40px 70px" }} />
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-            {/* Email */}
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">
-                Email
-              </label>
-              <div className="relative">
-                <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full border border-slate-300 rounded-lg pl-10 pr-4 py-2
-                  focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="relative z-10 w-full max-w-[440px]"
+          >
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="mb-8 text-center sm:text-left"
+            >
+              <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 text-emerald-400 sm:mx-0 mx-auto">
+                <KeyRound size={24} />
               </div>
-            </div>
+              <h1 className="text-[2.5rem] font-black leading-tight tracking-tight text-white sm:text-[2.8rem]">
+                Reset Access
+              </h1>
+              <p className="mt-3 text-[17px] text-emerald-100/60 leading-relaxed">
+                Enter your email to receive a one-time password and continue securely.
+              </p>
+            </motion.div>
 
-            {error && <p className="text-red-500 text-sm">{error}</p>}
+            <AnimatePresence mode="wait">
+              {error && (
+                <motion.div
+                  key="error"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mb-6 overflow-hidden"
+                >
+                  <div className="rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm font-medium text-rose-100">
+                    {error}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50"
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[13px] font-bold uppercase tracking-widest text-emerald-100/50 ml-1">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-100/30" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="name@example.com"
+                    autoComplete="email"
+                    className={inputClassName}
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <motion.button
+                  whileHover={{ y: -2, scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                  type="submit"
+                  disabled={loading}
+                  className="group relative flex w-full items-center justify-center overflow-hidden rounded-xl bg-[#7be36b] px-8 py-4 text-sm font-black uppercase tracking-[0.15em] text-[#123229] shadow-xl shadow-green-900/20 transition-all hover:bg-[#8df07d] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {loading ? (
+                    <Loader2 size={20} className="animate-spin" />
+                  ) : (
+                    <>
+                      Send OTP Code
+                      <ArrowRight size={18} className="ml-2 transition-transform group-hover:translate-x-1" />
+                    </>
+                  )}
+                </motion.button>
+              </div>
+            </form>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="mt-10 border-t border-white/5 pt-8 text-center"
             >
-              {loading ? "Sending..." : "Send OTP"}
-            </button>
-          </form>
-
-          <p className="text-sm text-slate-500 mt-6 text-center">
-            Remember your password?{" "}
-            <button
-              onClick={() => navigate("/")}
-              className="text-green-600 hover:underline"
-            >
-              Back to Login
-            </button>
-          </p>
+              <Link to="/" className="text-[15px] font-bold text-emerald-100/40 hover:text-white transition-colors">
+                Remember your password? <span className="text-white underline decoration-emerald-500/30 underline-offset-4">Sign In</span>
+              </Link>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
     </div>
