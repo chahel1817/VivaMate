@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Check, Eye, EyeOff, Loader2, X, ArrowRight, User, Mail, Lock } from "lucide-react";
+import { Check, Eye, EyeOff, Loader2, X, UserPlus, User, Mail, Lock } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "../context/authContext";
@@ -186,14 +186,14 @@ export default function Register() {
                   whileTap={{ scale: 0.98 }}
                   type="submit"
                   disabled={loading || !isPasswordValid}
-                  className="group relative flex w-full items-center justify-center overflow-hidden rounded-xl bg-[#7be36b] px-8 py-4 text-sm font-black uppercase tracking-[0.15em] text-[#123229] shadow-xl shadow-green-900/20 transition-all hover:bg-[#8df07d] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="group relative flex w-full items-center justify-center overflow-hidden rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-8 py-4 text-sm font-black uppercase tracking-[0.15em] text-white shadow-xl shadow-indigo-900/40 transition-all hover:from-indigo-400 hover:to-violet-500 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {loading ? (
                     <Loader2 size={20} className="animate-spin" />
                   ) : (
                     <>
                       Create Free Account
-                      <ArrowRight size={18} className="ml-2 transition-transform group-hover:translate-x-1" />
+                      <UserPlus size={18} className="ml-2 transition-transform group-hover:translate-x-1" />
                     </>
                   )}
                 </motion.button>
