@@ -134,9 +134,9 @@ export default function Login() {
                   </label>
                   <Link
                     to="/forgot-password"
-                    className="text-[12px] font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
+                    className="text-[14px] font-semibold text-white-400 hover:text-emerald-300 transition-colors"
                   >
-                    Forgot?
+                    Forgot Password?
                   </Link>
                 </div>
                 <div className="relative">
