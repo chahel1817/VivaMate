@@ -117,17 +117,17 @@ export default function ChallengeHistory() {
                             </div>
                         </div>
 
-                        <div className="flex gap-4">
+                        <div className="grid grid-cols-2 gap-3 sm:flex sm:gap-4">
                             {[
                                 { label: "Lifetime XP", value: totalXP.toLocaleString(), icon: Star, color: "text-yellow-400" },
                                 { label: "Avg performance", value: `${avgScore}%`, icon: Target, color: "text-blue-400" },
                             ].map(item => (
-                                <div key={item.label} className={`px-6 py-4 rounded-3xl border ${isDarkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-100 shadow-sm'}`}>
-                                    <div className="flex items-center gap-3 mb-1">
-                                        <item.icon className={`w-4 h-4 ${item.color}`} />
-                                        <span className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{item.label}</span>
+                                <div key={item.label} className={`px-4 py-3 sm:px-6 sm:py-4 rounded-3xl border ${isDarkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-100 shadow-sm'}`}>
+                                    <div className="flex items-center gap-2 sm:gap-3 mb-1">
+                                        <item.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${item.color}`} />
+                                        <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{item.label}</span>
                                     </div>
-                                    <p className="text-xl font-black">{item.value}</p>
+                                    <p className="text-lg sm:text-xl font-black">{item.value}</p>
                                 </div>
                             ))}
                         </div>

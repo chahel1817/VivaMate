@@ -73,7 +73,7 @@ export default function AuthBranding() {
         </motion.span>
       </div>
 
-      <div className="relative z-10 flex w-full max-w-[500px] flex-col items-center text-center">
+      <div className="relative z-10 flex w-full max-w-[500px] flex-col items-center text-center pt-20">
         {/* Slide Content */}
         <div className="flex w-full items-center justify-center py-4">
           <AnimatePresence mode="wait">
@@ -86,13 +86,13 @@ export default function AuthBranding() {
               className="flex flex-col items-center"
             >
               <div
-                className="mb-10 flex h-24 w-24 items-center justify-center rounded-[2.5rem] bg-emerald-50 text-emerald-600 shadow-sm"
+                className="mb-6 flex h-24 w-24 items-center justify-center rounded-[2.5rem] bg-emerald-50 text-emerald-600 shadow-sm"
                 style={{ backgroundColor: `${slide.color}08`, color: slide.color }}
               >
                 <Icon size={44} strokeWidth={1.5} />
               </div>
 
-              <h2 className="mb-6 text-[3rem] font-black leading-[1.05] tracking-tight text-[#1f2e2a] sm:text-[3.6rem]">
+              <h2 className="mb-4 text-[3rem] font-black leading-[1.05] tracking-tight text-[#1f2e2a] sm:text-[3.6rem]">
                 {slide.title}
               </h2>
 
@@ -104,7 +104,7 @@ export default function AuthBranding() {
         </div>
 
         {/* Progress Indicators */}
-        <div className="mt-20 flex gap-2">
+        <div className="mt-12 flex gap-2">
           {slides.map((_, i) => (
             <motion.div
               key={i}

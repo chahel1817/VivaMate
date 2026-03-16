@@ -43,7 +43,7 @@ export default function VerifyOtp() {
   return (
     <div className="min-h-screen bg-white text-white">
       <div className="grid min-h-screen lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="relative overflow-hidden border-b border-slate-200 lg:border-b-0 lg:border-r">
+        <div className="hidden lg:block relative overflow-hidden border-slate-200 lg:border-r">
           <AuthBranding />
         </div>
 

@@ -14,7 +14,7 @@ export default function Navbar() {
 
   return (
     <header className="bg-white dark:bg-slate-900 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800 transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 flex justify-between items-center gap-4 sm:gap-8">
         <div
           className="flex items-center gap-2 cursor-pointer group shrink-0"
           onClick={() => navigate("/dashboard")}
@@ -22,7 +22,7 @@ export default function Navbar() {
           <div className="bg-green-600 p-1.5 rounded-lg group-hover:rotate-12 transition-transform duration-300">
             <LayoutDashboard size={20} className="text-white" />
           </div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
+          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
             VivaMate
           </h1>
         </div>
@@ -45,7 +45,7 @@ export default function Navbar() {
           </button>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {/* Forum quick-link — visible on md+ */}
           <button
             onClick={() => navigate("/forum")}
@@ -60,7 +60,7 @@ export default function Navbar() {
           <Tooltip content={isDarkMode ? "Switch to light mode" : "Switch to dark mode"} shortcut="T">
             <button
               onClick={(e) => toggleTheme(e)}
-              className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200"
+              className="p-2 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200"
             >
               {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
@@ -73,8 +73,8 @@ export default function Navbar() {
             onMouseLeave={() => setShowDropdown(false)}
             onClick={() => setShowDropdown(!showDropdown)}
           >
-            <div className={`flex items-center gap-3 pl-2 pr-1 py-1 rounded-2xl cursor-pointer transition-all duration-300 ${showDropdown ? 'bg-slate-100 dark:bg-slate-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}>
-              <div className="w-9 h-9 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 overflow-hidden border border-green-200 dark:border-green-800">
+            <div className={`flex items-center gap-1.5 sm:gap-3 pl-1 sm:pl-2 pr-1 py-1 rounded-2xl cursor-pointer transition-all duration-300 ${showDropdown ? 'bg-slate-100 dark:bg-slate-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}>
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 overflow-hidden border border-green-200 dark:border-green-800">
                 {user?.profilePic ? (
                   <img
                     src={user.profilePic.startsWith('http') ? user.profilePic : `${(import.meta.env.VITE_API_URL || 'http://localhost:5000').replace('/api', '')}${user.profilePic}`}
@@ -82,13 +82,13 @@ export default function Navbar() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <User size={18} />
+                  <User size={16} />
                 )}
               </div>
               <span className="hidden md:block text-sm font-semibold text-slate-700 dark:text-slate-200">
                 {user?.name?.split(' ')[0]}
               </span>
-              <ChevronDown size={14} className={`text-slate-400 transition-transform duration-300 ${showDropdown ? 'rotate-180' : ''}`} />
+              <ChevronDown size={12} className={`text-slate-400 transition-transform duration-300 ${showDropdown ? 'rotate-180' : ''}`} />
             </div>
 
             {/* Dropdown Menu */}
