@@ -15,12 +15,14 @@ import { Download, ChevronLeft, Target, Award, Zap, Brain, MessageSquare, Trendi
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "../context/themeContext";
 
 export default function InterviewSummary() {
   const [summary, setSummary] = useState(null);
   const reportRef = useRef(null);
   const navigate = useNavigate();
   const { id } = useParams();
+  const { isDarkMode } = useTheme();
 
   useEffect(() => {
     const loadSummary = async () => {
@@ -70,18 +72,18 @@ export default function InterviewSummary() {
       };
       requestAnimationFrame(step);
     }, [end]);
-    return <span className="text-7xl font-black text-white">{count}</span>;
+    return <span className={`text-7xl font-black ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{count}</span>;
   };
 
   if (!summary) {
     return (
-      <div className="min-h-screen bg-[#080d18] flex flex-col items-center justify-center text-white">
+      <div className={`min-h-screen flex flex-col items-center justify-center ${isDarkMode ? 'bg-[#080d18] text-white' : 'bg-slate-50 text-slate-700'}`}>
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-          className="w-12 h-12 border-4 border-green-500/20 border-t-green-500 rounded-full mb-4"
+          className={`w-12 h-12 border-4 rounded-full mb-4 ${isDarkMode ? 'border-green-500/20 border-t-green-500' : 'border-emerald-200 border-t-emerald-500'}`}
         />
-        <p className="text-slate-400 font-medium animate-pulse">Generating your performance insights...</p>
+        <p className={`font-medium animate-pulse ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Generating your performance insights...</p>
       </div>
     );
   }
@@ -103,7 +105,7 @@ export default function InterviewSummary() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080d18] text-slate-200 selection:bg-green-500/30">
+    <div className={`min-h-screen selection:bg-green-500/30 ${isDarkMode ? 'bg-[#080d18] text-slate-200' : 'bg-slate-50 text-slate-900'}`}>
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-12 pb-24">
@@ -115,12 +117,12 @@ export default function InterviewSummary() {
           ref={reportRef}
         >
           {/* HEADER / NAVIGATION BAR */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-white/5">
+          <div className={`flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b ${isDarkMode ? 'border-white/5' : 'border-slate-200'}`}>
             <button
               onClick={() => navigate("/dashboard")}
-              className="group flex items-center gap-2 text-slate-500 hover:text-white transition-all text-xs font-black uppercase tracking-[0.2em]"
+              className={`group flex items-center gap-2 transition-all text-xs font-black uppercase tracking-[0.2em] ${isDarkMode ? 'text-slate-500 hover:text-white' : 'text-slate-500 hover:text-slate-800'}`}
             >
-              <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+              <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-colors ${isDarkMode ? 'bg-white/5 group-hover:bg-white/10' : 'bg-slate-200 group-hover:bg-slate-300'}`}>
                 <ChevronLeft size={14} />
               </div>
               Back to Dashboard
@@ -129,7 +131,7 @@ export default function InterviewSummary() {
             <div className="flex items-center gap-3 w-full md:w-auto">
               <button
                 onClick={downloadPDF}
-                className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white px-5 py-2.5 rounded-xl transition-all font-bold text-sm"
+                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl transition-all font-bold text-sm border ${isDarkMode ? 'bg-white/5 hover:bg-white/10 border-white/10 text-white' : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-800'}`}
               >
                 <Download size={16} />
                 Export
@@ -146,8 +148,8 @@ export default function InterviewSummary() {
           <div className="space-y-12">
             {/* 1. PRIMARY HEADER: TITLE & GROWTH */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-              <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-none">
-                Interview <span className="text-green-500">Summary</span>
+              <h1 className={`text-5xl md:text-7xl font-black tracking-tighter leading-none ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                Interview <span className="text-green-600">Summary</span>
               </h1>
 
               {summary.previousScore !== null && (
@@ -183,13 +185,13 @@ export default function InterviewSummary() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
               {/* EXPERT VERDICT (8 COLUMNS) */}
               <div className="lg:col-span-8">
-                <div className="flex items-start gap-4 text-slate-400 font-bold text-sm max-w-4xl">
+                <div className={`flex items-start gap-4 font-bold text-sm max-w-4xl ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                   <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
                     <Award size={20} className="text-amber-500" />
                   </div>
                   <div className="flex flex-col gap-2">
                     <span className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-500/60 leading-none">Expert Verdict</span>
-                    <div className="text-white/90 font-medium leading-relaxed text-sm md:text-base border-l-2 border-white/10 pl-5 py-0.5">
+                    <div className={`font-medium leading-relaxed text-sm md:text-base border-l-2 pl-5 py-0.5 ${isDarkMode ? 'text-white/90 border-white/10' : 'text-slate-800 border-slate-200'}`}>
                       {summary.overallScore >= 8 ? (
                         "You demonstrate mastery of core concepts and high implementation precision. Answers are structured, confident, and technically sound."
                       ) : summary.overallScore >= 6.5 ? (
@@ -216,12 +218,12 @@ export default function InterviewSummary() {
                       key={i}
                       whileHover={{ x: 5 }}
                       onClick={() => document.getElementById('explorer')?.scrollIntoView({ behavior: 'smooth' })}
-                      className="group text-left px-4 py-3 bg-white/[0.03] border border-white/5 hover:border-green-500/30 rounded-xl flex items-center gap-4 transition-all"
+                      className={`group text-left px-4 py-3 rounded-xl flex items-center gap-4 transition-all border ${isDarkMode ? 'bg-white/[0.03] border-white/5 hover:border-green-500/30' : 'bg-slate-50 border-slate-200 hover:border-emerald-300'}`}
                     >
                       <div className="w-6 h-6 rounded bg-green-500/10 flex items-center justify-center text-green-500 font-black text-[10px] group-hover:bg-green-500 group-hover:text-black transition-colors shrink-0">
                         {i + 1}
                       </div>
-                      <p className="text-[11px] text-white/80 font-bold leading-snug group-hover:text-green-400 truncate transition-colors capitalize">{win}</p>
+                      <p className={`text-[11px] font-bold leading-snug truncate transition-colors capitalize ${isDarkMode ? 'text-white/80 group-hover:text-green-400' : 'text-slate-700 group-hover:text-emerald-600'}`}>{win}</p>
                     </motion.button>
                   ))}
                 </div>
@@ -237,13 +239,13 @@ export default function InterviewSummary() {
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                   className="absolute inset-x-10 inset-y-20 bg-green-500/20 blur-[80px] rounded-full group-hover:bg-green-500/30 transition-colors pointer-events-none"
                 />
-                <div className="relative bg-[#0d1117]/80 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-10 flex flex-col items-center text-center overflow-hidden transition-all duration-500 hover:border-green-500/30 hover:shadow-2xl hover:shadow-green-900/10 group/card">
-                  <div className="absolute top-0 right-0 p-6 opacity-5 group-hover/card:opacity-10 transition-opacity">
+                <div className={`relative backdrop-blur-2xl rounded-[2.5rem] p-10 flex flex-col items-center text-center overflow-hidden transition-all duration-500 group/card ${isDarkMode ? 'bg-[#0d1117]/80 border border-white/10 hover:border-green-500/30 hover:shadow-2xl hover:shadow-green-900/10' : 'bg-white border border-slate-200 shadow-sm hover:shadow-xl'}`}>
+                  <div className={`absolute top-0 right-0 p-6 opacity-5 group-hover/card:opacity-10 transition-opacity ${!isDarkMode ? 'text-slate-300' : ''}`}>
                     <Target size={140} />
                   </div>
                   <span className="text-slate-500 font-black text-[10px] uppercase tracking-[0.25em] mb-6">Overall Performance</span>
                   <div className="relative mb-8 p-4">
-                    <div className="absolute inset-0 rounded-full bg-green-500/5 blur-xl group-hover/card:bg-green-500/10 transition-colors" />
+                    <div className={`absolute inset-0 rounded-full blur-xl group-hover/card:bg-green-500/10 transition-colors ${isDarkMode ? 'bg-green-500/5' : 'bg-emerald-100'}`} />
                     <svg className="w-52 h-52 transform -rotate-90 relative z-10">
                       <circle cx="104" cy="104" r="92" stroke="currentColor" strokeWidth="10" fill="transparent" className="text-white/5" />
                       <motion.circle
@@ -279,27 +281,27 @@ export default function InterviewSummary() {
               </motion.div>
 
               <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4">
-                <div className="bg-[#161b22]/50 backdrop-blur-xl border border-white/5 rounded-3xl p-6 transition-all hover:bg-[#161b22] hover:border-white/10 group">
+                <div className={`backdrop-blur-xl rounded-3xl p-6 transition-all group border ${isDarkMode ? 'bg-[#161b22]/50 border-white/5 hover:bg-[#161b22] hover:border-white/10' : 'bg-white border-slate-200 shadow-sm hover:shadow-md'}`}>
                   <Brain className="text-purple-400 mb-3 transition-transform group-hover:scale-110" size={24} />
                   <span className="block text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">Tech Stack</span>
-                  <span className="text-white font-bold">{summary.topic?.tech || "General"}</span>
+                  <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{summary.topic?.tech || "General"}</span>
                 </div>
-                <div className="bg-[#161b22]/50 backdrop-blur-xl border border-white/5 rounded-3xl p-6 transition-all hover:bg-[#161b22] hover:border-white/10 group">
+                <div className={`backdrop-blur-xl rounded-3xl p-6 transition-all group border ${isDarkMode ? 'bg-[#161b22]/50 border-white/5 hover:bg-[#161b22] hover:border-white/10' : 'bg-white border-slate-200 shadow-sm hover:shadow-md'}`}>
                   <TrendingUp className="text-blue-400 mb-3 transition-transform group-hover:scale-110" size={24} />
                   <span className="block text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">Difficulty</span>
-                  <span className="text-white font-bold capitalize">{summary.difficulty || "Medium"}</span>
+                  <span className={`font-bold capitalize ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{summary.difficulty || "Medium"}</span>
                 </div>
               </motion.div>
             </div>
 
             <div className="lg:col-span-7 space-y-8">
-              <motion.div variants={itemVariants} className="bg-[#0d1117]/80 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-6 md:p-8 shadow-2xl shadow-black/40 transition-all hover:border-white/20">
+              <motion.div variants={itemVariants} className={`backdrop-blur-2xl rounded-[2.5rem] p-6 md:p-8 shadow-2xl transition-all ${isDarkMode ? 'bg-[#0d1117]/80 border border-white/10 shadow-black/40 hover:border-white/20' : 'bg-white border border-slate-200 shadow-md'}`}>
                 <div className="flex items-center gap-3 mb-10">
                   <div className="p-3 bg-green-500/10 rounded-2xl text-green-500">
                     <Zap size={24} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-white">Skill Analysis</h3>
+                    <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Skill Analysis</h3>
                     <p className="text-sm text-slate-500">Breaking down your technical and soft skills.</p>
                   </div>
                 </div>
@@ -398,7 +400,7 @@ export default function InterviewSummary() {
             </div>
           </div>
 
-          <motion.div id="explorer" variants={itemVariants} className="bg-[#0d1117]/80 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl scroll-mt-10">
+          <motion.div id="explorer" variants={itemVariants} className={`backdrop-blur-2xl rounded-[2.5rem] overflow-hidden scroll-mt-10 border shadow-2xl ${isDarkMode ? 'bg-[#0d1117]/80 border-white/10' : 'bg-white border-slate-200 shadow-md'}`}>
             <div className="p-8 md:p-10 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-blue-500/10 rounded-2xl text-blue-500">

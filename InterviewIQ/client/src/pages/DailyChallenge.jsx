@@ -128,13 +128,13 @@ export default function DailyChallenge() {
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <button
                                 onClick={() => window.location.href = '/dashboard'}
-                                className="px-8 py-4 bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 rounded-2xl font-black hover:scale-105 transition shadow-xl"
+                                className={`px-10 py-4 rounded-2xl font-black transition-all shadow-xl hover:-translate-y-1 active:scale-95 ${isDarkMode ? 'bg-slate-200 text-slate-900 hover:bg-white' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
                             >
                                 Back to Dashboard
                             </button>
                             <button
                                 onClick={() => window.location.href = '/history'}
-                                className={`px-8 py-4 rounded-2xl font-black border-2 transition hover:bg-slate-100 dark:hover:bg-slate-800 ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`}
+                                className={`px-10 py-4 rounded-2xl font-black border-2 transition-all hover:-translate-y-1 active:scale-95 ${isDarkMode ? 'border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white' : 'border-slate-200 text-slate-600 hover:bg-slate-900 hover:text-white hover:border-slate-900'}`}
                             >
                                 View History
                             </button>

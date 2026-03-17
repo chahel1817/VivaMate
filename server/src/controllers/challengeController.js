@@ -8,6 +8,8 @@ const { pushNotification } = require("../utils/notificationHelper");
 const axios = require('axios');
 const OPENROUTER_API_URL = process.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1/chat/completions';
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const { getDayKey, validateAndFixStreakIST } = require("../services/streakService");
+const ChallengeCompletion = require("../models/ChallengeCompletion");
 
 // ── Weekly Subject Schedule ─────────────────────────────────────────────────
 // Index 0 = Sunday … 6 = Saturday
@@ -73,9 +75,9 @@ async function fetchAIChallenge(topicOverride) {
 // Get today's challenge OR create/update one 
 const getDailyChallenge = async (req, res) => {
     try {
-        // Current date label (YYYY-MM-DD) - ONE challenge per day
+        // Use IST-consistent date label (YYYY-MM-DD) for challenge generation
         const now = new Date();
-        const challengeKey = now.toISOString().split("T")[0]; // Just YYYY-MM-DD
+        const challengeKey = getDayKey(now); // IST-based YYYY-MM-DD
         const todaySchedule = getTodaySchedule();
 
         let challenge = await DailyChallenge.findOne({ date: challengeKey });
@@ -130,22 +132,16 @@ const getDailyChallenge = async (req, res) => {
         }
 
         // Validate streak whenever they fetch today's challenge (usually on dashboard load)
-        const { validateAndFixStreakIST } = require("../services/streakService");
         await validateAndFixStreakIST(user);
 
-        // Check if user has completed THIS challenge OR ANY challenge today
-        let completed = user.completedChallenges.some(c => c.challengeId && c.challengeId.toString() === challenge._id.toString());
+        // Check if user has completed a challenge TODAY (IST consistent)
+        const hasCompletedToday = await ChallengeCompletion.exists({
+            user: user._id,
+            dayKey: challengeKey,
+            type: "challenge"
+        });
 
-        // Double check against lastChallengeDate to prevent multiple daily attempts
-        // This handles cases where they might have completed a "block" challenge earlier today
-        if (!completed && user.lastChallengeDate) {
-            const today = new Date();
-            const lastDate = new Date(user.lastChallengeDate);
-            if (today.toDateString() === lastDate.toDateString()) {
-                completed = true;
-                console.log(`User ${user._id} already challenge today (by date check)`);
-            }
-        }
+        const completed = !!hasCompletedToday;
 
         // Hide correct answers
         const safeChallenge = challenge.toObject();
@@ -264,10 +260,10 @@ const submitChallenge = async (req, res) => {
 
         await user.save();
 
-        // Update completion XP now that totalXpEarned is known
-        const { getDayKey } = require("../services/streakService");
-        const ChallengeCompletion = require("../models/ChallengeCompletion");
+        // Completion record is already handled by updateStreakFromActivity above
+        // We only update it here if we need to add more specific challenge data (redundant but safe)
         const dayKey = getDayKey(today);
+        const ChallengeCompletion = require("../models/ChallengeCompletion");
         await ChallengeCompletion.updateOne(
             { user: user._id, dayKey, type: "challenge", challengeId: challenge._id },
             { $set: { xpEarned: totalXpEarned, score: correctCount, total: challenge.questions.length, date: today } },

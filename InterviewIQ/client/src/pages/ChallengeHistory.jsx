@@ -320,9 +320,19 @@ export default function ChallengeHistory() {
                                                             <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                                                         </button>
                                                     ) : (
-                                                        <div className={`p-2.5 sm:p-3 rounded-xl sm:rounded-2xl ${isDarkMode ? 'bg-slate-800 opacity-20' : 'bg-slate-50 opacity-20'}`}>
-                                                            <Target className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
-                                                        </div>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                navigate('/daily-challenge');
+                                                            }}
+                                                            className={`px-4 sm:px-5 py-2 rounded-xl sm:rounded-2xl font-bold text-xs uppercase tracking-[0.15em] border transition-all ${isDarkMode
+                                                                ? 'bg-slate-800 border-slate-700 text-white hover:bg-slate-700'
+                                                                : 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 hover:border-emerald-300'
+                                                                }`}
+                                                            title="Start this challenge again"
+                                                        >
+                                                            Start Challenge
+                                                        </button>
                                                     )}
                                                 </div>
                                             </div>

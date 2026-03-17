@@ -97,7 +97,10 @@ async function updateStreakFromActivity(user, options = {}) {
 
     // 4. Update user record
     user.streak = streak;
-    user.lastChallengeDate = activityDate;
+    // Only block daily challenge reuse for actual challenge completions
+    if (type === "challenge") {
+        user.lastChallengeDate = activityDate;
+    }
 
     // Streak bonus only on the FIRST activity of the day
     const streakBonus = alreadyDoneToday ? 0 : user.streak * 10;

@@ -603,7 +603,7 @@ export default function Dashboard() {
                 { label: "Upload Resume", done: user?.hasResume || false, id: 1, path: '/resume-clinic' },
                 { label: "First Mock Interview", done: stats.interviewsTaken > 0, id: 2, path: '/interview/type' },
                 { label: "Set Career Goals", done: true, id: 3, path: '/profile' },
-                { label: "Complete Daily Challenge", done: user?.lastChallengeDate && new Date(user.lastChallengeDate).toDateString() === new Date().toDateString(), id: 4, path: '/daily-challenge' }
+                { label: "Complete Daily Challenge", done: user?.lastChallengeDate && new Date(user.lastChallengeDate).toLocaleDateString() === new Date().toLocaleDateString(), id: 4, path: '/daily-challenge' }
               ].map(item => (
                 <div
                   key={item.id}
