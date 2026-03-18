@@ -8,7 +8,7 @@ const { pushNotification } = require("../utils/notificationHelper");
 const axios = require('axios');
 const OPENROUTER_API_URL = process.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1/chat/completions';
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const { getDayKey, validateAndFixStreakIST } = require("../services/streakService");
+const { getDayKey, validateAndFixStreakIST, updateStreakFromActivity } = require("../services/streakService");
 const ChallengeCompletion = require("../models/ChallengeCompletion");
 
 // ── Weekly Subject Schedule ─────────────────────────────────────────────────
@@ -206,7 +206,6 @@ const submitChallenge = async (req, res) => {
         const xpGained = Math.round(xpPerQuestion * correctCount);
 
         // STREAK LOGIC - Use unified streak service
-        const { updateStreakFromActivity } = require("../services/streakService");
         const activityDate = req.body?.clientDate ? new Date(req.body.clientDate) : new Date();
 
         const { streakBonus } = await updateStreakFromActivity(user, {
@@ -263,7 +262,6 @@ const submitChallenge = async (req, res) => {
         // Completion record is already handled by updateStreakFromActivity above
         // We only update it here if we need to add more specific challenge data (redundant but safe)
         const dayKey = getDayKey(today);
-        const ChallengeCompletion = require("../models/ChallengeCompletion");
         await ChallengeCompletion.updateOne(
             { user: user._id, dayKey, type: "challenge", challengeId: challenge._id },
             { $set: { xpEarned: totalXpEarned, score: correctCount, total: challenge.questions.length, date: today } },

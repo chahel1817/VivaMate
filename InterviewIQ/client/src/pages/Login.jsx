@@ -3,6 +3,7 @@ import { Eye, EyeOff, Loader2, LogIn } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "../context/authContext";
+import LoadingOverlay from "../components/LoadingOverlay";
 import AuthBranding from "../components/AuthBranding";
 
 const inputClassName =
@@ -44,6 +45,7 @@ export default function Login() {
     setLoading(true);
     try {
       await login(email, password);
+      // We don't need to manually set loading false since we navigate
       navigate("/dashboard");
     } catch (err) {
       setError(err.message || "Invalid credentials. Please try again.");
@@ -53,6 +55,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-white text-white">
+      <LoadingOverlay isVisible={loading} type="login" />
       <div className="grid min-h-screen lg:grid-cols-[0.9fr_1.1fr]">
         <div className="hidden lg:block relative overflow-hidden border-slate-200 lg:border-r">
           <AuthBranding />

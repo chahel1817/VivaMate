@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Loader2, ArrowRight, ShieldCheck } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "../context/authContext";
+import LoadingOverlay from "../components/LoadingOverlay";
 import AuthBranding from "../components/AuthBranding";
 
 const inputClassName =
@@ -30,7 +31,6 @@ export default function VerifyOtp() {
       navigate("/dashboard");
     } catch (err) {
       setError(err.message || "Invalid OTP code. Please try again.");
-    } finally {
       setLoading(false);
     }
   };
@@ -42,6 +42,7 @@ export default function VerifyOtp() {
 
   return (
     <div className="min-h-screen bg-white text-white">
+      <LoadingOverlay isVisible={loading} type="login" />
       <div className="grid min-h-screen lg:grid-cols-[0.9fr_1.1fr]">
         <div className="hidden lg:block relative overflow-hidden border-slate-200 lg:border-r">
           <AuthBranding />

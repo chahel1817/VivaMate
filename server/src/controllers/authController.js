@@ -45,8 +45,10 @@ const register = async (req, res) => {
     // Create token
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
-    // Send Welcome Email (Non-blocking)
-    sendWelcomeEmail(user.email, user.name).catch(console.error);
+    // Send Welcome Email (Background explicitly)
+    setImmediate(() => {
+      sendWelcomeEmail(user.email, user.name).catch(console.error);
+    });
 
     // Set Cookie
     setTokenCookie(res, token);
@@ -124,12 +126,14 @@ const login = async (req, res) => {
 
     setTokenCookie(res, token);
 
-    // Keep login fast: run streak validation + Redis sync in background.
-    void validateAndFixStreakIST(user).catch((err) => {
-      console.error("Streak validation error on login:", err.message);
-    });
-    leaderboardService.syncUserToRedis(user._id).catch((err) => {
-      console.error("Redis sync error on login:", err.message);
+    // Keep login fast: background complex tasks
+    setImmediate(() => {
+      validateAndFixStreakIST(user).catch((err) => {
+        console.error("Streak validation error on login:", err.message);
+      });
+      leaderboardService.syncUserToRedis(user._id).catch((err) => {
+        console.error("Redis sync error on login:", err.message);
+      });
     });
 
     res.json({
@@ -226,12 +230,14 @@ const verifyOtp = async (req, res) => {
 
     setTokenCookie(res, token);
 
-    // Keep OTP login fast: run streak validation + Redis sync in background.
-    void validateAndFixStreakIST(user).catch((err) => {
-      console.error("Streak validation error on OTP login:", err.message);
-    });
-    leaderboardService.syncUserToRedis(user._id).catch((err) => {
-      console.error("Redis sync error on OTP login:", err.message);
+    // Keep OTP login fast: background complex tasks
+    setImmediate(() => {
+      validateAndFixStreakIST(user).catch((err) => {
+        console.error("Streak validation error on OTP login:", err.message);
+      });
+      leaderboardService.syncUserToRedis(user._id).catch((err) => {
+        console.error("Redis sync error on OTP login:", err.message);
+      });
     });
 
     return res.json({

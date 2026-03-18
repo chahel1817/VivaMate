@@ -3,6 +3,7 @@ import { Check, Eye, EyeOff, Loader2, X, UserPlus, User, Mail, Lock } from "luci
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "../context/authContext";
+import LoadingOverlay from "../components/LoadingOverlay";
 import AuthBranding from "../components/AuthBranding";
 
 const inputClassName =
@@ -53,6 +54,7 @@ export default function Register() {
     setError("");
     try {
       await register(formData.name, formData.email, formData.password);
+      // We don't need to manually set loading false since we navigate
       navigate("/dashboard");
     } catch (err) {
       setError(err.message || "Registration failed. Please try again.");
@@ -62,6 +64,7 @@ export default function Register() {
 
   return (
     <div className="min-h-screen bg-white text-white">
+      <LoadingOverlay isVisible={loading} type="register" />
       <div className="grid min-h-screen lg:grid-cols-[0.9fr_1.1fr]">
         <div className="hidden lg:block relative overflow-hidden border-slate-200 lg:border-r">
           <AuthBranding />
