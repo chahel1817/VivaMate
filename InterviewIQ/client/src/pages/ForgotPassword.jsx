@@ -39,7 +39,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="min-h-screen bg-white text-white">
-      <LoadingOverlay isVisible={loading} type="login" />
+      <LoadingOverlay isVisible={loading} type="forgot_password" />
       <div className="grid min-h-screen lg:grid-cols-[0.9fr_1.1fr]">
         <div className="hidden lg:block relative overflow-hidden border-slate-200 lg:border-r">
           <AuthBranding />
