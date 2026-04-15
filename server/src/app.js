@@ -52,15 +52,25 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+app.use(cookieParser());
 
-// Rate Limiter: Prevent brute force (100 reqs per 15 min per IP)
+// Rate Limiter: Prevent brute force (Higher limit for authenticated users)
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: "Too many requests from this IP, please try again later."
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: (req) => {
+    // If the request has a token (in cookies or auth header), give them a higher limit
+    const hasToken = req.cookies?.token || req.headers.authorization?.startsWith("Bearer ");
+    return hasToken ? 500 : 100;
+  },
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      message: "Whoa there! You're moving a bit too fast. Please take a short breather and try again in a few minutes.",
+      isRateLimit: true
+    });
+  }
 });
 app.use("/api/", limiter);
-app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/ai", aiRoutes);

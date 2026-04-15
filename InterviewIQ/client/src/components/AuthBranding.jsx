@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Lightbulb, Orbit, Sparkles, Target, TrendingUp } from "lucide-react";
+import { Lightbulb, Orbit, Sparkles, Target, TrendingUp, LayoutDashboard } from "lucide-react";
 
 const slides = [
   {
@@ -55,19 +55,19 @@ export default function AuthBranding() {
       />
 
       {/* Small Logo & Text Section */}
-      <div className="absolute top-10 left-10 z-20 flex items-center gap-3">
+      <div className="absolute top-10 left-10 z-20 flex items-center gap-2">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 shadow-lg shadow-emerald-500/10"
+          className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-600 shadow-lg shadow-green-500/20"
         >
-          <Orbit size={22} className="text-white" />
+          <LayoutDashboard size={22} className="text-white" />
         </motion.div>
         <motion.span
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-[1.5rem] font-black tracking-tight text-[#1f2e2a]"
+          className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent"
         >
           VivaMate
         </motion.span>

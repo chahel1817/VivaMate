@@ -158,7 +158,7 @@ export default function Dashboard() {
         desc: "View your earned badges and career milestones.",
         action: "View Trophy",
         btnIcon: ShieldCheck,
-        path: "/profile",
+        path: "/achievements",
         color: "text-pink-500",
         bgColor: "bg-pink-500/10",
         borderColor: "border-pink-500"
