@@ -342,7 +342,7 @@ export default function Dashboard() {
   return (
     <>
       <Navbar />
-      <div className={`min-h-screen ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-slate-100'} px-6 py-10`}>
+      <div className={`min-h-screen ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-slate-100'} px-3 sm:px-6 py-6 sm:py-10`}>
         <div className="max-w-6xl mx-auto space-y-12">
 
           {/* Friend Request Notification Banner */}
@@ -388,7 +388,7 @@ export default function Dashboard() {
           {/* Intro */}
           <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <h2 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'} tracking-tight`}>
+              <h2 className={`text-2xl sm:text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'} tracking-tight`}>
                 Welcome back, {user?.name?.split(' ')[0] || 'User'}! 👋
               </h2>
               <p className={`text-slate-500 mt-2 max-w-2xl ${isDarkMode ? 'text-slate-400' : ''} text-lg font-medium`}>
@@ -446,7 +446,7 @@ export default function Dashboard() {
           {/* Featured Resume Clinic Widget */}
           <section className="relative overflow-hidden">
             <div className={`absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-transparent pointer-events-none rounded-[32px]`} />
-            <div className={`${isDarkMode ? 'bg-slate-800/10 border-slate-800 shadow-none' : 'bg-white border-slate-200 shadow-xl shadow-slate-200/50'} border rounded-[32px] p-8 relative flex flex-col lg:flex-row items-center justify-between gap-8 group hover:border-emerald-500/30 transition-all duration-500`}>
+            <div className={`${isDarkMode ? 'bg-slate-800/10 border-slate-800 shadow-none' : 'bg-white border-slate-200 shadow-xl shadow-slate-200/50'} border rounded-[20px] sm:rounded-[32px] p-4 sm:p-8 relative flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-8 group hover:border-emerald-500/30 transition-all duration-500`}>
               <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
                 <div className={`w-20 h-20 rounded-3xl bg-emerald-500 flex items-center justify-center text-white shadow-xl shadow-emerald-500/30 group-hover:scale-110 transition-transform duration-500 group-hover:rotate-6`}>
                   <Sparkles size={40} className="fill-current" />
@@ -586,7 +586,7 @@ export default function Dashboard() {
           </section>
 
           {/* Preparation Checklist */}
-          <section className={`${isDarkMode ? 'bg-slate-800/20 border-slate-800' : 'bg-white border-slate-200 shadow-sm'} border rounded-[32px] p-8`}>
+          <section className={`${isDarkMode ? 'bg-slate-800/20 border-slate-800' : 'bg-white border-slate-200 shadow-sm'} border rounded-[20px] sm:rounded-[32px] p-4 sm:p-8`}>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
               <div className="max-w-xl">
                 <h3 className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-slate-900'} mb-2`}>
@@ -666,12 +666,12 @@ export default function Dashboard() {
                 <div
                   key={index}
                   onClick={() => item.id && navigate(`/interview/summary/${item.id}`)}
-                  className={`group p-5 flex justify-between items-center rounded-2xl border transition-all duration-300 cursor-pointer ${isDarkMode
+                  className={`group p-3 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3 rounded-2xl border transition-all duration-300 cursor-pointer ${isDarkMode
                     ? 'bg-slate-800/30 border-slate-700 hover:bg-slate-800/60 hover:border-slate-600 shadow-none'
                     : 'bg-white border-slate-200 hover:bg-slate-50 hover:shadow-lg hover:shadow-slate-200/50'
                     }`}
                 >
-                  <div className="flex items-center gap-5">
+                  <div className="flex items-center gap-3 sm:gap-5 min-w-0">
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-500'
                       }`}>
                       {item.type === 'behavioral' ? <MessageSquare size={20} /> : <ChevronFirst size={20} />}
@@ -685,7 +685,7 @@ export default function Dashboard() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-3 sm:gap-6 flex-shrink-0 self-end sm:self-auto">
                     <div className="hidden sm:block text-right">
                       <p className="text-[9px] font-black uppercase opacity-30 mb-0.5">Rating</p>
                       <div className="flex gap-0.5">

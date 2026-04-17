@@ -155,7 +155,7 @@ const ResumeAnalyzer = () => {
     return (
         <>
             <Navbar />
-            <div className={`min-h-screen ${isDarkMode ? 'bg-[#0F172A] text-white' : 'bg-[#F8FAFC] text-slate-900'} py-12 px-6 relative overflow-hidden`}>
+            <div className={`min-h-screen ${isDarkMode ? 'bg-[#0F172A] text-white' : 'bg-[#F8FAFC] text-slate-900'} py-8 sm:py-12 px-3 sm:px-6 relative overflow-hidden`}>
                 {/* Background Blobs */}
                 <div className="absolute top-0 left-1/4 w-96 h-96 bg-green-500/5 blur-[120px] rounded-full pointer-events-none" />
                 <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-500/5 blur-[120px] rounded-full pointer-events-none" />
@@ -168,10 +168,10 @@ const ResumeAnalyzer = () => {
                             <Zap size={14} className="fill-current" />
                             <span>Neural ATS Scanner v4.0</span>
                         </div>
-                        <h1 className="text-5xl md:text-6xl font-black tracking-tighter mb-4 leading-none">
+                        <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tighter mb-4 leading-none">
                             Resume <span className="text-green-500">Clinic.</span>
                         </h1>
-                        <p className={`text-lg max-w-2xl mx-auto font-medium opacity-60`}>
+                        <p className={`text-sm sm:text-lg max-w-2xl mx-auto font-medium opacity-60 px-2`}>
                             Simulating recruiter decision-making models to find rejection triggers before they do.
                         </p>
                     </div>
@@ -184,7 +184,7 @@ const ResumeAnalyzer = () => {
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
                                 className={`
-                                    relative rounded-[48px] border-4 border-dashed p-16 transition-all duration-500
+                                    relative rounded-[24px] sm:rounded-[48px] border-4 border-dashed p-6 sm:p-16 transition-all duration-500
                                     ${isDragging ? 'border-green-500 bg-green-500/5 scale-[1.02]' :
                                         file ? 'border-green-500 bg-green-500/5' :
                                             isDarkMode ? 'border-slate-800 bg-slate-800/30' : 'border-slate-200 bg-white shadow-2xl shadow-slate-200/40'}
@@ -217,7 +217,7 @@ const ResumeAnalyzer = () => {
                                     ) : (
                                         <>
                                             <div className="space-y-2 mb-12">
-                                                <h3 className="text-3xl font-black tracking-tight">{file ? file.name : 'Boost Your Ranking'}</h3>
+                                                <h3 className="text-xl sm:text-3xl font-black tracking-tight break-all sm:break-normal">{file ? file.name : 'Boost Your Ranking'}</h3>
                                                 <p className="text-sm font-bold opacity-40 max-w-xs mx-auto">
                                                     Upload your PDF to reveal the invisible rejection blocks that ATS bots use to shortlist candidates.
                                                 </p>
@@ -274,17 +274,17 @@ const ResumeAnalyzer = () => {
 
                                 {/* 1. SCORE & SUMMARY */}
                                 <div className="grid lg:grid-cols-12 gap-6">
-                                    <div className={`lg:col-span-4 p-10 rounded-[48px] border relative overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-xl shadow-slate-200/30'} flex flex-col items-center justify-center text-center`}>
+                                    <div className={`lg:col-span-4 p-5 sm:p-10 rounded-[24px] sm:rounded-[48px] border relative overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-xl shadow-slate-200/30'} flex flex-col items-center justify-center text-center`}>
                                         <div className="absolute top-0 right-0 p-6 opacity-5">
                                             <Award size={120} />
                                         </div>
                                         <div className="relative mb-6">
-                                            <svg className="w-48 h-48 transform -rotate-90">
+                                            <svg className="w-32 h-32 sm:w-48 sm:h-48 transform -rotate-90">
                                                 <circle cx="96" cy="96" r="86" className="stroke-slate-100 dark:stroke-slate-700 fill-none" strokeWidth="14" />
                                                 <circle cx="96" cy="96" r="86" stroke="currentColor" strokeWidth="14" strokeDasharray={2 * Math.PI * 86} strokeDashoffset={2 * Math.PI * 86 * (1 - result.overallScore / 100)} className={`fill-none ${result.overallScore >= 80 ? 'text-green-500' : result.overallScore >= 60 ? 'text-amber-500' : 'text-rose-500'} transition-all duration-1500`} strokeLinecap="round" />
                                             </svg>
                                             <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                <span className="text-7xl font-black tracking-tighter leading-none">{result.overallScore}</span>
+                                                <span className="text-5xl sm:text-7xl font-black tracking-tighter leading-none">{result.overallScore}</span>
                                                 <span className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40 mt-1">Global Score</span>
                                             </div>
                                         </div>
@@ -293,13 +293,13 @@ const ResumeAnalyzer = () => {
                                         </div>
                                     </div>
 
-                                    <div className={`lg:col-span-8 p-10 rounded-[48px] border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-xl shadow-slate-200/30'} flex flex-col justify-center relative overflow-hidden`}>
+                                    <div className={`lg:col-span-8 p-5 sm:p-10 rounded-[24px] sm:rounded-[48px] border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-xl shadow-slate-200/30'} flex flex-col justify-center relative overflow-hidden`}>
                                         <div className="flex items-center gap-3 text-green-500 mb-4">
                                             <UserCircle size={24} />
-                                            <h2 className="text-2xl font-black uppercase tracking-tight">{result.detectedRole?.role}</h2>
+                                            <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tight break-words">{result.detectedRole?.role}</h2>
                                         </div>
-                                        <p className="text-lg font-medium opacity-60 mb-10 leading-relaxed italic">"{result.summary}"</p>
-                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 pt-8 border-t border-slate-500/10">
+                                        <p className="text-sm sm:text-lg font-medium opacity-60 mb-6 sm:mb-10 leading-relaxed italic break-words">"{result.summary}"</p>
+                                        <div className="grid grid-cols-2 gap-4 sm:gap-8 pt-6 sm:pt-8 border-t border-slate-500/10">
                                             <ProgressBar percent={result.jdMatch?.overall} label="JD Match" colorClass="bg-green-500" />
                                             <ProgressBar percent={result.jobTitleAlignment?.score} label="Title Fit" colorClass="bg-indigo-500" />
                                             <ProgressBar percent={result.quantification?.score} label="Impact Score" colorClass="bg-amber-500" />
@@ -313,7 +313,7 @@ const ResumeAnalyzer = () => {
                                     <SectionHeader title="Critical Rejection Blocks" icon={AlertTriangle} color="text-rose-500" />
                                     <div className="grid md:grid-cols-2 gap-6">
                                         {/* Red Flags combined with Missing Sections */}
-                                        <div className={`p-8 rounded-[40px] border border-rose-500/20 bg-rose-500/5 backdrop-blur-sm relative overflow-hidden`}>
+                                        <div className={`p-4 sm:p-8 rounded-[20px] sm:rounded-[40px] border border-rose-500/20 bg-rose-500/5 backdrop-blur-sm relative overflow-hidden`}>
                                             <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-rose-500">
                                                 <Flag size={120} />
                                             </div>
@@ -327,8 +327,8 @@ const ResumeAnalyzer = () => {
                                                             <XCircle size={16} className="text-rose-500" />
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm font-black mb-1">{flag.message}</p>
-                                                            <p className="text-xs opacity-60 leading-relaxed font-medium">{flag.solution}</p>
+                                                            <p className="text-sm font-black mb-1 break-words">{flag.message}</p>
+                                                            <p className="text-xs opacity-60 leading-relaxed font-medium break-words">{flag.solution}</p>
                                                         </div>
                                                     </div>
                                                 ))}
@@ -350,7 +350,7 @@ const ResumeAnalyzer = () => {
                                         </div>
 
                                         {/* Formatting Blocks */}
-                                        <div className={`p-8 rounded-[40px] border border-amber-500/20 bg-amber-500/5 backdrop-blur-sm relative overflow-hidden`}>
+                                        <div className={`p-4 sm:p-8 rounded-[20px] sm:rounded-[40px] border border-amber-500/20 bg-amber-500/5 backdrop-blur-sm relative overflow-hidden`}>
                                             <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-amber-500">
                                                 <Layout size={120} />
                                             </div>
@@ -363,7 +363,7 @@ const ResumeAnalyzer = () => {
                                                         <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-lg bg-amber-500/10 flex items-center justify-center">
                                                             <ShieldCheck size={16} className="text-amber-500" />
                                                         </div>
-                                                        <p className="text-sm font-black leading-relaxed">{issue}</p>
+                                                        <p className="text-sm font-black leading-relaxed break-words">{issue}</p>
                                                     </div>
                                                 ))}
                                                 {(!result.formatting?.issues?.length) && (
@@ -392,7 +392,7 @@ const ResumeAnalyzer = () => {
                                     <SectionHeader title="Priority Correction Roadmap" icon={Edit3} color="text-indigo-500" />
                                     <div className="grid lg:grid-cols-2 gap-8">
                                         {/* Structural Fixes */}
-                                        <div className={`p-10 rounded-[48px] border relative overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-700 shadow-2xl' : 'bg-white border-slate-200 shadow-xl'}`}>
+                                        <div className={`p-5 sm:p-10 rounded-[20px] sm:rounded-[48px] border relative overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-700 shadow-2xl' : 'bg-white border-slate-200 shadow-xl'}`}>
                                             <div className="absolute top-0 right-0 p-8 opacity-[0.02]">
                                                 <ListChecks size={120} />
                                             </div>
@@ -408,15 +408,15 @@ const ResumeAnalyzer = () => {
                                                             </span>
                                                             <ArrowRight size={14} className="opacity-0 group-hover:opacity-100 -translate-x-4 group-hover:translate-x-0 transition-all text-indigo-500" />
                                                         </div>
-                                                        <h5 className="font-black text-[15px] mb-1.5 leading-tight">{imp.issue}</h5>
-                                                        <p className="text-sm opacity-60 leading-relaxed font-medium">{imp.solution}</p>
+                                                        <h5 className="font-black text-[15px] mb-1.5 leading-tight break-words">{imp.issue}</h5>
+                                                        <p className="text-sm opacity-60 leading-relaxed font-medium break-words">{imp.solution}</p>
                                                     </div>
                                                 ))}
                                             </div>
                                         </div>
 
                                         {/* Bullet Optimization */}
-                                        <div className={`p-10 rounded-[48px] border relative overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-700 shadow-2xl' : 'bg-white border-slate-200 shadow-xl'}`}>
+                                        <div className={`p-5 sm:p-10 rounded-[20px] sm:rounded-[48px] border relative overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-700 shadow-2xl' : 'bg-white border-slate-200 shadow-xl'}`}>
                                             <div className="absolute top-0 right-0 p-8 opacity-[0.02]">
                                                 <Percent size={120} />
                                             </div>
@@ -446,8 +446,8 @@ const ResumeAnalyzer = () => {
                                 </div>
 
                                 {/* 4. TECHNICAL ALIGNMENT (SUPPORTING DATA) */}
-                                <div className="grid lg:grid-cols-3 gap-8">
-                                    <div className={`p-8 rounded-[40px] border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+                                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
+                                    <div className={`p-4 sm:p-8 rounded-[20px] sm:rounded-[40px] border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
                                         <h4 className="text-[10px] font-black uppercase opacity-40 mb-6 flex items-center gap-2 tracking-widest">
                                             <Briefcase size={16} className="text-green-500" /> Matched Intelligence
                                         </h4>
@@ -465,7 +465,7 @@ const ResumeAnalyzer = () => {
                                         </div>
                                     </div>
 
-                                    <div className={`p-8 rounded-[40px] border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+                                    <div className={`p-4 sm:p-8 rounded-[20px] sm:rounded-[40px] border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
                                         <h4 className="text-[10px] font-black uppercase opacity-40 mb-6 flex items-center gap-2 tracking-widest">
                                             <Terminal size={16} className="text-slate-500" /> Neural Extraction
                                         </h4>
@@ -475,7 +475,7 @@ const ResumeAnalyzer = () => {
                                         </div>
                                     </div>
 
-                                    <div className={`p-8 rounded-[40px] border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} flex flex-col justify-center`}>
+                                    <div className={`p-4 sm:p-8 rounded-[20px] sm:rounded-[40px] border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} flex flex-col justify-center`}>
                                         <button onClick={() => setResult(null)} className="group w-full py-6 bg-green-600 hover:bg-green-700 text-white rounded-[24px] font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all active:scale-95 shadow-2xl shadow-green-900/40">
                                             <RefreshCcw size={20} className="group-hover:rotate-180 transition-transform duration-700" />
                                             New Diagnostic

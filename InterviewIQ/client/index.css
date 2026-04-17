@@ -50,6 +50,27 @@ select.auth-input:-webkit-autofill {
   @apply outline-2 outline-offset-2 outline-green-500 rounded;
 }
 
+/* Scrollbar-hide utility for horizontal scroll areas */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Custom scrollbar for tab navigation */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 0;
+  width: 0;
+}
+
+.custom-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Custom Animations */
 @keyframes fadeIn {
   from {

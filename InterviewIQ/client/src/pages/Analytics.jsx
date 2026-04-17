@@ -526,28 +526,28 @@ export default function Analytics() {
           </div>
         </div>
 
-      
 
-{/* Metrics Explanation Banner */ }
-<div className={`mb-6 p-4 rounded-xl border ${isDarkMode ? 'bg-blue-900/20 border-blue-700/50' : 'bg-blue-50 border-blue-200'
-    }`}>
-    <div className="flex items-start gap-3">
-        <Info size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
-        <div className="flex-1">
-            <h4 className={`font-semibold text-sm mb-1 ${isDarkMode ? 'text-blue-300' : 'text-blue-900'}`}>
+
+        {/* Metrics Explanation Banner */}
+        <div className={`mb-6 p-4 rounded-xl border ${isDarkMode ? 'bg-blue-900/20 border-blue-700/50' : 'bg-blue-50 border-blue-200'
+          }`}>
+          <div className="flex items-start gap-3">
+            <Info size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h4 className={`font-semibold text-sm mb-1 ${isDarkMode ? 'text-blue-300' : 'text-blue-900'}`}>
                 📊 Understanding Your Metrics
-            </h4>
-            <p className={`text-xs leading-relaxed ${isDarkMode ? 'text-blue-200' : 'text-blue-800'}`}>
+              </h4>
+              <p className={`text-xs leading-relaxed ${isDarkMode ? 'text-blue-200' : 'text-blue-800'}`}>
                 <strong>Score Improvement</strong> shows your progress over time, calculated as:
                 <code className={`mx-1 px-2 py-0.5 rounded ${isDarkMode ? 'bg-blue-800/50' : 'bg-blue-100'}`}>
-                    ((Latest Score - First Score) / First Score) × 100
+                  ((Latest Score - First Score) / First Score) × 100
                 </code>
                 <br />
                 For example: If your first interview scored 6/10 and latest scored 7.5/10, improvement = ((7.5 - 6) / 6) × 100 = <strong>+25%</strong> 📈
-            </p>
+              </p>
+            </div>
+          </div>
         </div>
-    </div>
-</div>
 
 
 
@@ -625,7 +625,7 @@ export default function Analytics() {
 
         {/* Tabs Navigation */}
         <div className={`mb-6 border-b ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`}>
-          <div className="flex gap-6 overflow-x-auto">
+          <div className="flex gap-6 overflow-x-auto scrollbar-hide">
             {[
               { id: 'overview', label: 'Overview', icon: BarChart3 },
               { id: 'skills', label: 'Skills Analysis', icon: Brain },

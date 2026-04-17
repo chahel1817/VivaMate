@@ -87,8 +87,8 @@ export default function NotificationBell() {
             <button
                 onClick={() => setOpen(o => !o)}
                 className={`relative p-2.5 rounded-xl transition-all duration-200 ${open
-                        ? isDarkMode ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-900'
-                        : isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                    ? isDarkMode ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-900'
+                    : isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
                     }`}
                 aria-label="Notifications"
             >
@@ -102,10 +102,19 @@ export default function NotificationBell() {
 
             {/* ── Dropdown ── */}
             {open && (
-                <div className={`absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl shadow-2xl border overflow-hidden z-[999] ${isDarkMode
+                <div className={`
+                    fixed sm:absolute inset-x-2 sm:inset-x-auto sm:right-0 top-auto sm:top-full mt-2 
+                    w-auto sm:w-96 max-w-[calc(100vw-16px)] rounded-2xl shadow-2xl border overflow-hidden z-[999] 
+                    ${isDarkMode
                         ? 'bg-slate-900 border-slate-700 shadow-black/60'
                         : 'bg-white border-slate-200 shadow-slate-300/40'
-                    }`}>
+                    }`}
+                    style={{
+                        ...(typeof window !== 'undefined' && window.innerWidth < 640
+                            ? { top: `${(containerRef.current?.getBoundingClientRect().bottom ?? 60) + 8}px` }
+                            : {})
+                    }}
+                >
 
                     {/* Header */}
                     <div className={`flex items-center justify-between px-4 py-3 border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>

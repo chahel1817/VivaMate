@@ -164,7 +164,10 @@ const Leaderboard = () => {
                         </p>
 
                         {/* Tabs */}
-                        <div className="flex gap-2 mt-6 justify-center overflow-x-auto pb-1">
+                        <div
+                            className="flex gap-2 mt-6 justify-center overflow-x-auto pb-1 -mx-4 px-4"
+                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+                        >
                             {tabs.map((tab) => {
                                 const Icon = tab.icon;
                                 const isActive = activeTab === tab.id;
@@ -173,8 +176,8 @@ const Leaderboard = () => {
                                         key={tab.id}
                                         onClick={() => { setActiveTab(tab.id); setOffset(0); }}
                                         className={`relative flex items-center gap-1.5 px-4 py-2 rounded-full font-semibold text-sm transition-all whitespace-nowrap ${isActive
-                                                ? 'bg-white text-purple-700 shadow-lg shadow-white/20'
-                                                : isDarkMode ? 'bg-white/10 text-white/70 hover:bg-white/20' : 'bg-white/20 text-white hover:bg-white/30'
+                                            ? 'bg-white text-purple-700 shadow-lg shadow-white/20'
+                                            : isDarkMode ? 'bg-white/10 text-white/70 hover:bg-white/20' : 'bg-white/20 text-white hover:bg-white/30'
                                             }`}
                                     >
                                         <Icon className="w-4 h-4" />
@@ -197,8 +200,8 @@ const Leaderboard = () => {
                     {/* Your Rank Card */}
                     {userStats && activeTab !== 'friends' && activeTab !== 'weekly' && (
                         <div className={`rounded-2xl p-4 sm:p-5 border flex flex-col sm:flex-row items-center gap-4 ${isDarkMode
-                                ? 'bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border-purple-800/50'
-                                : 'bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200'
+                            ? 'bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border-purple-800/50'
+                            : 'bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200'
                             }`}>
                             <div className="relative flex-shrink-0">
                                 <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-white font-black text-2xl ${isDarkMode ? 'bg-purple-600' : 'bg-purple-500'} shadow-lg`}>
@@ -251,8 +254,8 @@ const Leaderboard = () => {
                                             onChange={e => setAddEmail(e.target.value)}
                                             onKeyDown={e => e.key === 'Enter' && sendFriendRequest()}
                                             className={`w-full pl-9 pr-4 py-2.5 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-purple-500 transition-all ${isDarkMode
-                                                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
-                                                    : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'
+                                                ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
+                                                : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'
                                                 }`}
                                         />
                                     </div>
@@ -380,8 +383,8 @@ const Leaderboard = () => {
                                                 <div
                                                     key={entry.userId || index}
                                                     className={`flex items-center gap-3 px-5 py-4 transition-colors ${isMe
-                                                            ? isDarkMode ? 'bg-purple-900/20 border-l-4 border-purple-500' : 'bg-purple-50 border-l-4 border-purple-400'
-                                                            : isDarkMode ? 'hover:bg-slate-700/40' : 'hover:bg-slate-50'
+                                                        ? isDarkMode ? 'bg-purple-900/20 border-l-4 border-purple-500' : 'bg-purple-50 border-l-4 border-purple-400'
+                                                        : isDarkMode ? 'hover:bg-slate-700/40' : 'hover:bg-slate-50'
                                                         }`}
                                                 >
                                                     <div className="w-7 text-center flex-shrink-0">
@@ -485,8 +488,8 @@ const Leaderboard = () => {
                                                 <div
                                                     key={entry.userId || index}
                                                     className={`flex items-center gap-3 sm:gap-4 px-4 py-3.5 transition-colors ${isMe
-                                                            ? isDarkMode ? 'bg-purple-900/25 border-l-4 border-purple-500' : 'bg-purple-50 border-l-4 border-purple-400'
-                                                            : isDarkMode ? 'hover:bg-slate-700/40' : 'hover:bg-slate-50'
+                                                        ? isDarkMode ? 'bg-purple-900/25 border-l-4 border-purple-500' : 'bg-purple-50 border-l-4 border-purple-400'
+                                                        : isDarkMode ? 'hover:bg-slate-700/40' : 'hover:bg-slate-50'
                                                         }`}
                                                 >
                                                     <div className="w-8 sm:w-10 flex-shrink-0 text-center">
@@ -532,8 +535,8 @@ const Leaderboard = () => {
                             <button
                                 onClick={() => setOffset(offset + limit)}
                                 className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${isDarkMode
-                                        ? 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-900/40'
-                                        : 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-200'
+                                    ? 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-900/40'
+                                    : 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-200'
                                     }`}
                             >
                                 Load More <ChevronDown className="w-4 h-4" />

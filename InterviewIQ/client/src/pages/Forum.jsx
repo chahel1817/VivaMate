@@ -169,14 +169,16 @@ export default function Forum() {
           </div>
 
           {/* Category Tabs */}
-          <div className="flex gap-2 overflow-x-auto pb-1">
+          <div
+            className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide"
+          >
             {CATEGORIES.map(cat => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
                 className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold transition-all border ${activeCategory === cat
-                    ? 'bg-purple-600 text-white border-purple-600'
-                    : isDarkMode ? 'border-slate-700 text-slate-400 hover:border-slate-500' : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                  ? 'bg-purple-600 text-white border-purple-600'
+                  : isDarkMode ? 'border-slate-700 text-slate-400 hover:border-slate-500' : 'border-slate-200 text-slate-500 hover:border-slate-300'
                   }`}
               >
                 {cat}

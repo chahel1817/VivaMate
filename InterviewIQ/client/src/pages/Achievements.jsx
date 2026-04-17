@@ -145,7 +145,10 @@ const Achievements = () => {
                     )}
 
                     {/* Category Filters */}
-                    <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+                    <div
+                        className="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-4 px-4 scroll-smooth snap-x snap-mandatory"
+                        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+                    >
                         {categories.map((category) => {
                             const Icon = category.icon;
                             const count = category.id === 'all'
@@ -160,7 +163,7 @@ const Achievements = () => {
                                 <button
                                     key={category.id}
                                     onClick={() => setFilter(category.id)}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-all whitespace-nowrap ${filter === category.id
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-all whitespace-nowrap snap-start ${filter === category.id
                                         ? isDarkMode
                                             ? 'bg-purple-600 text-white'
                                             : 'bg-purple-500 text-white'
