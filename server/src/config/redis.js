@@ -39,11 +39,13 @@ function createRedisClient() {
     const common = {
         lazyConnect: true,
         enableReadyCheck: true,
-        connectTimeout: 4000,
-        maxRetriesPerRequest: 1,
+        connectTimeout: 10000, // Increased to 10s
+        maxRetriesPerRequest: null, // Don't give up on requests during reconnection
+        keepAlive: 10000, // Send keep-alive packets every 10s
         retryStrategy: (times) => {
-            if (times > 3) return null;
-            return Math.min(times * 250, 1000);
+            // Reconnect exponentially, cap at 3 seconds
+            const delay = Math.min(times * 100, 3000);
+            return delay;
         }
     };
 
