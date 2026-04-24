@@ -1,10 +1,7 @@
 const multer = require("multer");
+const { storage } = require("../config/cloudinary");
 
-const storage = multer.diskStorage({
-  destination: "uploads/",
-  filename: (_, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
+// Use the Cloudinary storage we just configured
+const upload = multer({ storage });
 
-module.exports = multer({ storage });
+module.exports = upload;

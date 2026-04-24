@@ -5,14 +5,16 @@ const protect = require("../middleware/authMiddleware");
 const router = express.Router();
 
 router.post("/video", protect, upload.single("video"), (req, res) => {
+  // Cloudinary automatically provides the full secure URL in req.file.path
   res.json({
-    videoUrl: `/uploads/${req.file.filename}`,
+    videoUrl: req.file.path,
   });
 });
 
 router.post("/image", protect, upload.single("image"), (req, res) => {
+  // Cloudinary automatically provides the full secure URL in req.file.path
   res.json({
-    imageUrl: `/uploads/${req.file.filename}`,
+    imageUrl: req.file.path,
   });
 });
 
