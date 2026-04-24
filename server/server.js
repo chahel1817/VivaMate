@@ -1,4 +1,6 @@
 require("dotenv").config();
+const { initSentry } = require("./src/config/sentry");
+initSentry();
 
 const connectDB = require("./src/config/db");
 const app = require("./src/app");

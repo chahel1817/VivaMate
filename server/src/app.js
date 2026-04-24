@@ -3,6 +3,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
+const Sentry = require("@sentry/node");
 const { apiLimiter } = require("./middleware/rateLimiter");
 const authRoutes = require("./routes/authRoutes");
 const aiRoutes = require("./routes/aiRoutes");
@@ -215,6 +216,9 @@ app.get("/", (req, res) => {
 app.use((req, res, next) => {
   res.status(404).json({ success: false, message: "Route not found" });
 });
+
+// Sentry Error Handler
+Sentry.setupExpressErrorHandler(app);
 
 // Global Error Handler
 app.use((err, req, res, next) => {
