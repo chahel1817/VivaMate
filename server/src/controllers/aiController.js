@@ -120,7 +120,7 @@ function parseQuestionsFromLLM(content) {
 	return Array.from(map.values());
 }
 
-async function gatherExistingKeys({ sessionId, userId }) {
+async function gatherExistingKeys({ sessionId, userId, topic }) {
 	const set = new Set();
 	try {
 		if (sessionId) {
@@ -129,17 +129,24 @@ async function gatherExistingKeys({ sessionId, userId }) {
 				await InterviewSession.findOne({ sessionId }).lean();
 			if (q && Array.isArray(q.questions)) {
 				for (const it of q.questions) {
-					const txt = String(it.question ?? it.text ?? it.prompt ?? '').trim();
+					// questions are stored as plain strings in the array
+					const txt = String(typeof it === 'string' ? it : (it.question ?? it.text ?? it.prompt ?? '')).trim();
 					if (txt) set.add(hashText(normalizeText(txt)));
 				}
 			}
 		}
 		if (userId) {
-			const sessions = await InterviewSession.find({ userId }).select('questions').lean().limit(100);
+			// Build query: filter by the same user, and optionally the same topic/domain
+			const filter = { user: userId }; // FIX: was 'userId', model field is 'user'
+			if (topic) {
+				filter['topic.domain'] = topic.domain;
+				if (topic.tech) filter['topic.tech'] = topic.tech;
+			}
+			const sessions = await InterviewSession.find(filter).select('questions').lean().limit(50);
 			for (const s of sessions) {
 				if (!s.questions) continue;
 				for (const it of s.questions) {
-					const txt = String(it.question ?? it.text ?? '').trim();
+					const txt = String(typeof it === 'string' ? it : (it.question ?? it.text ?? '')).trim();
 					if (txt) set.add(hashText(normalizeText(txt)));
 				}
 			}
@@ -147,6 +154,7 @@ async function gatherExistingKeys({ sessionId, userId }) {
 	} catch (e) {
 		console.warn('gatherExistingKeys error', e.message);
 	}
+	console.log(`[AI] Gathered ${set.size} existing question hashes for dedup`);
 	return set;
 }
 
@@ -165,8 +173,8 @@ function applyGenerousScoreCurve(score) {
 // ==========================================
 
 exports.generateUniqueQuestions = async (options = {}) => {
-	const { type = 'general', count = 5, sessionId = null, userId = null, maxAttempts = 3 } = options;
-	const existingKeys = await gatherExistingKeys({ sessionId, userId });
+	const { type = 'general', count = 5, sessionId = null, userId = null, topic = null, maxAttempts = 3 } = options;
+	const existingKeys = await gatherExistingKeys({ sessionId, userId, topic });
 	const result = [];
 	const seen = new Set(existingKeys);
 

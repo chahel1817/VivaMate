@@ -28,6 +28,7 @@ exports.startSession = async (req, res) => {
       type: generationType,
       count: totalQuestions,
       userId: req.user,
+      topic: { domain, tech },
     });
 
     const questionTexts = questionsData.map(q => q.question);

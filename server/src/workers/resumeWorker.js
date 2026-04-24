@@ -3,6 +3,7 @@ const { connection } = require('../config/bullmq');
 const aiPrompt = require("../utils/aiPrompt");
 const aiController = require("../controllers/aiController");
 const User = require("../models/User");
+const Sentry = require("@sentry/node");
 
 const resumeWorker = new Worker('resume-analysis', async (job) => {
     const { resumeText, userId, socketId } = job.data;
@@ -31,6 +32,11 @@ const resumeWorker = new Worker('resume-analysis', async (job) => {
 
     } catch (error) {
         console.error(`[Worker] Failed job ${job.id}:`, error.message);
+
+        // Report error to Sentry
+        Sentry.captureException(error, {
+            extra: { jobId: job.id, userId: userId }
+        });
 
         // Notify frontend of failure
         if (global.io) {
