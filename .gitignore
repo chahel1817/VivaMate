@@ -16,6 +16,7 @@ build/
 # OS files
 .DS_Store
 Thumbs.db
+Desktop.ini
 
 # Database cleanup
 server/wipe_db.js
@@ -23,7 +24,7 @@ server/wipe_db.js
 # IDE Settings
 .vscode/
 
-# User Uploads (Ignore content but keep folder)
+# User Uploads
 server/uploads/*
 !server/uploads/.gitkeep
 
@@ -38,13 +39,10 @@ server/uploads/*
 *.webm
 *.pdf
 
-# Logs
+# Logs (Global)
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
-# System Files
-.DS_Store
-Thumbs.db
-Desktop.ini
+# Root Config Files
+package.json
+package-lock.json
+eslint.config.js
