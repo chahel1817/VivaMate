@@ -17,6 +17,7 @@ const challengeRoutes = require("./routes/challengeRoutes");
 const preferencesRoutes = require("./routes/preferencesRoutes");
 const leaderboardRoutes = require("./routes/leaderboardRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const { redis, isRedisAvailable } = require("./config/redis");
 
 // CORS Configuration: Allow local development and all Vercel deployments
 const app = express();
@@ -86,6 +87,16 @@ app.use("/api/notifications", notificationRoutes);
 
 app.get("/api/dashboard", protect, async (req, res) => {
   try {
+    const cacheKey = `dashboard:${req.user}`;
+
+    // Try to get from Cache
+    if (await isRedisAvailable()) {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        return res.json(JSON.parse(cached));
+      }
+    }
+
     const InterviewSession = require("./models/InterviewSession");
 
     // Fetch all interview sessions for the user
@@ -112,14 +123,21 @@ app.get("/api/dashboard", protect, async (req, res) => {
       score: s.overallScore ? `${s.overallScore}/10` : "In Progress",
     }));
 
-    res.json({
+    const result = {
       message: "Welcome to dashboard",
       userId: req.user,
       interviewsTaken: sessions.length,
       averageScore: avgScore, // Percentage format (0-100)
       lastInterview,
       recentActivity,
-    });
+    };
+
+    // Save to Cache (Expires in 10 minutes)
+    if (await isRedisAvailable()) {
+      await redis.set(cacheKey, JSON.stringify(result), "EX", 600);
+    }
+
+    res.json(result);
   } catch (error) {
     console.error("Dashboard error:", error);
     res.status(500).json({ message: "Server error" });
@@ -129,6 +147,16 @@ app.get("/api/dashboard", protect, async (req, res) => {
 // Dashboard stats endpoint (for compatibility)
 app.get("/api/dashboard/stats", protect, async (req, res) => {
   try {
+    const cacheKey = `dashboard:stats:${req.user}`;
+
+    // Try to get from Cache
+    if (await isRedisAvailable()) {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        return res.json(JSON.parse(cached));
+      }
+    }
+
     const InterviewSession = require("./models/InterviewSession");
 
     const sessions = await InterviewSession
@@ -164,7 +192,7 @@ app.get("/api/dashboard/stats", protect, async (req, res) => {
         score: s.overallScore || 0
       }));
 
-    res.json({
+    const result = {
       interviewsTaken: completedSessions.length, // Only count completed interviews
       averageScore: avgScore,
       lastInterview: completedSessions.length > 0 ? new Date(completedSessions[0].createdAt).toISOString() : null,
@@ -178,7 +206,14 @@ app.get("/api/dashboard/stats", protect, async (req, res) => {
       })),
       skillBreakdown,
       performanceTrend
-    });
+    };
+
+    // Save to Cache (Expires in 10 minutes)
+    if (await isRedisAvailable()) {
+      await redis.set(cacheKey, JSON.stringify(result), "EX", 600);
+    }
+
+    res.json(result);
   } catch (error) {
     console.error("Dashboard stats error:", error);
     res.status(500).json({ message: "Server error" });

@@ -3,6 +3,7 @@ const aiPrompt = require('../utils/aiPrompt');
 const mongoose = require('mongoose');
 const InterviewSession = require('../models/InterviewSession');
 const DailyInsight = require('../models/DailyInsight');
+const { redis, isRedisAvailable } = require("../config/redis");
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const OPENROUTER_API_URL = process.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1/chat/completions';
@@ -249,16 +250,38 @@ exports.getDailyInsight = async (req, res) => {
 		const { type = 'fact' } = req.query;
 		const normalizedType = String(type).toUpperCase() === 'TIP' ? 'TIP' : 'FACT';
 		const todayKey = new Date().toISOString().split('T')[0];
+		const cacheKey = `insight:${normalizedType}:${todayKey}`;
 
+		// 1. Try Redis Cache first
+		if (await isRedisAvailable()) {
+			const cached = await redis.get(cacheKey);
+			if (cached) {
+				console.log(`[Redis] Cache Hit for ${cacheKey}`);
+				return res.status(200).json({
+					success: true,
+					insight: JSON.parse(cached)
+				});
+			}
+		}
+
+		// 2. Try MongoDB second
 		const existing = await DailyInsight.findOne({ date: todayKey, type: normalizedType }).lean();
 		if (existing) {
+			const insightData = {
+				title: existing.title,
+				content: existing.content,
+				type: existing.type
+			};
+
+			// Save to Redis for next time (expires in 24 hours)
+			if (await isRedisAvailable()) {
+				await redis.set(cacheKey, JSON.stringify(insightData), "EX", 86400);
+				console.log(`[Redis] Cached insight for ${cacheKey}`);
+			}
+
 			return res.status(200).json({
 				success: true,
-				insight: {
-					title: existing.title,
-					content: existing.content,
-					type: existing.type
-				}
+				insight: insightData
 			});
 		}
 
