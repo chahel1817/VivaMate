@@ -57,4 +57,6 @@ const interviewSessionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+interviewSessionSchema.index({ user: 1, createdAt: -1 });
+
 module.exports = mongoose.model("InterviewSession", interviewSessionSchema);

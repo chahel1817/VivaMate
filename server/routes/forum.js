@@ -19,7 +19,8 @@ router.post('/', protect, async (req, res) => {
   const post = new Post({
     title: req.body.title,
     content: req.body.content,
-    author: req.body.author
+    author: req.body.author,
+    category: req.body.category || 'General'
   });
   try {
     const newPost = await post.save();
