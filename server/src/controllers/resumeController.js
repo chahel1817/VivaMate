@@ -2,6 +2,7 @@ const pdf = require("pdf-parse");
 const mammoth = require("mammoth");
 const aiPrompt = require("../utils/aiPrompt");
 const aiController = require("./aiController");
+const resumeQueue = require("../queues/resumeQueue");
 
 /**
  * Extracts plain text from a PDF or DOCX buffer.
@@ -22,6 +23,8 @@ async function extractText(buffer, mimetype) {
     const data = await pdf(buffer);
     return data.text;
 }
+
+exports.extractText = extractText;
 
 exports.parseResume = async (req, res) => {
     try {
@@ -78,59 +81,23 @@ exports.analyzeResume = async (req, res) => {
             return res.status(400).json({ success: false, message: "Could not extract text from the file" });
         }
 
-        // Use AI to score and analyze
-        console.log("[Resume] Starting AI analysis...");
-        const prompt = aiPrompt.resumeScoringPrompt(resumeText);
-        let analysis;
+        // 2. Add to Queue for background processing
+        const job = await resumeQueue.add(`analyze-resume-${req.user}`, {
+            resumeText,
+            userId: req.user,
+            originalName: req.file.originalname,
+        }, {
+            attempts: 3,
+            backoff: { type: 'exponential', delay: 5000 }
+        });
 
-        try {
-            analysis = await aiController.generateResumeData(prompt);
-        } catch (aiErr) {
-            console.error("[Resume] AI analysis failed:", aiErr.message);
-            return res.status(500).json({
-                success: false,
-                message: "AI analysis failed. This could be due to a connection issue or high traffic. Please try again in a moment."
-            });
-        }
+        console.log(`[Queue] Added resume job: ${job.id} for user ${req.user}`);
 
-        // Validate analysis structure roughly
-        if (!analysis.overallScore || !analysis.breakdown) {
-            console.error("[Resume] Invalid analysis structure received from AI");
-            return res.status(500).json({
-                success: false,
-                message: "Received an incomplete analysis from the AI. Please try re-uploading."
-            });
-        }
-
-        // Add defaults if missing to prevent frontend crashes
-        analysis.verdict = analysis.verdict || "Needs Improvement";
-        analysis.detectedRole = analysis.detectedRole || { role: "Professional", industry: "Technology", confidence: 0 };
-        analysis.jdMatch = analysis.jdMatch || { overall: 0, requiredMatched: 0, preferredMatched: 0, text: "No match data available" };
-
-        analysis.sectionDensity = analysis.sectionDensity || [];
-        analysis.jobTitleAlignment = analysis.jobTitleAlignment || { score: 0, suggestedTitle: "N/A", analysis: "N/A" };
-        analysis.bulletRewrites = analysis.bulletRewrites || [];
-        analysis.missingSections = analysis.missingSections || [];
-        analysis.synonyms = analysis.synonyms || [];
-        analysis.redFlags = analysis.redFlags || [];
-        analysis.atsSimulation = analysis.atsSimulation || { rawExtraction: "No extraction data.", detectedSections: [] };
-        analysis.benchmarks = analysis.benchmarks || { roleAverage: 70, topScore: 95, yourPercentile: 50 };
-
-        analysis.keywords = analysis.keywords || { matched: [], missing: [] };
-        analysis.formatting = analysis.formatting || { isOneColumn: true, hasTables: false, hasStandardHeadings: true, issues: [] };
-        analysis.experience = analysis.experience || { relevantYears: 0, gaps: [] };
-        analysis.quantification = analysis.quantification || { score: 0 };
-        analysis.improvements = analysis.improvements || [];
-
-        // Update user's hasResume flag
-        if (req.user && req.user.id) {
-            const User = require("../models/User");
-            await User.findByIdAndUpdate(req.user.id, { hasResume: true });
-        }
-
-        return res.status(200).json({
+        // 3. Return 202 Accepted immediately
+        return res.status(202).json({
             success: true,
-            analysis
+            message: "Resume analysis started in the background. You'll be notified once it's ready.",
+            jobId: job.id
         });
 
     } catch (error) {
