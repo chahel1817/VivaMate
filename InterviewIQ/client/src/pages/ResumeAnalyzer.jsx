@@ -30,12 +30,16 @@ import {
 import { useTheme } from '../context/themeContext';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
+import socket from '../services/socket';
+import { useAuth } from '../context/authContext';
 import toast from 'react-hot-toast';
 
 const ResumeAnalyzer = () => {
     const { isDarkMode } = useTheme();
+    const { user } = useAuth();
     const [file, setFile] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [isWaitingForWorker, setIsWaitingForWorker] = useState(false);
     const [result, setResult] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
     const [downloading, setDownloading] = useState(false);
@@ -79,6 +83,31 @@ const ResumeAnalyzer = () => {
         }
     };
 
+    // Socket listener for background analysis
+    React.useEffect(() => {
+        if (!user || !user._id) return;
+
+        const eventName = `resume-analysis-completed:${user._id}`;
+
+        socket.on(eventName, (data) => {
+            if (data.success) {
+                setResult(data.analysis);
+                setIsWaitingForWorker(false);
+                toast.success('AI Analysis Completed!', {
+                    duration: 5000,
+                    icon: '🚀'
+                });
+            } else {
+                setIsWaitingForWorker(false);
+                toast.error(data.message || 'Analysis failed in background');
+            }
+        });
+
+        return () => {
+            socket.off(eventName);
+        };
+    }, [user]);
+
     const handleUpload = async () => {
         if (!file) {
             toast.error('Please select a file first');
@@ -94,7 +123,15 @@ const ResumeAnalyzer = () => {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
-            if (response.data.success) {
+            if (response.status === 202) {
+                // Background processing started
+                setIsWaitingForWorker(true);
+                toast('Step 1 Complete: Resume Uploaded. Now Analyzing...', {
+                    icon: '📤',
+                    duration: 4000
+                });
+            } else if (response.data.success && response.data.analysis) {
+                // Compatibility for sync responses
                 setResult(response.data.analysis);
                 toast.success('Analysis complete!');
             }
@@ -201,18 +238,27 @@ const ResumeAnalyzer = () => {
                                         {file ? <ShieldCheck size={48} /> : <Upload size={48} />}
                                     </div>
 
-                                    {loading ? (
+                                    {loading || isWaitingForWorker ? (
                                         <div className="space-y-8 w-full max-w-xs">
                                             <div className="flex flex-col items-center gap-4">
                                                 <RefreshCcw className="animate-spin text-green-500" size={40} />
                                                 <div className="space-y-1">
-                                                    <h3 className="text-2xl font-black uppercase tracking-tighter">De-coding Resume</h3>
-                                                    <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Running 12-Layer Neural Check</p>
+                                                    <h3 className="text-2xl font-black uppercase tracking-tighter">
+                                                        {isWaitingForWorker ? 'AI is Thinking' : 'De-coding Resume'}
+                                                    </h3>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest opacity-40">
+                                                        {isWaitingForWorker ? 'Analyzing with Multi-Layer Neural Model' : 'Running Initial File Scan'}
+                                                    </p>
                                                 </div>
                                             </div>
-                                            <div className="h-2 w-full bg-slate-200/10 rounded-full overflow-hidden">
-                                                <div className="h-full bg-green-500 animate-progress origin-left" />
+                                            <div className="h-2 w-full bg-slate-200/10 rounded-full overflow-hidden relative">
+                                                <div className={`h-full bg-green-500 rounded-full ${isWaitingForWorker ? 'animate-[pulse_1.5s_infinite]' : 'animate-progress origin-left'}`} />
                                             </div>
+                                            {isWaitingForWorker && (
+                                                <p className="text-[9px] font-bold opacity-40 text-center animate-pulse italic">
+                                                    This takes ~15 seconds. You don't have to wait - we'll update the screen automatically.
+                                                </p>
+                                            )}
                                         </div>
                                     ) : (
                                         <>
@@ -309,9 +355,9 @@ const ResumeAnalyzer = () => {
                                 </div>
 
                                 {/* 2. REJECTION BLOCKERS (VITAL) */}
-                                <div className="space-y-6">
+                                <div className="space-y-8 mt-16">
                                     <SectionHeader title="Critical Rejection Blocks" icon={AlertTriangle} color="text-rose-500" />
-                                    <div className="grid md:grid-cols-2 gap-6">
+                                    <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
                                         {/* Red Flags combined with Missing Sections */}
                                         <div className={`p-4 sm:p-8 rounded-[20px] sm:rounded-[40px] border border-rose-500/20 bg-rose-500/5 backdrop-blur-sm relative overflow-hidden`}>
                                             <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-rose-500">
@@ -388,9 +434,9 @@ const ResumeAnalyzer = () => {
                                 </div>
 
                                 {/* 3. ACTIONABLE FIXES */}
-                                <div className="space-y-6">
+                                <div className="space-y-8 mt-20">
                                     <SectionHeader title="Priority Correction Roadmap" icon={Edit3} color="text-indigo-500" />
-                                    <div className="grid lg:grid-cols-2 gap-8">
+                                    <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
                                         {/* Structural Fixes */}
                                         <div className={`p-5 sm:p-10 rounded-[20px] sm:rounded-[48px] border relative overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-700 shadow-2xl' : 'bg-white border-slate-200 shadow-xl'}`}>
                                             <div className="absolute top-0 right-0 p-8 opacity-[0.02]">
@@ -446,9 +492,9 @@ const ResumeAnalyzer = () => {
                                 </div>
 
                                 {/* 4. TECHNICAL ALIGNMENT (SUPPORTING DATA) */}
-                                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
-                                    <div className={`p-4 sm:p-8 rounded-[20px] sm:rounded-[40px] border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
-                                        <h4 className="text-[10px] font-black uppercase opacity-40 mb-6 flex items-center gap-2 tracking-widest">
+                                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-10 mt-24">
+                                    <div className={`p-6 sm:p-10 rounded-[28px] sm:rounded-[48px] border transition-all hover:scale-[1.01] ${isDarkMode ? 'bg-slate-800 border-slate-700 shadow-2xl' : 'bg-white border-slate-200 shadow-xl'} flex flex-col`}>
+                                        <h4 className="text-[10px] font-black uppercase opacity-40 mb-8 flex items-center gap-2 tracking-widest">
                                             <Briefcase size={16} className="text-green-500" /> Matched Intelligence
                                         </h4>
                                         <div className="flex flex-wrap gap-2">
@@ -465,19 +511,19 @@ const ResumeAnalyzer = () => {
                                         </div>
                                     </div>
 
-                                    <div className={`p-4 sm:p-8 rounded-[20px] sm:rounded-[40px] border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
-                                        <h4 className="text-[10px] font-black uppercase opacity-40 mb-6 flex items-center gap-2 tracking-widest">
+                                    <div className={`p-6 sm:p-10 rounded-[28px] sm:rounded-[48px] border transition-all hover:scale-[1.01] ${isDarkMode ? 'bg-slate-800 border-slate-700 shadow-2xl' : 'bg-white border-slate-200 shadow-xl'} flex flex-col`}>
+                                        <h4 className="text-[10px] font-black uppercase opacity-40 mb-8 flex items-center gap-2 tracking-widest">
                                             <Terminal size={16} className="text-slate-500" /> Neural Extraction
                                         </h4>
-                                        <div className={`p-5 rounded-2xl font-mono text-[9px] h-32 overflow-auto ${isDarkMode ? 'bg-black/40' : 'bg-slate-900'} text-green-500/60 scrollbar-hide border border-white/5`}>
-                                            <div className="opacity-20 mb-2">// RAW SCAN BUFFER v2.0</div>
+                                        <div className={`p-6 rounded-2xl font-mono text-[10px] h-40 overflow-auto ${isDarkMode ? 'bg-black/40' : 'bg-slate-900'} text-green-500/80 scrollbar-hide border border-white/5 flex-1`}>
+                                            <div className="opacity-30 mb-3">// RAW SCAN BUFFER v2.0</div>
                                             {result.atsSimulation?.rawExtraction}
                                         </div>
                                     </div>
 
-                                    <div className={`p-4 sm:p-8 rounded-[20px] sm:rounded-[40px] border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} flex flex-col justify-center`}>
-                                        <button onClick={() => setResult(null)} className="group w-full py-6 bg-green-600 hover:bg-green-700 text-white rounded-[24px] font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all active:scale-95 shadow-2xl shadow-green-900/40">
-                                            <RefreshCcw size={20} className="group-hover:rotate-180 transition-transform duration-700" />
+                                    <div className={`p-6 sm:p-10 rounded-[28px] sm:rounded-[48px] border transition-all hover:scale-[1.01] ${isDarkMode ? 'bg-slate-800 border-slate-700 shadow-2xl' : 'bg-white border-slate-200 shadow-xl'} flex flex-col justify-center`}>
+                                        <button onClick={() => setResult(null)} className="group w-full py-8 bg-green-600 hover:bg-green-700 text-white rounded-[32px] font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-4 transition-all active:scale-95 shadow-2xl shadow-green-900/40">
+                                            <RefreshCcw size={22} className="group-hover:rotate-180 transition-transform duration-700" />
                                             New Diagnostic
                                         </button>
                                     </div>
