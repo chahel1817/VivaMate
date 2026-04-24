@@ -66,7 +66,9 @@ export default function Forum() {
       toast.success("Post published!");
     } catch (err) {
       setPosts(prev => prev.filter(p => p._id !== tempId));
-      toast.error("Failed to post. Please try again.");
+      if (!err.handled) {
+        toast.error("Failed to post. Please try again.");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -85,7 +87,9 @@ export default function Forum() {
       setNewComment(prev => ({ ...prev, [postId]: "" }));
       toast.success("Comment added!");
     } catch (err) {
-      toast.error("Failed to add comment.");
+      if (!err.handled) {
+        toast.error("Failed to add comment.");
+      }
     } finally {
       setCommentSubmitting(prev => ({ ...prev, [postId]: false }));
     }

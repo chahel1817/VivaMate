@@ -25,6 +25,7 @@ api.interceptors.response.use(
         duration: 5000,
         icon: '⏳'
       });
+      error.handled = true;
     }
     return Promise.reject(error);
   }

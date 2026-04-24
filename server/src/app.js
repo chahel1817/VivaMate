@@ -2,8 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
-const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
+const { apiLimiter } = require("./middleware/rateLimiter");
 const authRoutes = require("./routes/authRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const protect = require("./middleware/authMiddleware");
@@ -55,23 +55,7 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// Rate Limiter: Prevent brute force (Higher limit for authenticated users)
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: (req) => {
-    // If the request has a token (in cookies or auth header), give them a higher limit
-    const hasToken = req.cookies?.token || req.headers.authorization?.startsWith("Bearer ");
-    return hasToken ? 500 : 100;
-  },
-  handler: (req, res) => {
-    res.status(429).json({
-      success: false,
-      message: "Whoa there! You're moving a bit too fast. Please take a short breather and try again in a few minutes.",
-      isRateLimit: true
-    });
-  }
-});
-app.use("/api/", limiter);
+app.use("/api/", apiLimiter);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/ai", aiRoutes);

@@ -1,6 +1,7 @@
 const express = require("express");
 const upload = require("../middleware/upload");
 const protect = require("../middleware/authMiddleware");
+const { aiLimiter } = require("../middleware/rateLimiter");
 
 const router = express.Router();
 
@@ -38,7 +39,7 @@ const memoryUpload = multer({
 });
 const resumeController = require("../controllers/resumeController");
 
-router.post("/resume", protect, memoryUpload.single("resume"), resumeController.parseResume);
-router.post("/resume/analyze", protect, memoryUpload.single("resume"), resumeController.analyzeResume);
+router.post("/resume", protect, aiLimiter, memoryUpload.single("resume"), resumeController.parseResume);
+router.post("/resume/analyze", protect, aiLimiter, memoryUpload.single("resume"), resumeController.analyzeResume);
 
 module.exports = router;

@@ -83,7 +83,9 @@ const Leaderboard = () => {
             setAddEmail('');
             fetchFriendsList();
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Failed to send request');
+            if (!err.handled) {
+                toast.error(err.response?.data?.message || 'Failed to send request');
+            }
         } finally {
             setAddLoading(false);
         }
@@ -96,7 +98,9 @@ const Leaderboard = () => {
             fetchFriendsList();
             if (activeTab === 'friends') fetchLeaderboard();
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Failed to accept');
+            if (!err.handled) {
+                toast.error(err.response?.data?.message || 'Failed to accept');
+            }
         }
     };
 

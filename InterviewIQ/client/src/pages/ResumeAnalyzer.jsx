@@ -137,7 +137,9 @@ const ResumeAnalyzer = () => {
             }
         } catch (err) {
             console.error(err);
-            toast.error(err.response?.data?.message || 'Analysis failed');
+            if (!err.handled) {
+                toast.error(err.response?.data?.message || 'Analysis failed');
+            }
         } finally {
             setLoading(false);
         }
